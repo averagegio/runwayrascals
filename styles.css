@@ -1,0 +1,77 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.app-container {
+    height: 100%;
+    width: 100%;
+    background-image: url('runway_background.jpg'); /* Replace with your actual image path */
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.game-title {
+    font-family: 'Bangers', cursive;
+    font-size: 60px;
+    color: #FF1493;
+    text-shadow: 
+        -2px -2px 0 #FFF,
+        2px -2px 0 #FFF,
+        -2px 2px 0 #FFF,
+        2px 2px 0 #FFF,
+        0 0 10px #FF69B4,
+        0 0 20px #FF69B4;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.character-container {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.character-image {
+    width: 200px;
+    height: 200px;
+    background-image: url('character.png'); /* Replace with your actual character image */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.enter-game-btn {
+    background-color: #FFD700;
+    color: #000;
+    border: none;
+    padding: 15px 30px;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 40px;
+}
+
+.enter-game-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+}
+
+.enter-game-btn:active {
+    transform: scale(0.95);
+}
