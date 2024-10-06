@@ -4,23 +4,275 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Runway Rascals - Gameplay</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
+        .game-container {
             width: 100%;
             height: 100%;
+            position: relative;
             overflow: hidden;
         }
-        #gameCanvas {
+        .game-background {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background-color: #000033; /* Dark blue for space background */
+            background-image: url('eiffel-tower.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .game-road {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            background-image: url('cobbleroad.png');
+            background-size: cover;
+        }
+        .game-character {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 80px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: all 0.3s ease;
+        }
+        .game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .game-ui > * {
+            pointer-events: auto;
+        }
+        .level-indicator, .score-display {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 18px;
+        }
+        .level-indicator {
+            top: 10px;
+            left: 10px;
+        }
+        .score-display {
+            top: 10px;
+            right: 10px;
+        }
+        .navigation-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 200px;
+        }
+        .nav-btn {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-btn:hover {
+            background-color: rgba(255, 215, 0, 0.3);
+            transform: scale(1.1);
+        }
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+        .nav-btn svg {
+            width: 40px;
+            height: 40px;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover svg {
+            transform: scale(1.2);
+        }
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 1;
+            }
+            20% {
+                transform: scale(25, 25);
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: scale(40, 40);
+            }
+        }
+        .nav-btn:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+        .exit-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .exit-btn:hover {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .game-obstacle {
+            position: absolute;
+            width: 100px;
+            height: 50px;
+            background-image: url('jet1.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: all 0.3s ease;
+        }
+        .horizontal-obstacle {
+            position: absolute;
+            width: 100px;
+            height: 50px;
+            background-image: url('jet1.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .vertical-obstacle {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-image: url('spaceship-flying-saucer.png'); /* Make sure to have this image in your project folder */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .eiffel-tower {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 100%;
+            background-image: url('eiffel-tower.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: bottom center;
+        }
+
+        .retry-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .retry-popup h2 {
+            margin-bottom: 10px;
+        }
+
+        .retry-popup button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #FFD700;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .restart-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <div class="phone-frame">
+        <div class="app-container">
+            <div class="game-container">
+                <div class="game-background"></div>
+                <div class="game-road"></div>
+                <div class="game-character"></div>
+                <div class="game-ui">
+                    <div class="level-indicator">Level 1</div>
+                    <div class="score-display">Score: 0</div>
+                    <a href="index.html" class="exit-btn">✕</a>
+                    <div class="navigation-panel">
+                        <button class="nav-btn" id="leftBtn">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="#FFD700" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                            </svg>
+                        </button>
+                        <button class="nav-btn" id="upBtn">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="#FFD700" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                            </svg>
+                        </button>
+                        <button class="nav-btn" id="rightBtn">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="#FFD700" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="game-obstacle"></div>
+                <div class="eiffel-tower"></div>
+            </div>
+        </div>
+    </div>
     <script src="gameplay.js"></script>
 </body>
 </html>
