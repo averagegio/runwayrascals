@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Runway Rascals - Select Wardrobe</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="app-container wardrobe-select-bg">
+            <div class="game-header">
+                <h1 class="game-title">Select Outfit</h1>
+            </div>
+            <div class="character-display">
+                <img id="selectedCharacter" src="" alt="Selected Character">
+            </div>
+            <div class="wardrobe-tabs">
+                <button class="tab-btn active" data-tab="outfits">Outfits</button>
+                <button class="tab-btn" data-tab="designers">Shop Designers</button>
+            </div>
+            <div class="wardrobe-selection">
+                <div id="outfits" class="tab-content active">
+                    <div class="outfit-options">
+                        <!-- Outfit options will be dynamically added here -->
+                    </div>
+                </div>
+                <div id="designers" class="tab-content">
+                    <div class="designer-options">
+                        <!-- Designer options will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+            <div class="game-footer">
+                <a href="character-select.html" class="game-btn back-btn">
+                    <span class="btn-text">Back</span>
+                    <span class="btn-shine"></span>
+                </a>
+                <a href="#" id="confirmOutfitBtn" class="game-btn confirm-btn">
+                    <span class="btn-text">Confirm</span>
+                    <span class="btn-shine"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <script src="wardrobe-select.js"></script>
+</body>
+</html>
