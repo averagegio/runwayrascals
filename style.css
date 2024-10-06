@@ -47,7 +47,7 @@ body, html {
 .game-header {
     width: 100%;
     padding: 10px;
-    margin-top: 40px;
+    margin-top: 20px;
 }
 
 .game-title {
@@ -75,55 +75,64 @@ body, html {
 .game-footer {
     width: 100%;
     display: flex;
-    justify-content: center;
-    margin-bottom: 40px;
+    justify-content: space-around;
+    margin-bottom: 20px;
 }
 
-.enter-game-btn {
+.game-btn {
     background: linear-gradient(45deg, #FFD700, #FFA500);
     color: #000;
     text-decoration: none;
     border: none;
-    padding: 15px 40px;
-    font-size: 24px;
+    padding: 10px 20px;
+    font-size: 16px;
     font-weight: bold;
-    border-radius: 50px;
+    border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
     display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.enter-game-btn .btn-text {
+.game-btn .btn-text {
     position: relative;
     z-index: 2;
 }
 
-.enter-game-btn .btn-shine {
+.game-btn .btn-shine {
     position: absolute;
     top: -50%;
     left: -50%;
     width: 200%;
     height: 200%;
-    background: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
     transform: rotate(45deg);
     transition: all 0.3s ease;
 }
 
-.enter-game-btn:hover {
-    transform: scale(1.05);
+.game-btn:hover {
+    transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(45deg, #FFA500, #FFD700);
 }
 
-.enter-game-btn:hover .btn-shine {
+.game-btn:hover .btn-shine {
     top: -100%;
     left: -100%;
 }
 
-.enter-game-btn:active {
-    transform: scale(0.95);
+.game-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .ripple {
@@ -139,4 +148,368 @@ body, html {
         transform: scale(4);
         opacity: 0;
     }
+}
+
+.character-select-bg {
+    background-image: url('George_Igwe_paris_atelier_on_a_cobblestone_street_with_cyber_p_41d7b4d2-2702-43db-b235-ab626159b635.png'); /* Replace with your Eiffel Tower image */
+    background-size: cover;
+    background-position: center;
+}
+
+.character-selection {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    overflow-y: auto;
+    padding: 20px 0;
+}
+
+.character-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.character-option {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    padding: 15px;
+    width: 80%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.character-option:hover {
+    transform: scale(1.05);
+}
+
+.character-option.selected {
+    border: 3px solid #FFD700;
+}
+
+.character-option img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.character-option p {
+    color: #000;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+.character-option {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    text-align: center;
+}
+
+.character-option:hover {
+    transform: scale(1.1);
+}
+
+.character-option.selected {
+    border: 3px solid #FFD700;
+}
+
+.character-option img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.character-option p {
+    color: #FFF;
+    margin-top: 5px;
+}
+
+/* Add these new styles to your existing style.css file */
+
+.wardrobe-tabs {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    color: #FFD700;
+    border-bottom: 2px solid #FFD700;
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+    height: 30%;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.designer-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    overflow-y: auto;
+    height: 100%;
+    padding: 10px;
+}
+
+.designer-option {
+    width: 45%;
+    margin-bottom: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.designer-option:hover {
+    transform: scale(1.05);
+}
+
+.designer-option img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 5px;
+}
+
+.designer-option p {
+    color: #000;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Adjust the existing wardrobe-selection styles */
+.wardrobe-selection {
+    width: 100%;
+    height: 50%;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.outfit-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.outfit-option {
+    width: 90%;
+    height: 120px;
+    margin-bottom: 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.outfit-option:hover {
+    transform: scale(1.05);
+}
+
+.outfit-option.selected {
+    border: 3px solid #FFD700;
+}
+
+.outfit-option img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.outfit-info {
+    flex-grow: 1;
+}
+
+.outfit-info h3 {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.outfit-info p {
+    font-size: 12px;
+    color: #666;
+}
+
+.character-display {
+    height: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.character-display img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* Add or modify these styles in your style.css file */
+
+.wardrobe-select-bg {
+    background-image: url('fashion-closet-bg.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+.wardrobe-tabs {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    color: #FFD700;
+    border-bottom: 2px solid #FFD700;
+}
+
+.wardrobe-selection {
+    width: 100%;
+    height: 50%;
+    overflow: hidden;
+    position: relative;
+}
+
+.tab-content {
+    display: none;
+    height: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.tab-content::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.outfit-options, .designer-options {
+    padding: 10px;
+}
+
+.outfit-option, .designer-option {
+    width: 90%;
+    margin: 0 auto 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.outfit-option {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.designer-option {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.outfit-option:hover, .designer-option:hover {
+    transform: scale(1.05);
+}
+
+.outfit-option.selected, .designer-option.selected {
+    border: 3px solid #FFD700;
+}
+
+.outfit-option img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.designer-option img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 5px;
+}
+
+.outfit-info {
+    flex-grow: 1;
+}
+
+.outfit-info h3, .designer-option p {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.outfit-info p {
+    font-size: 12px;
+    color: #666;
+}
+
+.character-display {
+    height: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.character-display img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
 }
