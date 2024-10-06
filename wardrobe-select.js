@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmOutfitBtn.addEventListener('click', () => {
         if (selectedOutfit) {
             localStorage.setItem('selectedOutfit', JSON.stringify(selectedOutfit));
-            window.location.href = 'index.html';
+            window.location.href = 'gameplay.html'; // Changed to redirect to gameplay.html
         } else {
             alert('Please select an outfit before confirming.');
         }
