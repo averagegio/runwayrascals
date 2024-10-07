@@ -13,18 +13,23 @@
             <div class="game-header">
                 <h1 class="game-title">Runway Rascals</h1>
             </div>
-            <div class="game-content">
-                <!-- Add content for the main page here if needed -->
+            <div id="gameContainer">
+                <canvas id="gameCanvas" style="display: none;"></canvas>
+                <div id="mobileControls" style="display: none;">
+                    <button id="leftArrow">&#9668;</button>
+                    <button id="upArrow">&#9650;</button>
+                    <button id="rightArrow">&#9658;</button>
+                </div>
             </div>
             <div class="game-footer">
                 <a href="character-select.html" class="game-btn customize-btn">
                     <span class="btn-text">Customize Character</span>
                     <span class="btn-shine"></span>
                 </a>
-                <a href="#" id="enterGameBtn" class="game-btn enter-game-btn">
+                <button id="enterGameBtn" class="game-btn enter-game-btn hexagon-btn">
                     <span class="btn-text">Enter Game</span>
                     <span class="btn-shine"></span>
-                </a>
+                </button>
             </div>
         </div>
     </div>
