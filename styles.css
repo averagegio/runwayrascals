@@ -7,35 +7,60 @@
 body, html {
     height: 100%;
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0;
+    font-family: 'Fredoka One', cursive;
+}
+
+.phone-frame {
+    width: 360px;
+    height: 720px;
+    background-color: #000;
+    border-radius: 40px;
     overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0,0,0,0.3);
 }
 
 .app-container {
     height: 100%;
     width: 100%;
-    background-image: url('runway_background.jpg'); /* Replace with your actual image path */
+    background-image: url('George_Igwe_fashion_runway_in_the_stars_on_rainbow_road_with_a_37414911-5bfc-44a6-a654-b6524844b3c0.png');
     background-size: cover;
     background-position: center;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    padding: 40px 20px;
+    padding: 20px 10px;
+    overflow-y: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.app-container::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+}
+
+.game-header {
+    width: 100%;
+    padding: 10px;
+    margin-top: 25px;
 }
 
 .game-title {
-    font-family: 'Bangers', cursive;
-    font-size: 60px;
+    font-size: 32px;
     color: #FF1493;
+    text-align: center;
     text-shadow: 
+        2px 2px 0 #FFF,
         -2px -2px 0 #FFF,
         2px -2px 0 #FFF,
         -2px 2px 0 #FFF,
-        2px 2px 0 #FFF,
         0 0 10px #FF69B4,
         0 0 20px #FF69B4;
-    text-align: center;
-    margin-top: 20px;
 }
 
 .character-container {
@@ -43,35 +68,813 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    min-height: 300px;
 }
 
-.character-image {
-    width: 200px;
-    height: 200px;
-    background-image: url('character.png'); /* Replace with your actual character image */
-    background-size: contain;
-    background-repeat: no-repeat;
+.game-footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center; /* Ensure vertical alignment */
+    margin-bottom: 20px;
+    padding: 0 10px; /* Add some horizontal padding */
+}
+
+.game-btn {
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #000;
+    text-decoration: none;
+    border: none;
+    padding: 8px 15px; /* Reduced padding */
+    font-size: 14px; /* Slightly smaller font size */
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 5px; /* Add some margin between buttons */
+}
+
+.game-btn .btn-text {
+    position: relative;
+    z-index: 2;
+}
+
+.game-btn .btn-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
+    transform: rotate(45deg);
+    transition: all 0.3s ease;
+}
+
+.game-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(45deg, #FFA500, #FFD700);
+}
+
+.game-btn:hover .btn-shine {
+    top: -100%;
+    left: -100%;
+}
+
+.game-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.character-select-bg {
+    background-image: url('George_Igwe_paris_atelier_on_a_cobblestone_street_with_cyber_p_41d7b4d2-2702-43db-b235-ab626159b635.png'); /* Replace with your Eiffel Tower image */
+    background-size: cover;
     background-position: center;
 }
 
-.enter-game-btn {
-    background-color: #FFD700;
-    color: #000;
-    border: none;
-    padding: 15px 30px;
-    font-size: 24px;
-    font-weight: bold;
-    border-radius: 50px;
+.character-selection {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    overflow-y: auto;
+    padding: 20px 0;
+}
+
+.character-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.character-option {
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 40px;
+    transition: transform 0.3s ease;
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    padding: 10px;
+    width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.enter-game-btn:hover {
+.character-option:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
 }
 
-.enter-game-btn:active {
-    transform: scale(0.95);
+.character-option.selected {
+    border: 3px solid #FFD700;
+}
+
+.character-option img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.character-option p {
+    color: #000;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+.character-option {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    text-align: center;
+}
+
+.character-option:hover {
+    transform: scale(1.1);
+}
+
+.character-option.selected {
+    border: 3px solid #FFD700;
+}
+
+.character-option img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.character-option p {
+    color: #FFF;
+    margin-top: 5px;
+}
+
+/* Add these new styles to your existing style.css file */
+
+.wardrobe-tabs {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    color: #FFD700;
+    border-bottom: 2px solid #FFD700;
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+    height: 30%;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.designer-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    overflow-y: auto;
+    height: 100%;
+    padding: 10px;
+}
+
+.designer-option {
+    width: 45%;
+    margin-bottom: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.designer-option:hover {
+    transform: scale(1.05);
+}
+
+.designer-option img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 5px;
+}
+
+.designer-option p {
+    color: #000;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Adjust the existing wardrobe-selection styles */
+.wardrobe-selection {
+    width: 100%;
+    height: 50%;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.outfit-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.outfit-option {
+    width: 90%;
+    height: 100px;
+    margin-bottom: 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+}
+
+.outfit-option:hover {
+    transform: scale(1.05);
+}
+
+.outfit-option.selected {
+    border: 3px solid #FFD700;
+}
+
+.outfit-option img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.outfit-info {
+    flex-grow: 1;
+}
+
+.outfit-info h3 {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.outfit-info p {
+    font-size: 12px;
+    color: #666;
+}
+
+.character-display {
+    height: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.character-display img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* Add or modify these styles in your style.css file */
+
+.wardrobe-select-bg {
+    background-image: url('fashion-closet-bg.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+.wardrobe-tabs {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    color: #FFD700;
+    border-bottom: 2px solid #FFD700;
+}
+
+.wardrobe-selection {
+    width: 100%;
+    height: 50%;
+    overflow: hidden;
+    position: relative;
+}
+
+.tab-content {
+    display: none;
+    height: 100%;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.tab-content::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.outfit-options, .designer-options {
+    padding: 10px;
+}
+
+.outfit-option, .designer-option {
+    width: 90%;
+    margin: 0 auto 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.outfit-option {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.designer-option {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.outfit-option:hover, .designer-option:hover {
+    transform: scale(1.05);
+}
+
+.outfit-option.selected, .designer-option.selected {
+    border: 3px solid #FFD700;
+}
+
+.outfit-option img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.designer-option img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 5px;
+}
+
+.outfit-info {
+    flex-grow: 1;
+}
+
+.outfit-info h3, .designer-option p {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.outfit-info p {
+    font-size: 12px;
+    color: #666;
+}
+
+.character-display {
+    height: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.character-display img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* Add or modify these styles in your style.css file */
+
+#mobileControls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    z-index: 10;
+}
+
+.control-btn {
+    font-size: 24px;
+    padding: 15px;
+    margin: 0 10px;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.control-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
+    transform: rotate(45deg);
+    transition: all 0.3s ease;
+}
+
+.control-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(45deg, #FFA500, #FFD700);
+}
+
+.control-btn:hover::before {
+    top: -100%;
+    left: -100%;
+}
+
+.control-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.control-btn.active {
+    background: linear-gradient(45deg, #FFA500, #FFD700);
+    transform: scale(1.1);
+}
+
+/* Add this to your existing styles */
+
+.back-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    border: none;
+    border-radius: 25px;
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+#gameWrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#gameCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#controlsWrapper {
+    padding: 10px;
+}
+
+#mobileControls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.control-btn {
+    font-size: 24px;
+    padding: 10px;
+    margin: 0 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn:active {
+    background-color: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+#gameWrapper::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 1;
+    width: 100%;
+    height: 10%;
+    background-image: url('cbl.png');
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+}
+
+.back-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    border: none;
+    border-radius: 25px;
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.back-btn .btn-text {
+    position: relative;
+    z-index: 2;
+    color: #000;
+}
+
+.back-btn .btn-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
+    transform: rotate(45deg);
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(45deg, #FFA500, #FFD700);
+}
+
+.back-btn:hover .btn-shine {
+    top: -100%;
+    left: -100%;
+}
+
+.gameplay-bg {
+    background-image: url('eiffel-tower.jpg');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#scoreDisplay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+}
+
+#mobileControls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.control-btn {
+    font-size: 28px;
+    padding: 12px;
+    margin: 0 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn:active {
+    background-color: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.game-over-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    color: #fff;
+    z-index: 10;
+}
+
+.game-over-screen h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.game-over-screen p {
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+/* Add these styles to your existing style.css file */
+
+.gameplay-bg {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#gameWrapper {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 50px;
+}
+
+#gameCanvas {
+    width: 90%;
+    height: 90%;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+#controlsWrapper {
+    padding: 15px;
+}
+
+#mobileControls {
+    display: absolute;
+    justify-content: center;
+    align-items: center;
+}
+
+.control-btn {
+    font-size: 24px;
+    padding: 10px;
+    margin: 0 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn:active {
+    background-color: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Add this to your existing styles */
+.hexagon-btn {
+    width: 150px;
+    height: 86px;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    position: relative;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.hexagon-btn:hover {
+    transform: scale(1.05);
+    background: linear-gradient(45deg, #FFA500, #FFD700);
+}
+
+.hexagon-btn .btn-text {
+    color: #000;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.hexagon-btn .btn-shine {
+    display: none;
 }
