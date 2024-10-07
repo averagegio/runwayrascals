@@ -1,23 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
     const characterOptions = document.querySelectorAll('.character-option');
-    const confirmCharacterBtn = document.getElementById('confirmCharacterBtn');
-    let selectedCharacter = null;
+    const confirmButton = document.getElementById('confirmCharacterBtn');
 
     characterOptions.forEach(option => {
         option.addEventListener('click', () => {
             characterOptions.forEach(opt => opt.classList.remove('selected'));
             option.classList.add('selected');
-            selectedCharacter = option.dataset.character;
         });
     });
 
-    confirmCharacterBtn.addEventListener('click', (e) => {
-        if (!selectedCharacter) {
-            e.preventDefault();
-            alert('Please select a character before confirming.');
+    confirmButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        const selectedCharacter = document.querySelector('.character-option.selected');
+        if (selectedCharacter) {
+            const characterType = selectedCharacter.dataset.character;
+            localStorage.setItem('selectedCharacter', characterType);
+            // Redirect to the wardrobe select screen
+            window.location.href = 'wardrobe-select.html';
         } else {
-            localStorage.setItem('selectedCharacter', selectedCharacter);
-            window.location.href = 'wardrobe-select.html'; // Redirect to wardrobe selection
+            alert('Please select a character before confirming.');
         }
     });
 
