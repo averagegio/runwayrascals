@@ -1,333 +1,319 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const gameContainer = document.querySelector('.game-container');
-    const character = document.querySelector('.game-character');
-    const scoreDisplay = document.querySelector('.score-display');
-    const levelDisplay = document.querySelector('.level-indicator');
-    const navBtns = {
-        leftBtn: document.getElementById('leftBtn'),
-        rightBtn: document.getElementById('rightBtn'),
-        upBtn: document.getElementById('upBtn')
-    };
+    let gameCanvas, ctx, character, obstacles, gameLoop, score, gameOver;
+    let upArrow, leftArrow, rightArrow;
+    let characterImage, jetImage, saucerImage;
 
-    // Load character image
-    const selectedOutfit = JSON.parse(localStorage.getItem('selectedOutfit'));
-    character.style.backgroundImage = `url('${selectedOutfit ? selectedOutfit.image : 'chibibrodoll.png'}')`;
+    function initGame() {
+        gameCanvas = document.getElementById('gameCanvas');
+        ctx = gameCanvas.getContext('2d');
 
-    // Create dollar sign goal
-    const dollarSign = document.createElement('div');
-    dollarSign.classList.add('dollar-sign');
-    dollarSign.style.backgroundImage = "url('gold-dollar-115264177387osogvgmtv.png')";
-    dollarSign.style.position = 'absolute';
-    dollarSign.style.top = '10%';
-    dollarSign.style.left = '50%';
-    dollarSign.style.transform = 'translateX(-50%)';
-    dollarSign.style.width = '50px';
-    dollarSign.style.height = '50px';
-    dollarSign.style.backgroundSize = 'contain';
-    dollarSign.style.backgroundRepeat = 'no-repeat';
-    gameContainer.appendChild(dollarSign);
+        gameCanvas.width = gameCanvas.offsetWidth;
+        gameCanvas.height = gameCanvas.offsetHeight;
 
-    let score = 0;
-    let level = 1;
-    let characterPosition = { x: 50, y: 20 }; // percentage
-    let isGameOver = false;
-    let gameSpeed = 0.5;
-    let jetObstacle = null;
-    let ufoObstacle = null;
-    let isJumping = false;
-    let jumpCount = 0;
-    let isHoldingUp = false;
-    let jumpInterval;
+        loadImages().then(() => {
+            const characterSize = Math.min(gameCanvas.width, gameCanvas.height) * 0.11;
+            character = new Character(gameCanvas.width / 2 - characterSize / 2, gameCanvas.height - characterSize, characterSize, characterSize);
+            obstacles = [];
+            score = 0;
+            gameOver = false;
 
-    function createJetObstacle() {
-        if (jetObstacle) return;
+            setupControls();
 
-        const obstacleElement = document.createElement('div');
-        obstacleElement.classList.add('game-obstacle', 'horizontal-obstacle');
-        obstacleElement.style.left = '-10%';
-        obstacleElement.style.bottom = `${Math.random() * 60 + 20}%`;
-        gameContainer.appendChild(obstacleElement);
-        
-        jetObstacle = {
-            element: obstacleElement,
-            x: -10,
-        };
+            document.addEventListener('keydown', handleKeyPress);
+            document.addEventListener('keyup', handleKeyRelease);
+
+            gameLoop = setInterval(updateGame, 20);
+        });
     }
 
-    function createUfoObstacle() {
-        if (ufoObstacle) return;
+    function loadImages() {
+        return new Promise((resolve) => {
+            characterImage = new Image();
+            characterImage.src = JSON.parse(localStorage.getItem('selectedOutfit')).image;
 
-        const obstacleElement = document.createElement('div');
-        obstacleElement.classList.add('game-obstacle', 'vertical-obstacle');
-        obstacleElement.style.right = '10%';
-        obstacleElement.style.bottom = '0%';
-        gameContainer.appendChild(obstacleElement);
-        
-        ufoObstacle = {
-            element: obstacleElement,
-            y: 0,
-            direction: 1
-        };
+            jetImage = new Image();
+            jetImage.src = 'jet1.png';
+
+            saucerImage = new Image();
+            saucerImage.src = 'spaceship-flying-saucer.png';
+
+            Promise.all([
+                new Promise(r => characterImage.onload = r),
+                new Promise(r => jetImage.onload = r),
+                new Promise(r => saucerImage.onload = r)
+            ]).then(resolve);
+        });
     }
 
-    function moveCharacter(direction) {
-        const step = 5;
-        if (direction === 'left' && characterPosition.x > 0) {
-            characterPosition.x -= step;
-        } else if (direction === 'right' && characterPosition.x < 100) {
-            characterPosition.x += step;
-        }
-        updateCharacterPosition();
+    function setupControls() {
+        upArrow = document.getElementById('upArrow');
+        leftArrow = document.getElementById('leftArrow');
+        rightArrow = document.getElementById('rightArrow');
+
+        [upArrow, leftArrow, rightArrow].forEach(arrow => {
+            arrow.addEventListener('touchstart', handleArrowTouch);
+            arrow.addEventListener('touchend', handleArrowTouchEnd);
+            arrow.addEventListener('mousedown', handleArrowTouch);
+            arrow.addEventListener('mouseup', handleArrowTouchEnd);
+        });
     }
 
-    function jump() {
-        if (jumpCount < 2) {
-            jumpCount++;
-            isJumping = true;
-            clearInterval(jumpInterval);
-            let jumpHeight = 0;
-            jumpInterval = setInterval(() => {
-                if (jumpHeight < 40 && isHoldingUp) {
-                    jumpHeight += 2;
-                    characterPosition.y += 2;
-                    updateCharacterPosition();
-                } else {
-                    clearInterval(jumpInterval);
-                    if (!isHoldingUp) {
-                        fall();
-                    }
-                }
-            }, 20);
+    function handleArrowTouch(e) {
+        e.preventDefault();
+        moveCharacter(e.target.id);
+        e.target.classList.add('active');
+    }
+
+    function handleArrowTouchEnd(e) {
+        e.preventDefault();
+        stopCharacter(e.target.id);
+        e.target.classList.remove('active');
+    }
+
+    function moveCharacter(arrowId) {
+        if (!character || gameOver) return;
+
+        switch (arrowId) {
+            case 'upArrow':
+                character.jump();
+                break;
+            case 'leftArrow':
+                character.startMovingLeft();
+                break;
+            case 'rightArrow':
+                character.startMovingRight();
+                break;
         }
     }
 
-    function fall() {
-        isJumping = false;
-        clearInterval(jumpInterval);
-        jumpInterval = setInterval(() => {
-            if (characterPosition.y > 20) {
-                characterPosition.y -= 2;
-                updateCharacterPosition();
+    function stopCharacter(arrowId) {
+        if (!character || gameOver) return;
+
+        switch (arrowId) {
+            case 'leftArrow':
+            case 'rightArrow':
+                character.stopMoving();
+                break;
+        }
+    }
+
+    function updateGame() {
+        if (!ctx || gameOver) return;
+
+        ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+        // Update and draw character
+        character.update();
+        character.draw(ctx);
+
+        // Update and draw obstacles
+        updateObstacles();
+
+        // Spawn new obstacles
+        if (Math.random() < 0.02 && obstacles.length < 5) {
+            if (Math.random() < 0.5) {
+                obstacles.push(new JetObstacle(-50, Math.random() * (gameCanvas.height - 100), 50, 30));
             } else {
-                clearInterval(jumpInterval);
-                jumpCount = 0;
-            }
-        }, 20);
-    }
-
-    function startHoldJump() {
-        isHoldingUp = true;
-        if (!isJumping) {
-            jump();
-        }
-    }
-
-    function endHoldJump() {
-        isHoldingUp = false;
-        if (isJumping) {
-            fall();
-        }
-    }
-
-    function updateCharacterPosition() {
-        character.style.left = `${characterPosition.x}%`;
-        character.style.bottom = `${characterPosition.y}%`;
-        checkWinCondition();
-    }
-
-    function checkWinCondition() {
-        const characterRect = character.getBoundingClientRect();
-        const dollarSignRect = dollarSign.getBoundingClientRect();
-        if (
-            characterRect.left < dollarSignRect.right &&
-            characterRect.right > dollarSignRect.left &&
-            characterRect.top < dollarSignRect.bottom &&
-            characterRect.bottom > dollarSignRect.top
-        ) {
-            winLevel();
-        }
-    }
-
-    function winLevel() {
-        level++;
-        alert(`Congratulations! You've completed level ${level - 1}!`);
-        resetLevel();
-    }
-
-    function resetLevel() {
-        characterPosition = { x: 50, y: 20 }; // Reset character to bottom
-        jumpCount = 0;
-        isJumping = false;
-        isHoldingUp = false;
-        clearInterval(jumpInterval);
-        gameSpeed += 0.1; // Increase difficulty
-        if (jetObstacle) {
-            gameContainer.removeChild(jetObstacle.element);
-            jetObstacle = null;
-        }
-        if (ufoObstacle) {
-            gameContainer.removeChild(ufoObstacle.element);
-            ufoObstacle = null;
-        }
-        updateCharacterPosition();
-        levelDisplay.textContent = `Level ${level}`;
-    }
-
-    function moveObstacles() {
-        if (jetObstacle) {
-            jetObstacle.x += gameSpeed;
-            jetObstacle.element.style.left = `${jetObstacle.x}%`;
-
-            if (jetObstacle.x > 110) {
-                gameContainer.removeChild(jetObstacle.element);
-                jetObstacle = null;
+                obstacles.push(new SaucerObstacle(Math.random() * (gameCanvas.width - 30), -30, 30, 30));
             }
         }
 
-        if (ufoObstacle) {
-            ufoObstacle.y += gameSpeed * ufoObstacle.direction;
-            ufoObstacle.element.style.bottom = `${ufoObstacle.y}%`;
-
-            if (ufoObstacle.y <= 0 || ufoObstacle.y >= 80) {
-                ufoObstacle.direction *= -1;
-            }
-        }
-
-        if (!jetObstacle && Math.random() < 0.02) {
-            createJetObstacle();
-        }
-
-        if (!ufoObstacle && Math.random() < 0.01) {
-            createUfoObstacle();
-        }
+        // Draw score
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText('Score: ' + score, gameCanvas.width - 10, 10);
     }
 
-    function checkCollisions() {
-        const characterRect = character.getBoundingClientRect();
-        
-        if (jetObstacle) {
-            const jetObstacleRect = jetObstacle.element.getBoundingClientRect();
-            if (
-                characterRect.left < jetObstacleRect.right &&
-                characterRect.right > jetObstacleRect.left &&
-                characterRect.top < jetObstacleRect.bottom &&
-                characterRect.bottom > jetObstacleRect.top
-            ) {
-                gameOver();
-            }
-        }
+    function updateObstacles() {
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            obstacles[i].update();
+            obstacles[i].draw(ctx);
 
-        if (ufoObstacle) {
-            const ufoObstacleRect = ufoObstacle.element.getBoundingClientRect();
-            if (
-                characterRect.left < ufoObstacleRect.right &&
-                characterRect.right > ufoObstacleRect.left &&
-                characterRect.top < ufoObstacleRect.bottom &&
-                characterRect.bottom > ufoObstacleRect.top
-            ) {
-                gameOver();
+            if (obstacles[i].collidesWith(character)) {
+                gameOver = true;
+                clearInterval(gameLoop);
+                showGameOver();
+            }
+
+            if (obstacles[i].isOffScreen()) {
+                obstacles.splice(i, 1);
+                score++;
             }
         }
     }
 
-    function gameOver() {
-        isGameOver = true;
-        document.getElementById('finalScore').textContent = score;
-        retryPopup.style.display = 'flex';
+    function showGameOver() {
+        const gameOverScreen = document.createElement('div');
+        gameOverScreen.classList.add('game-over-screen');
+        gameOverScreen.innerHTML = `
+            <h2>Game Over</h2>
+            <p>Your score: ${score}</p>
+            <button id="restartBtn" class="game-btn">Restart</button>
+        `;
+        document.querySelector('.app-container').appendChild(gameOverScreen);
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
     }
 
-    function resetGame() {
-        score = 0;
-        level = 1;
-        characterPosition = { x: 50, y: 20 };
-        isGameOver = false;
-        gameSpeed = 0.5;
-        jumpCount = 0;
-        if (jetObstacle) {
-            gameContainer.removeChild(jetObstacle.element);
-            jetObstacle = null;
+    function restartGame() {
+        const gameOverScreen = document.querySelector('.game-over-screen');
+        if (gameOverScreen) {
+            gameOverScreen.remove();
         }
-        if (ufoObstacle) {
-            gameContainer.removeChild(ufoObstacle.element);
-            ufoObstacle = null;
-        }
-        updateCharacterPosition();
-        scoreDisplay.textContent = `Score: ${score}`;
-        levelDisplay.textContent = `Level ${level}`;
-        retryPopup.style.display = 'none';
+        clearInterval(gameLoop);
+        initGame();
     }
 
-    function updateScore() {
-        if (!isGameOver) {
-            score++;
-            scoreDisplay.textContent = `Score: ${score}`;
+    class Character {
+        constructor(x, y, width, height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.velocityY = 0;
+            this.velocityX = 0;
+            this.jumping = false;
+            this.gravity = 0.8;
+            this.jumpStrength = -15;
+            this.moveSpeed = 5;
+        }
+
+        update() {
+            this.x += this.velocityX;
+            if (this.x < 0) this.x = 0;
+            if (this.x + this.width > gameCanvas.width) this.x = gameCanvas.width - this.width;
+
+            if (this.jumping) {
+                this.velocityY += this.gravity;
+                this.y += this.velocityY;
+
+                if (this.y > gameCanvas.height - this.height) {
+                    this.y = gameCanvas.height - this.height;
+                    this.jumping = false;
+                    this.velocityY = 0;
+                }
+            }
+        }
+
+        draw(ctx) {
+            if (characterImage.complete) {
+                ctx.drawImage(characterImage, this.x, this.y, this.width, this.height);
+            }
+        }
+
+        jump() {
+            if (!this.jumping) {
+                this.jumping = true;
+                this.velocityY = this.jumpStrength;
+            }
+        }
+
+        startMovingLeft() {
+            this.velocityX = -this.moveSpeed;
+        }
+
+        startMovingRight() {
+            this.velocityX = this.moveSpeed;
+        }
+
+        stopMoving() {
+            this.velocityX = 0;
         }
     }
 
-    // Keyboard controls
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') moveCharacter('left');
-        if (e.key === 'ArrowRight') moveCharacter('right');
-        if (e.key === 'ArrowUp' && !isHoldingUp) startHoldJump();
-    });
-
-    document.addEventListener('keyup', (e) => {
-        if (e.key === 'ArrowUp') endHoldJump();
-    });
-
-    // Touch and mouse controls
-    navBtns.leftBtn.addEventListener('mousedown', () => moveCharacter('left'));
-    navBtns.rightBtn.addEventListener('mousedown', () => moveCharacter('right'));
-    navBtns.upBtn.addEventListener('mousedown', startHoldJump);
-    navBtns.upBtn.addEventListener('mouseup', endHoldJump);
-
-    navBtns.leftBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        moveCharacter('left');
-    });
-    navBtns.rightBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        moveCharacter('right');
-    });
-    navBtns.upBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        startHoldJump();
-    });
-    navBtns.upBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        endHoldJump();
-    });
-
-    // Create retry popup
-    const retryPopup = document.createElement('div');
-    retryPopup.classList.add('retry-popup');
-    retryPopup.innerHTML = `
-        <h2>Game Over!</h2>
-        <p>Your score: <span id="finalScore"></span></p>
-        <button id="retryBtn">Retry</button>
-    `;
-    gameContainer.appendChild(retryPopup);
-
-    // Create restart button
-    const restartBtn = document.createElement('button');
-    restartBtn.classList.add('restart-btn');
-    restartBtn.textContent = 'Restart';
-    gameContainer.appendChild(restartBtn);
-
-    // Event listeners for retry and restart buttons
-    document.getElementById('retryBtn').addEventListener('click', resetGame);
-    restartBtn.addEventListener('click', resetGame);
-
-    // Game loop
-    function gameLoop() {
-        if (!isGameOver) {
-            moveObstacles();
-            checkCollisions();
-            updateScore();
-            checkWinCondition(); // Check if character has reached the dollar sign
+    class JetObstacle {
+        constructor(x, y, width, height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.speed = 3 + Math.random() * 2;
         }
-        requestAnimationFrame(gameLoop);
+
+        update() {
+            this.x += this.speed;
+        }
+
+        draw(ctx) {
+            if (jetImage.complete) {
+                ctx.drawImage(jetImage, this.x, this.y, this.width, this.height);
+            }
+        }
+
+        collidesWith(character) {
+            return (
+                this.x < character.x + character.width &&
+                this.x + this.width > character.x &&
+                this.y < character.y + character.height &&
+                this.y + this.height > character.y
+            );
+        }
+
+        isOffScreen() {
+            return this.x > gameCanvas.width;
+        }
     }
 
-    gameLoop();
+    class SaucerObstacle {
+        constructor(x, y, width, height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.speed = 2 + Math.random() * 2;
+        }
+
+        update() {
+            this.y += this.speed;
+        }
+
+        draw(ctx) {
+            if (saucerImage.complete) {
+                ctx.drawImage(saucerImage, this.x, this.y, this.width, this.height);
+            }
+        }
+
+        collidesWith(character) {
+            return (
+                this.x < character.x + character.width &&
+                this.x + this.width > character.x &&
+                this.y < character.y + character.height &&
+                this.y + this.height > character.y
+            );
+        }
+
+        isOffScreen() {
+            return this.y > gameCanvas.height;
+        }
+    }
+
+    function handleKeyPress(e) {
+        if (gameOver) return;
+
+        switch (e.key) {
+            case 'ArrowUp':
+                character.jump();
+                break;
+            case 'ArrowLeft':
+                character.startMovingLeft();
+                break;
+            case 'ArrowRight':
+                character.startMovingRight();
+                break;
+        }
+    }
+
+    function handleKeyRelease(e) {
+        if (gameOver) return;
+
+        switch (e.key) {
+            case 'ArrowLeft':
+            case 'ArrowRight':
+                character.stopMoving();
+                break;
+        }
+    }
+
+    initGame();
 });
