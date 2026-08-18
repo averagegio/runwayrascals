@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const selectedCharacter = localStorage.getItem('selectedCharacter');
+    const selectedCharacter = localStorage.getItem('selectedCharacter') || 'female';
     const characterDisplay = document.getElementById('selectedCharacter');
     const outfitOptions = document.querySelector('.outfit-options');
     const designerOptions = document.querySelector('.designer-options');
@@ -7,30 +7,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabBtns = document.querySelectorAll('.tab-btn');
     let selectedOutfit = null;
 
-    characterDisplay.src = selectedCharacter === 'male' ? 'chibibrodoll.png' : 'chibidoll2.png';
+    const characterImages = {
+        male: 'chibibrodoll.png',
+        female: 'chibidoll2.png',
+        fashion: 'chibidollfashion.png',
+        evening: 'chibidoll3.png'
+    };
 
-    const outfits = selectedCharacter === 'male' ? 
-        [
-            { name: 'Casual Cool', image: 'chibibrodoll2.png', designer: 'StreetWear Co.' },
-            { name: 'Formal Flair', image: 'male-outfit2.png', designer: 'Luxe Designs' },
-            { name: 'Sporty Chic', image: 'male-outfit3.png', designer: 'AthleticWear' },
-            { name: 'Punk Rock', image: 'male-outfit4.png', designer: 'Rebel Styles' },
-            { name: 'Beachwear', image: 'male-outfit5.png', designer: 'Coastal Couture' }
-        ] : 
-        [
+    characterDisplay.src = characterImages[selectedCharacter] || 'chibidoll2.png';
+
+    const outfitsByCharacter = {
+        male: [
+            { name: 'Devil Boy Classic', image: 'chibibrodoll.png', designer: 'Runway Rascals' },
+            { name: 'Casual Cool', image: 'chibibrodoll2.png', designer: 'StreetWear Co.' }
+        ],
+        female: [
+            { name: 'Mouse Girl Classic', image: 'chibidoll2.png', designer: 'Runway Rascals' },
             { name: 'Boho Chic', image: 'chibidollfashion.png', designer: 'FreeSoul Fashion' },
-            { name: 'Elegant Evening', image: 'chibidoll3.png', designer: 'Glamour Gowns' },
-            { name: 'Casual Cute', image: 'female-outfit3.png', designer: 'Comfy Couture' },
-            { name: 'Business Boss', image: 'female-outfit4.png', designer: 'Power Suits' },
-            { name: 'Retro Vibes', image: 'female-outfit5.png', designer: 'Vintage Vogue' }
-        ];
+            { name: 'Elegant Evening', image: 'chibidoll3.png', designer: 'Glamour Gowns' }
+        ],
+        fashion: [
+            { name: 'Runway Ready', image: 'chibidollfashion.png', designer: 'FreeSoul Fashion' },
+            { name: 'Evening Switch', image: 'chibidoll3.png', designer: 'Glamour Gowns' }
+        ],
+        evening: [
+            { name: 'Gala Glow', image: 'chibidoll3.png', designer: 'Glamour Gowns' },
+            { name: 'Boho Remix', image: 'chibidollfashion.png', designer: 'FreeSoul Fashion' }
+        ]
+    };
+
+    const outfits = outfitsByCharacter[selectedCharacter] || outfitsByCharacter.female;
 
     const designers = [
-        { name: 'Chanel', image: 'chanel-logo.png' },
-        { name: 'Gucci', image: 'gucci-logo.png' },
-        { name: 'Prada', image: 'prada-logo.png' },
-        { name: 'Versace', image: 'versace-logo.png' },
-        { name: 'Dior', image: 'dior-logo.png' }
+        { name: 'NYFW Atelier', image: 'chibidollfashion.png' },
+        { name: 'Milan House', image: 'chibidoll3.png' },
+        { name: 'London Label', image: 'chibibrodoll2.png' },
+        { name: 'Berlin Collective', image: 'chibibrodoll.png' },
+        { name: 'Miami Swim', image: 'chibidoll2.png' }
     ];
 
     function createOutfitElement(outfit) {
@@ -57,32 +70,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return designerElement;
     }
 
-    function loadMoreOutfits() {
-        outfits.forEach(outfit => {
-            outfitOptions.appendChild(createOutfitElement(outfit));
-        });
-    }
-
-    function loadMoreDesigners() {
-        designers.forEach(designer => {
-            designerOptions.appendChild(createDesignerElement(designer));
-        });
-    }
-
-    loadMoreOutfits();
-    loadMoreDesigners();
+    outfits.forEach(outfit => outfitOptions.appendChild(createOutfitElement(outfit)));
+    designers.forEach(designer => designerOptions.appendChild(createDesignerElement(designer)));
 
     function selectOutfit(element, outfit) {
         document.querySelectorAll('.outfit-option').forEach(opt => opt.classList.remove('selected'));
         element.classList.add('selected');
         selectedOutfit = outfit;
+        characterDisplay.src = outfit.image;
     }
 
     confirmOutfitBtn.addEventListener('click', () => {
         if (selectedOutfit) {
             localStorage.setItem('selectedOutfit', JSON.stringify(selectedOutfit));
-            // Redirect to the gameplay screen
-            window.location.href = 'gameplay.html';
+            window.location.href = 'map-select.html';
         } else {
             alert('Please select an outfit before confirming.');
         }
@@ -96,21 +97,5 @@ document.addEventListener('DOMContentLoaded', () => {
             tabBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         });
-    });
-
-    // Infinite scroll
-    const outfitsTab = document.getElementById('outfits');
-    const designersTab = document.getElementById('designers');
-
-    outfitsTab.addEventListener('scroll', () => {
-        if (outfitsTab.scrollTop + outfitsTab.clientHeight >= outfitsTab.scrollHeight - 20) {
-            loadMoreOutfits();
-        }
-    });
-
-    designersTab.addEventListener('scroll', () => {
-        if (designersTab.scrollTop + designersTab.clientHeight >= designersTab.scrollHeight - 20) {
-            loadMoreDesigners();
-        }
     });
 });

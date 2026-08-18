@@ -384,9 +384,183 @@ body, html {
 /* Add or modify these styles in your style.css file */
 
 .wardrobe-select-bg {
-    background-image: url('fashion-closet-bg.jpg');
+    background-image: url('George_Igwe_fashion_closet_with_a_karl_lagerfeld_looking_styli_9aa286db-e7d1-4ea7-8541-693355563c61.png');
     background-size: cover;
     background-position: center;
+}
+
+/* Fashion Week map select */
+.map-select-bg {
+    background-image: url('George_Igwe_fashion_runway_in_the_stars_on_rainbow_road_with_a_37414911-5bfc-44a6-a654-b6524844b3c0.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.map-subtitle {
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    margin-top: 4px;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+}
+
+.map-selection {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    padding: 8px 6px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.map-selection::-webkit-scrollbar {
+    display: none;
+}
+
+.map-card {
+    border: 2px solid transparent;
+    border-radius: 18px;
+    padding: 16px 18px;
+    text-align: left;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.map-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.6s ease;
+}
+
+.map-card:hover {
+    transform: translateY(-2px) scale(1.01);
+}
+
+.map-card:hover::after {
+    transform: translateX(120%);
+}
+
+.map-card.selected {
+    border-color: var(--map-accent, #FFD700);
+    box-shadow: 0 0 0 2px var(--map-accent, #FFD700), 0 10px 28px rgba(0,0,0,0.45);
+}
+
+.map-event {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-bottom: 4px;
+}
+
+.map-name {
+    display: block;
+    font-family: 'Playfair Display', 'Fredoka One', serif;
+    font-size: 26px;
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+
+.map-tagline {
+    display: block;
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+/* Runway HUD */
+.runway-hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 14px 10px 0;
+    pointer-events: none;
+}
+
+.runway-hud .game-btn,
+.runway-hud button {
+    pointer-events: auto;
+}
+
+.hud-back {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+}
+
+.hud-center {
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+}
+
+.hud-map-label {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.95;
+}
+
+.hud-score {
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1.1;
+}
+
+.hud-collect {
+    font-size: 12px;
+    opacity: 0.95;
+}
+
+.camera-toggle-btn {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    border-radius: 16px !important;
+    max-width: 88px;
+}
+
+.swipe-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 18%;
+    transform: translateX(-50%);
+    z-index: 15;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.swipe-hint.hidden {
+    opacity: 0;
+}
+
+.game-over-meta {
+    font-size: 16px !important;
+    margin-bottom: 16px !important;
+    opacity: 0.9;
 }
 
 .wardrobe-tabs {
@@ -719,135 +893,80 @@ body, html {
 }
 
 .gameplay-bg {
-    background-image: url('eiffel-tower.jpg');
-    background-size: cover;
-    background-position: center;
+    background-image: none;
+    background: #0a0a0a;
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 10px;
+    padding: 0;
     box-sizing: border-box;
-}
-
-#gameCanvas {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-#scoreDisplay {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 24px;
-    color: #fff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    z-index: 20;
-}
-
-#mobileControls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-}
-
-.control-btn {
-    font-size: 28px;
-    padding: 12px;
-    margin: 0 10px;
-    background-color: rgba(255, 255, 255, 0.7);
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.control-btn:active {
-    background-color: rgba(255, 255, 255, 0.9);
-    transform: scale(1.1);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-}
-
-.game-over-screen {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 30px;
-    border-radius: 20px;
-    text-align: center;
-    color: #fff;
-    z-index: 10;
-}
-
-.game-over-screen h2 {
-    font-size: 36px;
-    margin-bottom: 20px;
-}
-
-.game-over-screen p {
-    font-size: 24px;
-    margin-bottom: 30px;
-}
-
-/* Add these styles to your existing style.css file */
-
-.gameplay-bg {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 10px;
-    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
 }
 
 #gameWrapper {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 50px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 78px);
+    z-index: 1;
+    margin: 0;
+    display: block;
 }
 
 #gameCanvas {
-    width: 90%;
-    height: 90%;
-    border-radius: 20px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    touch-action: none;
 }
 
 #controlsWrapper {
-    padding: 15px;
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    padding: 8px;
 }
 
 #mobileControls {
-    display: absolute;
+    display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    transform: none;
+    left: auto;
+    bottom: auto;
 }
 
 .control-btn {
-    font-size: 24px;
-    padding: 10px;
-    margin: 0 10px;
-    background-color: rgba(255, 255, 255, 0.7);
+    font-size: 20px;
+    padding: 8px;
+    margin: 0 6px;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
     border: none;
     border-radius: 50%;
-    width: 45px;
-    height: 45px;
+    width: 48px;
+    height: 48px;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
 }
 
-.control-btn:active {
-    background-color: rgba(255, 255, 255, 0.9);
-    transform: scale(1.1);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+.control-btn:active,
+.control-btn.active {
+    transform: scale(1.08);
+    background: linear-gradient(45deg, #FFA500, #FFD700);
+}
+
+#gameWrapper::after {
+    display: none;
 }
 
 /* Add this to your existing styles */
@@ -877,4 +996,28 @@ body, html {
 
 .hexagon-btn .btn-shine {
     display: none;
+}
+
+.game-over-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.85);
+    padding: 28px 24px;
+    border-radius: 20px;
+    text-align: center;
+    color: #fff;
+    z-index: 30;
+    width: 80%;
+}
+
+.game-over-screen h2 {
+    font-size: 28px;
+    margin-bottom: 12px;
+}
+
+.game-over-screen p {
+    font-size: 20px;
+    margin-bottom: 12px;
 }
