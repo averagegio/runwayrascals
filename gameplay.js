@@ -1,14 +1,14 @@
 (() => {
     const LANES = 3;
     const CLOTHING_TYPES = [
-        { emoji: '👗', name: 'Dress', points: 25 },
-        { emoji: '👠', name: 'Heels', points: 20 },
-        { emoji: '👜', name: 'Bag', points: 30 },
-        { emoji: '🕶️', name: 'Shades', points: 15 },
-        { emoji: '👒', name: 'Hat', points: 20 },
-        { emoji: '🧣', name: 'Scarf', points: 15 },
-        { emoji: '🧥', name: 'Coat', points: 35 },
-        { emoji: '💍', name: 'Ring', points: 40 }
+        { label: 'DRESS', color: '#ec4899', points: 25 },
+        { label: 'HEELS', color: '#f43f5e', points: 20 },
+        { label: 'BAG', color: '#a855f7', points: 30 },
+        { label: 'SHADES', color: '#38bdf8', points: 15 },
+        { label: 'HAT', color: '#f59e0b', points: 20 },
+        { label: 'SCARF', color: '#22c55e', points: 15 },
+        { label: 'COAT', color: '#6366f1', points: 35 },
+        { label: 'RING', color: '#eab308', points: 40 }
     ];
 
     const MAP_THEMES = {
@@ -496,13 +496,7 @@
     }
 
     function drawCityAccent() {
-        ctx.save();
-        ctx.fillStyle = theme.accent;
-        ctx.globalAlpha = 0.85;
-        ctx.font = `bold ${Math.floor(width * 0.045)}px Fredoka One, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.fillText(theme.name.toUpperCase(), width / 2, height * 0.08);
-        ctx.restore();
+        // City name lives in the HUD — keep canvas clear of overlapping titles
     }
 
     function drawEntity(e) {
@@ -513,16 +507,24 @@
 
         if (e.kind === 'clothing') {
             ctx.save();
-            ctx.translate(x, y - playerYOffset * 0.02);
-            ctx.font = `${Math.floor(size)}px serif`;
+            ctx.translate(x, y);
+            const r = size * 0.45;
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            ctx.arc(0, 0, r * 1.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.fillStyle = e.type.color;
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = Math.max(1.5, 2 * p.scale);
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${Math.max(8, Math.floor(size * 0.28))}px Fredoka One, sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            // Soft glow disc
-            ctx.beginPath();
-            ctx.fillStyle = 'rgba(255,255,255,0.2)';
-            ctx.arc(0, 0, size * 0.55, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillText(e.type.emoji, 0, 0);
+            ctx.fillText(e.type.label, 0, 0);
             ctx.restore();
             return;
         }
@@ -537,9 +539,17 @@
             ctx.fillRect(x - hw, y - hh, hw * 2, hh);
             ctx.fillStyle = theme.accent;
             ctx.fillRect(x - hw, y - hh, hw * 2, 6);
-            ctx.font = `${Math.floor(size * 0.7)}px serif`;
+            // Paparazzi camera body
+            ctx.fillStyle = '#222';
+            ctx.fillRect(x - size * 0.25, y - hh - size * 0.45, size * 0.5, size * 0.35);
+            ctx.fillStyle = '#111';
+            ctx.beginPath();
+            ctx.arc(x, y - hh - size * 0.28, size * 0.14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${Math.max(8, Math.floor(size * 0.22))}px Fredoka One, sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillText('📸', x, y - hh - 8);
+            ctx.fillText('PAPS', x, y - hh - size * 0.55);
             if (Math.random() < 0.08) flashTimer = 0.12;
         } else if (e.subtype === 'rope') {
             ctx.strokeStyle = '#7c2d12';
@@ -552,13 +562,27 @@
             ctx.fillRect(x - hw - 4, y - 8, 8, 20);
             ctx.fillRect(x + hw - 4, y - 8, 8, 20);
         } else if (e.subtype === 'flash') {
-            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
             ctx.beginPath();
             ctx.arc(x, y - hh * 0.2, size * 0.35, 0, Math.PI * 2);
             ctx.fill();
-            ctx.font = `${Math.floor(size * 0.55)}px serif`;
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const a = (i / 8) * Math.PI * 2;
+                const r1 = size * 0.18;
+                const r2 = size * 0.4;
+                const px = x + Math.cos(a) * (i % 2 ? r1 : r2);
+                const py = y - hh * 0.2 + Math.sin(a) * (i % 2 ? r1 : r2);
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#111';
+            ctx.font = `bold ${Math.max(8, Math.floor(size * 0.22))}px Fredoka One, sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillText('💥', x, y + 4);
+            ctx.fillText('FLASH', x, y + 10);
         } else {
             // Velvet barrier
             ctx.fillStyle = '#111';
@@ -588,16 +612,17 @@
         ctx.fill();
 
         if (cameraMode === 'front') {
-            // Front-facing: mirror/flip vertically-ish by drawing larger face-on
+            // Front-facing: flip horizontally so the avatar faces the camera
+            ctx.save();
             ctx.translate(x, y - ph * 0.55);
-            ctx.scale(-1, 1); // face "toward" camera feel via horizontal flip + label
+            ctx.scale(-1, 1);
             if (characterImg && characterImg.complete) {
                 ctx.drawImage(characterImg, -pw / 2, -ph / 2, pw, ph);
             } else {
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(-pw / 2, -ph / 2, pw, ph);
             }
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.restore();
             ctx.fillStyle = theme.accent;
             ctx.font = `bold 12px Fredoka One, sans-serif`;
             ctx.textAlign = 'center';
