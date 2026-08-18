@@ -3,28 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Runway Rascals - Gameplay</title>
+    <title>Runway Rascals - Runway Run</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="phone-frame">
-        <div class="app-container gameplay-bg">
-            <div class="game-header">
-                <a href="wardrobe-select.html" class="game-btn back-btn">
-                    <span class="btn-text">Back</span>
+        <div class="app-container gameplay-bg" id="gameRoot">
+            <div class="runway-hud">
+                <a href="map-select.html" class="game-btn back-btn hud-back">
+                    <span class="btn-text">Maps</span>
                     <span class="btn-shine"></span>
                 </a>
-                <h1 class="game-title">Runway Rascals</h1>
+                <div class="hud-center">
+                    <div id="mapLabel" class="hud-map-label">Fashion Week</div>
+                    <div id="scoreDisplay" class="hud-score">0</div>
+                    <div id="collectDisplay" class="hud-collect">Looks: 0</div>
+                </div>
+                <button type="button" id="cameraToggleBtn" class="game-btn camera-toggle-btn" aria-label="Flip camera">
+                    <span class="btn-text" id="cameraToggleLabel">Front Cam</span>
+                    <span class="btn-shine"></span>
+                </button>
             </div>
             <div id="gameWrapper">
                 <canvas id="gameCanvas"></canvas>
+                <div id="swipeHint" class="swipe-hint">Swipe ← → to change lanes · ↑ jump · ↓ slide</div>
             </div>
             <div id="controlsWrapper">
                 <div id="mobileControls">
-                    <button id="leftArrow" class="control-btn">&#9668;</button>
-                    <button id="upArrow" class="control-btn">&#9650;</button>
-                    <button id="rightArrow" class="control-btn">&#9658;</button>
+                    <button id="leftArrow" class="control-btn" aria-label="Lane left">&#9668;</button>
+                    <button id="upArrow" class="control-btn" aria-label="Jump">&#9650;</button>
+                    <button id="downArrow" class="control-btn" aria-label="Slide">&#9660;</button>
+                    <button id="rightArrow" class="control-btn" aria-label="Lane right">&#9658;</button>
                 </div>
             </div>
         </div>

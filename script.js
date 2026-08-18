@@ -3,7 +3,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     enterGameBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        // Redirect directly to the gameplay page
-        window.location.href = 'gameplay.html';
+        const hasCharacter = localStorage.getItem('selectedCharacter');
+        const hasOutfit = localStorage.getItem('selectedOutfit');
+        if (!hasCharacter) {
+            window.location.href = 'character-select.html';
+            return;
+        }
+        if (!hasOutfit) {
+            window.location.href = 'wardrobe-select.html';
+            return;
+        }
+        window.location.href = 'map-select.html';
     });
 });
