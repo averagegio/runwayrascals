@@ -11,13 +11,15 @@
     <div class="phone-frame">
         <div class="app-container gameplay-bg" id="gameRoot">
             <div class="runway-hud">
-                <a href="map-select.html" class="game-btn back-btn hud-back">
-                    <span class="btn-text">Maps</span>
+                <a href="show-select.html" class="game-btn back-btn hud-back">
+                    <span class="btn-text">Show</span>
                     <span class="btn-shine"></span>
                 </a>
                 <div class="hud-center">
                     <div id="mapLabel" class="hud-map-label">Fashion Week</div>
+                    <div id="showLabel" class="hud-show-label">Walking for…</div>
                     <div id="scoreDisplay" class="hud-score">0</div>
+                    <div id="goalDisplay" class="hud-goal">RARE: 0/3</div>
                     <div id="collectDisplay" class="hud-collect">Looks: 0</div>
                 </div>
                 <button type="button" id="cameraToggleBtn" class="game-btn camera-toggle-btn" aria-label="Flip camera">
@@ -25,9 +27,14 @@
                     <span class="btn-shine"></span>
                 </button>
             </div>
+            <div class="outfit-hud">
+                <div id="boostDisplay" class="hud-boost">Boost</div>
+                <div id="outfitDisplay" class="hud-outfit">Nameless Street</div>
+                <div id="wardrobeTrack" class="wardrobe-track" aria-label="Outfit pieces"></div>
+            </div>
             <div id="gameWrapper">
                 <canvas id="gameCanvas"></canvas>
-                <div id="swipeHint" class="swipe-hint">Swipe ← → to change lanes · ↑ jump · ↓ slide</div>
+                <div id="swipeHint" class="swipe-hint">Start in street clothes · collect to get dressed</div>
             </div>
             <div id="controlsWrapper">
                 <div id="mobileControls">
@@ -39,6 +46,7 @@
             </div>
         </div>
     </div>
+    <script src="shows-data.js"></script>
     <script src="gameplay.js"></script>
 </body>
 </html>

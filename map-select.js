@@ -85,6 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         localStorage.setItem('selectedMap', JSON.stringify(selectedMap));
-        window.location.href = 'gameplay.html';
+        window.location.href = 'show-select.html';
     });
 });
