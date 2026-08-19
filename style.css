@@ -1041,6 +1041,14 @@ a {
     margin: 0 auto 1rem;
 }
 
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
 .tab-btn {
     background: transparent;
     border: 1px solid transparent;

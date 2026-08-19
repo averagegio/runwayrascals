@@ -653,14 +653,22 @@
         outfitStage = stage;
         triggerDressAnimation(piece);
 
-        // Popup when a new look / outfit level is reached
+        // Popup when a new look / outfit level is reached (after don animation)
         if (outfitStage > prevStage && window.RunwayCinematic && RunwayCinematic.lookUnlocked) {
             const root = document.getElementById('gameRoot');
-            const wasRunning = running;
-            running = false;
-            RunwayCinematic.lookUnlocked(root, piece.name || 'New Look', outfitStage).then(() => {
-                if (!dying && !levelComplete) running = wasRunning || true;
-            });
+            window.setTimeout(function () {
+                if (dying || levelComplete) return;
+                const wasLive = runLive;
+                running = false;
+                runLive = false;
+                RunwayCinematic.lookUnlocked(root, piece.name || 'New Look', outfitStage).then(function () {
+                    if (dying || levelComplete) return;
+                    running = true;
+                    runLive = wasLive;
+                    lastTs = 0;
+                    rafId = requestAnimationFrame(loop);
+                });
+            }, 920);
         }
         return true;
     }
