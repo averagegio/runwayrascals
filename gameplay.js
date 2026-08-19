@@ -81,6 +81,50 @@
     let gamerTag = 'model';
     let cityId = 'newyork';
     let lastFrameDt = 0.016;
+    let difficulty = null;
+
+    const DIFFICULTY_SCALES = {
+        easy: {
+            id: 'easy',
+            label: 'Easy',
+            baseSpeed: 170,
+            maxSpeed: 320,
+            accel: 0.022,
+            spawnGapMult: 1.35,
+            obstacleBias: 0.75,
+            scoreMult: 0.8
+        },
+        medium: {
+            id: 'medium',
+            label: 'Medium',
+            baseSpeed: 230,
+            maxSpeed: 420,
+            accel: 0.035,
+            spawnGapMult: 1.05,
+            obstacleBias: 0.95,
+            scoreMult: 1
+        },
+        hard: {
+            id: 'hard',
+            label: 'Hard',
+            baseSpeed: 300,
+            maxSpeed: 560,
+            accel: 0.055,
+            spawnGapMult: 0.85,
+            obstacleBias: 1.15,
+            scoreMult: 1.35
+        },
+        impossible: {
+            id: 'impossible',
+            label: 'Impossible',
+            baseSpeed: 380,
+            maxSpeed: 720,
+            accel: 0.085,
+            spawnGapMult: 0.65,
+            obstacleBias: 1.35,
+            scoreMult: 1.75
+        }
+    };
 
     let lane = 1;
     let targetLane = 1;
@@ -118,6 +162,15 @@
     let touchStartY = 0;
     let touchActive = false;
 
+    function readDifficulty() {
+        try {
+            const id = localStorage.getItem('selectedDifficulty') || 'medium';
+            return DIFFICULTY_SCALES[id] || DIFFICULTY_SCALES.medium;
+        } catch (_) {
+            return DIFFICULTY_SCALES.medium;
+        }
+    }
+
     function readPlayerIdentity() {
         const user = (window.RunwayAuth && RunwayAuth.getCachedUser()) || {};
         characterName = localStorage.getItem('characterName')
@@ -152,9 +205,15 @@
     }
 
     function boost() {
-        return (show && show.boost) || {
+        const b = (show && show.boost) || {
             jumpMult: 1, magnet: 0, speedMult: 1, scoreMult: 1, slideMult: 1, obstacleBias: 1, collectShield: 0
         };
+        const d = difficulty || DIFFICULTY_SCALES.medium;
+        return Object.assign({}, b, {
+            speedMult: (b.speedMult || 1),
+            scoreMult: (b.scoreMult || 1) * (d.scoreMult || 1),
+            obstacleBias: (b.obstacleBias || 1) * (d.obstacleBias || 1)
+        });
     }
 
     function nextDressPiece() {
@@ -215,7 +274,8 @@
         score = 0;
         looksCollected = 0;
         rareCollected = 0;
-        speed = 280 * boost().speedMult;
+        const d = difficulty || DIFFICULTY_SCALES.medium;
+        speed = d.baseSpeed * boost().speedMult;
         spawnTimer = 0;
         flashTimer = 0;
         shieldTimer = 0;
@@ -303,7 +363,8 @@
     function trySpawn(dt) {
         spawnTimer -= dt;
         if (spawnTimer > 0) return;
-        const gap = Math.max(0.5, 1.1 - distance / 4200);
+        const d = difficulty || DIFFICULTY_SCALES.medium;
+        const gap = Math.max(0.35, (1.1 - distance / 4200) * (d.spawnGapMult || 1));
         spawnTimer = gap;
 
         const z = 900 + Math.random() * 140;
@@ -359,9 +420,17 @@
             const piece = show.pieces[Math.min(outfitStage, show.pieces.length - 1)];
             outfitEl.textContent = piece ? piece.name : 'Nameless Street';
         }
-        if (boostEl && show) boostEl.textContent = show.boost.name;
+        if (boostEl && show) {
+            const dLabel = (difficulty && difficulty.label) || 'Medium';
+            boostEl.textContent = `${show.boost.name} · ${dLabel}`;
+        }
         const tagEl = document.getElementById('playerTag');
         if (tagEl) tagEl.textContent = `${characterName} · @${gamerTag}`;
+        const diffEl = document.getElementById('difficultyDisplay');
+        if (diffEl && difficulty) {
+            diffEl.textContent = difficulty.label;
+            diffEl.dataset.level = difficulty.id;
+        }
         renderWardrobeTrack();
     }
 
@@ -560,7 +629,11 @@
         const move = speed * dt;
         distance += move * 0.08;
         score = Math.max(score, Math.floor(distance) + looksCollected * 10 + rareCollected * 50);
-        speed = Math.min(560, (280 + distance * 0.045) * boost().speedMult);
+        const d = difficulty || DIFFICULTY_SCALES.medium;
+        speed = Math.min(
+            d.maxSpeed,
+            (d.baseSpeed + distance * d.accel) * boost().speedMult
+        );
 
         const hit = playerHitbox();
 
@@ -780,6 +853,7 @@
                 <p class="game-over-meta">Final look: ${lookName}</p>
                 ${unlockLine}
                 <p>Score: ${Math.floor(score)}</p>
+                <p class="game-over-meta">Difficulty: ${(difficulty && difficulty.label) || 'Medium'}</p>
                 <button id="restartBtn" class="game-btn restart-btn">Restart</button>
                 <a href="show-select.html" class="game-btn exit-btn" style="margin-top:10px;display:inline-block;">Exit to Menu</a>
             `;
@@ -1226,6 +1300,7 @@
         avatarCanvas = document.getElementById('avatar3d');
         readPlayerIdentity();
         cityId = readCityId();
+        difficulty = readDifficulty();
         theme = readMapTheme();
         show = readShow();
         if (!show) {
