@@ -1141,9 +1141,10 @@ a {
 }
 
 .character-display {
+    position: relative;
     height: auto;
     min-height: 0;
-    max-height: min(28vh, 200px);
+    max-height: min(36vh, 280px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1155,6 +1156,30 @@ a {
     max-height: min(28vh, 200px);
     width: auto;
     object-fit: contain;
+}
+
+.character-display #walkPreview {
+    display: block;
+    width: min(200px, 50vw);
+    height: auto;
+    max-height: min(34vh, 260px);
+    margin: 0 auto;
+    background: transparent;
+}
+
+.walk-preview-label {
+    position: absolute;
+    bottom: 0.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-ui);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--champagne);
+    margin: 0;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 .wardrobe-select-bg {
@@ -1482,4 +1507,87 @@ a {
 @keyframes homeFade {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* Designer set cards */
+.set-option,
+.shop-set-card {
+    text-align: left;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(145deg, rgba(255,255,255,0.05), color-mix(in srgb, var(--set-accent, #c9a56a) 18%, transparent));
+}
+
+.set-option.selected {
+    border-color: var(--set-accent, var(--champagne));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--set-accent, #c9a56a) 55%, transparent);
+}
+
+.set-swatch-row {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 0.65rem;
+}
+
+.set-swatch {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.set-designer {
+    font-family: var(--font-ui);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--champagne);
+    margin: 0 0 0.25rem;
+}
+
+.shop-set-name {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    margin: 0.15rem 0 0.45rem;
+    color: var(--ivory);
+}
+
+.shop-cta {
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--champagne);
+}
+
+.shop-set-card {
+    appearance: none;
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    color: inherit;
+    margin-bottom: 0.65rem;
+}
+
+.store-inline-status {
+    text-align: center;
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    margin-top: 0.85rem;
+    color: var(--champagne);
+}
+
+.store-inline-status.err { color: #f87171; }
+.store-inline-status.ok { color: #86efac; }
+
+.outfit-option.set-option {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.9rem 1rem;
+}
+
+.outfit-option.set-option img {
+    display: none;
 }

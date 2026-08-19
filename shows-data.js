@@ -27,9 +27,9 @@ window.RUNWAY_SHOWS = {
             },
             pieces: [
                 { id: 'street', name: 'Nameless Street', slot: 'base', color: '#6b7280' },
-                { id: 'pants', name: 'Drop-Crotch Pants', slot: 'bottoms', color: '#1f1f1f' },
-                { id: 'tee', name: 'DRKSHDW Tee', slot: 'top', color: '#374151' },
-                { id: 'ramones', name: 'Ramones', slot: 'shoes', color: '#0a0a0a', rare: true },
+                { id: 'pants', name: 'Drop-Crotch Pants', slot: 'bottoms', color: '#0a0a0a' },
+                { id: 'tee', name: 'DRKSHDW Tee', slot: 'top', color: '#262626' },
+                { id: 'ramones', name: 'Ramones', slot: 'shoes', color: '#111111', rare: true },
                 { id: 'leather', name: 'Leather Jacket', slot: 'outer', color: '#111111' },
                 { id: 'finale', name: 'Full Owens Look', slot: 'finale', color: '#e5e5e5' }
             ]
@@ -39,8 +39,8 @@ window.RUNWAY_SHOWS = {
             designer: 'Ralph Lauren',
             showName: 'Purple Label',
             tagline: 'Uptown polish',
-            accent: '#6b21a8',
-            palette: ['#1e3a5f', '#7c2d12', '#c4a574', '#f5f5f4'],
+            accent: '#16a34a',
+            palette: ['#16a34a', '#1e3a5f', '#eab308', '#f5f5f4'],
             boost: {
                 id: 'polo-stride',
                 name: 'Polo Stride',
@@ -50,21 +50,21 @@ window.RUNWAY_SHOWS = {
                 speedMult: 1.12
             },
             rareGoal: {
-                id: 'polo-blazer',
-                label: 'BLAZER',
-                fullName: 'Purple Label Blazer',
+                id: 'crest-polo',
+                label: 'POLO',
+                fullName: 'Crest Polo',
                 target: 3,
-                color: '#4c1d95',
+                color: '#16a34a',
                 points: 110,
-                slot: 'outer'
+                slot: 'top'
             },
             pieces: [
                 { id: 'street', name: 'Nameless Street', slot: 'base', color: '#6b7280' },
                 { id: 'chinos', name: 'Tailored Chinos', slot: 'bottoms', color: '#92400e' },
-                { id: 'oxford', name: 'Oxford Shirt', slot: 'top', color: '#f8fafc' },
+                { id: 'polo', name: 'Crest Polo', slot: 'top', color: '#16a34a', rare: true },
                 { id: 'loafers', name: 'Calf Loafers', slot: 'shoes', color: '#78350f' },
-                { id: 'blazer', name: 'Purple Label Blazer', slot: 'outer', color: '#4c1d95', rare: true },
-                { id: 'finale', name: 'Full Polo Look', slot: 'finale', color: '#6b21a8' }
+                { id: 'blazer', name: 'Navy Blazer', slot: 'outer', color: '#1e3a5f' },
+                { id: 'finale', name: 'Full Polo Look', slot: 'finale', color: '#16a34a' }
             ]
         }
     ],
@@ -177,8 +177,8 @@ window.RUNWAY_SHOWS = {
             designer: 'Dior',
             showName: 'Dior Avenue',
             tagline: 'New Look silhouette',
-            accent: '#9f1239',
-            palette: ['#9f1239', '#fafaf9', '#44403c', '#c9a56a'],
+            accent: '#1e3a5f',
+            palette: ['#1e3a5f', '#f5f0e6', '#9f1239', '#44403c'],
             boost: {
                 id: 'bar-jacket',
                 name: 'Bar Jacket Lift',
@@ -188,21 +188,21 @@ window.RUNWAY_SHOWS = {
                 speedMult: 1.02
             },
             rareGoal: {
-                id: 'bar-jacket',
-                label: 'BAR',
-                fullName: 'Bar Jacket',
+                id: 'book-tote',
+                label: 'TOTE',
+                fullName: 'Book Tote',
                 target: 3,
-                color: '#9f1239',
+                color: '#1e3a5f',
                 points: 122,
-                slot: 'outer'
+                slot: 'finale'
             },
             pieces: [
                 { id: 'street', name: 'Nameless Street', slot: 'base', color: '#6b7280' },
                 { id: 'midi', name: 'Midi Skirt', slot: 'bottoms', color: '#44403c' },
-                { id: 'bodice', name: 'Structured Bodice', slot: 'top', color: '#9f1239' },
+                { id: 'bodice', name: 'Structured Bodice', slot: 'top', color: '#f5f0e6' },
                 { id: 'pump', name: 'Pointed Pump', slot: 'shoes', color: '#9f1239' },
-                { id: 'jacket', name: 'Bar Jacket', slot: 'outer', color: '#9f1239', rare: true },
-                { id: 'finale', name: 'Full Dior', slot: 'finale', color: '#fafaf9' }
+                { id: 'jacket', name: 'Bar Jacket', slot: 'outer', color: '#9f1239' },
+                { id: 'tote', name: 'Book Tote', slot: 'finale', color: '#1e3a5f', rare: true }
             ]
         }
     ],
@@ -281,8 +281,8 @@ window.RUNWAY_SHOWS = {
             designer: 'Balenciaga',
             showName: 'Balenciaga',
             tagline: 'Concrete couture',
-            accent: '#22c55e',
-            palette: ['#171717', '#525252', '#22c55e', '#fafafa'],
+            accent: '#1d4ed8',
+            palette: ['#1e40af', '#ef4444', '#3b82f6', '#fafafa'],
             boost: {
                 id: 'triple-s',
                 name: 'Triple-S Push',
@@ -296,17 +296,17 @@ window.RUNWAY_SHOWS = {
                 label: 'TRIPLE-S',
                 fullName: 'Triple-S Sneakers',
                 target: 3,
-                color: '#fafafa',
+                color: '#ef4444',
                 points: 120,
                 slot: 'shoes'
             },
             pieces: [
                 { id: 'street', name: 'Nameless Street', slot: 'base', color: '#6b7280' },
                 { id: 'baggy', name: 'Baggy Denim', slot: 'bottoms', color: '#3f3f46' },
-                { id: 'hoodie', name: 'Oversized Hoodie', slot: 'top', color: '#18181b' },
-                { id: 'sneaker', name: 'Triple-S', slot: 'shoes', color: '#f4f4f5', rare: true },
-                { id: 'puffer', name: 'Hard Puffer', slot: 'outer', color: '#27272a' },
-                { id: 'finale', name: 'Full Balenciaga', slot: 'finale', color: '#22c55e' }
+                { id: 'logo-tee', name: 'Logo Blue Tee', slot: 'top', color: '#1e40af' },
+                { id: 'sneaker', name: 'Triple-S', slot: 'shoes', color: '#ef4444', rare: true },
+                { id: 'puffer', name: 'Hard Puffer', slot: 'outer', color: '#171717' },
+                { id: 'finale', name: 'Full Balenciaga', slot: 'finale', color: '#1d4ed8' }
             ]
         },
         {
@@ -383,8 +383,8 @@ window.RUNWAY_SHOWS = {
             designer: 'Casablanca',
             showName: 'Casablanca',
             tagline: 'Silk tennis club',
-            accent: '#f472b6',
-            palette: ['#f472b6', '#22d3ee', '#fef3c7', '#14532d'],
+            accent: '#0f3d2e',
+            palette: ['#f5f0e6', '#1e3a5f', '#059669', '#f472b6'],
             boost: {
                 id: 'silk-rally',
                 name: 'Silk Rally',
@@ -399,17 +399,17 @@ window.RUNWAY_SHOWS = {
                 label: 'SILK',
                 fullName: 'Silk Club Shirt',
                 target: 3,
-                color: '#f472b6',
+                color: '#f5f0e6',
                 points: 115,
                 slot: 'top'
             },
             pieces: [
                 { id: 'street', name: 'Nameless Street', slot: 'base', color: '#6b7280' },
                 { id: 'trouser', name: 'Silk Trouser', slot: 'bottoms', color: '#14532d' },
-                { id: 'shirt', name: 'Silk Club Shirt', slot: 'top', color: '#f472b6', rare: true },
+                { id: 'shirt', name: 'Silk Club Shirt', slot: 'top', color: '#f5f0e6', rare: true },
                 { id: 'sneaker', name: 'Court Sneaker', slot: 'shoes', color: '#fef3c7' },
-                { id: 'blazer', name: 'Club Blazer', slot: 'outer', color: '#22d3ee' },
-                { id: 'finale', name: 'Full Casablanca', slot: 'finale', color: '#f472b6' }
+                { id: 'blazer', name: 'Club Blazer', slot: 'outer', color: '#1e3a5f' },
+                { id: 'finale', name: 'Full Casablanca', slot: 'finale', color: '#059669' }
             ]
         }
     ]

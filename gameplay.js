@@ -1679,6 +1679,101 @@
                 ctx.arc(Math.cos(a) * s * 0.32, Math.sin(a) * s * 0.32, 2.5, 0, Math.PI * 2);
                 ctx.fill();
             }
+        } else if (shape === 'tee') {
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.32, -s * 0.18, s * 0.64, s * 0.55, 6);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.32, -s * 0.1);
+            ctx.lineTo(-s * 0.52, 0.05);
+            ctx.lineTo(-s * 0.4, s * 0.18);
+            ctx.lineTo(-s * 0.32, s * 0.08);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(s * 0.32, -s * 0.1);
+            ctx.lineTo(s * 0.52, 0.05);
+            ctx.lineTo(s * 0.4, s * 0.18);
+            ctx.lineTo(s * 0.32, s * 0.08);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.12, -s * 0.02, s * 0.24, s * 0.08);
+            ctx.fillRect(-s * 0.16, s * 0.12, s * 0.32, s * 0.05);
+        } else if (shape === 'sneaker') {
+            ctx.fillStyle = accent;
+            roundRect(ctx, -s * 0.42, s * 0.05, s * 0.84, s * 0.28, 8);
+            ctx.fill();
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.38, -s * 0.18, s * 0.72, s * 0.32, 10);
+            ctx.fill();
+            ctx.fillStyle = '#f5f5f4';
+            roundRect(ctx, -s * 0.4, s * 0.18, s * 0.8, s * 0.12, 4);
+            ctx.fill();
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.1, -s * 0.12, s * 0.35, s * 0.08);
+        } else if (shape === 'boot') {
+            ctx.fillStyle = accent;
+            roundRect(ctx, -s * 0.35, s * 0.12, s * 0.7, s * 0.22, 6);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(-s * 0.28, s * 0.12, s * 0.18, s * 0.14, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.22, -s * 0.42, s * 0.44, s * 0.62, 8);
+            ctx.fill();
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.06, -s * 0.2, s * 0.12, s * 0.35);
+        } else if (shape === 'pants') {
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.28, -s * 0.35, s * 0.56, s * 0.28, 6);
+            ctx.fill();
+            ctx.fillRect(-s * 0.26, -s * 0.12, s * 0.22, s * 0.55);
+            ctx.fillRect(s * 0.04, -s * 0.12, s * 0.22, s * 0.55);
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.04, -s * 0.28);
+            ctx.lineTo(-s * 0.04, s * 0.15);
+            ctx.moveTo(s * 0.04, -s * 0.28);
+            ctx.lineTo(s * 0.04, s * 0.15);
+            ctx.stroke();
+        } else if (shape === 'shirt') {
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.3, -s * 0.2, s * 0.6, s * 0.55, 6);
+            ctx.fill();
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.3, -s * 0.2, s * 0.6, s * 0.08);
+            ctx.fillRect(-s * 0.3, s * 0.28, s * 0.6, s * 0.07);
+            ctx.beginPath();
+            ctx.arc(0, s * 0.05, s * 0.14, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (shape === 'polo') {
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.3, -s * 0.15, s * 0.6, s * 0.5, 6);
+            ctx.fill();
+            ctx.fillStyle = '#1e3a5f';
+            ctx.fillRect(-s * 0.18, -s * 0.28, s * 0.36, s * 0.16);
+            ctx.fillStyle = accent;
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.28, -s * 0.1);
+            ctx.lineTo(s * 0.28, s * 0.28);
+            ctx.lineTo(s * 0.18, s * 0.34);
+            ctx.lineTo(-s * 0.38, -s * 0.04);
+            ctx.closePath();
+            ctx.fill();
+        } else if (shape === 'tote') {
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.36, -s * 0.08, s * 0.72, s * 0.5, 4);
+            ctx.fill();
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(-s * 0.16, -s * 0.08, s * 0.16, Math.PI, 0);
+            ctx.arc(s * 0.16, -s * 0.08, s * 0.16, Math.PI, 0);
+            ctx.stroke();
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.32, s * 0.08, s * 0.64, s * 0.1);
         } else {
             ctx.fillStyle = color;
             ctx.beginPath();
