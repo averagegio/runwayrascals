@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Runway Rascals — Name Your Model</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="app-container character-select-bg auth-screen">
+            <div class="game-header">
+                <h1 class="game-title">Name Your Model</h1>
+                <p class="map-subtitle">Character name + @gamer tag</p>
+            </div>
+            <form id="profileForm" class="auth-form">
+                <label>Character Name<input type="text" id="characterName" required maxlength="32" placeholder="Walk name"></label>
+                <label>Gamer Tag<input type="text" id="gamerTag" required maxlength="20" placeholder="@handle"></label>
+                <p class="auth-hint">Shown above your 3D avatar on the runway.</p>
+                <p id="authError" class="auth-error" hidden></p>
+                <button type="submit" class="game-btn confirm-btn auth-submit"><span class="btn-text">Save & Continue</span></button>
+            </form>
+            <div class="game-footer">
+                <a href="character-select.html" class="game-btn"><span class="btn-text">Pick Look</span></a>
+            </div>
+        </div>
+    </div>
+    <script src="auth-client.js"></script>
+    <script>
+        if (!RunwayAuth.requireAuth('signup.html')) { /* redirected */ }
+        const user = RunwayAuth.getCachedUser() || {};
+        const nameEl = document.getElementById('characterName');
+        const tagEl = document.getElementById('gamerTag');
+        nameEl.value = user.characterName || user.displayName || '';
+        tagEl.value = user.gamerTag ? `@${user.gamerTag}` : '';
+
+        tagEl.addEventListener('input', () => {
+            let v = tagEl.value.replace(/^@+/, '').replace(/[^a-zA-Z0-9_]/g, '');
+            tagEl.value = v ? `@${v}` : '';
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const err = document.getElementById('authError');
+            err.hidden = true;
+            try {
+                await RunwayAuth.updateProfile({
+                    characterName: nameEl.value,
+                    displayName: nameEl.value,
+                    gamerTag: tagEl.value
+                });
+                window.location.href = 'character-select.html';
+            } catch (ex) {
+                // Offline / API down — still save locally so play continues
+                localStorage.setItem('characterName', nameEl.value);
+                localStorage.setItem('gamerTag', tagEl.value.replace(/^@/, ''));
+                localStorage.setItem('displayName', nameEl.value);
+                if (ex.message && ex.message.includes('fetch')) {
+                    window.location.href = 'character-select.html';
+                    return;
+                }
+                err.textContent = ex.message;
+                err.hidden = false;
+            }
+        });
+    </script>
+</body>
+</html>

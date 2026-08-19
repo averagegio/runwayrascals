@@ -71,9 +71,13 @@
 
     let theme = MAP_THEMES.newyork;
     let show = null;
-    let characterImg = null;
-    let finaleImg = null;
     let cameraMode = 'back';
+    let avatar3d = null;
+    let avatarCanvas = null;
+    let characterName = 'Model';
+    let gamerTag = 'model';
+    let cityId = 'newyork';
+    let lastFrameDt = 0.016;
 
     let lane = 1;
     let targetLane = 1;
@@ -111,6 +115,15 @@
     let touchStartY = 0;
     let touchActive = false;
 
+    function readPlayerIdentity() {
+        const user = (window.RunwayAuth && RunwayAuth.getCachedUser()) || {};
+        characterName = localStorage.getItem('characterName')
+            || user.characterName
+            || user.displayName
+            || 'Model';
+        gamerTag = String(localStorage.getItem('gamerTag') || user.gamerTag || 'model').replace(/^@/, '');
+    }
+
     function readCityId() {
         try {
             const map = JSON.parse(localStorage.getItem('selectedMap') || 'null');
@@ -128,25 +141,6 @@
         } catch (_) { /* ignore */ }
         if (window.getShowById) return window.getShowById(cityId, showId);
         return null;
-    }
-
-    function readFinaleImage() {
-        try {
-            const raw = localStorage.getItem('selectedOutfit');
-            if (raw) {
-                const outfit = JSON.parse(raw);
-                if (outfit && outfit.image) return outfit.image;
-            }
-        } catch (_) { /* ignore */ }
-        const character = localStorage.getItem('selectedCharacter');
-        return character === 'male' ? 'chibibrodoll2.png' : 'chibidollfashion.png';
-    }
-
-    function readStreetImage() {
-        const character = localStorage.getItem('selectedCharacter');
-        if (character === 'male') return 'chibibrodoll.png';
-        if (character === 'evening') return 'chibidoll3.png';
-        return 'chibidoll2.png';
     }
 
     function readMapTheme() {
@@ -359,6 +353,8 @@
             outfitEl.textContent = piece ? piece.name : 'Nameless Street';
         }
         if (boostEl && show) boostEl.textContent = show.boost.name;
+        const tagEl = document.getElementById('playerTag');
+        if (tagEl) tagEl.textContent = `${characterName} · @${gamerTag}`;
         renderWardrobeTrack();
     }
 
@@ -375,8 +371,6 @@
             if (dressAnimPiece && dressAnimPiece.slot === piece.slot && dressAnimT > 0) chip.classList.add('flash');
             if (piece.rare) chip.classList.add('rare');
             chip.style.setProperty('--chip-color', piece.color);
-            chip.textContent = piece.rare ? '★' : String(idx);
-            // clearer 1..N after skipping base
             const visibleIndex = show.pieces.filter((p) => p.slot !== 'base').indexOf(piece) + 1;
             chip.textContent = piece.rare ? '★' : String(visibleIndex);
             chip.title = piece.name;
@@ -619,7 +613,13 @@
         gameOver = true;
         running = false;
         updateHud();
-        showOverlay(false);
+        const root = document.getElementById('gameRoot');
+        const finish = () => showOverlay(false);
+        if (window.RunwayCinematic) {
+            RunwayCinematic.levelClosing(root, cityId, false).then(finish);
+        } else {
+            finish();
+        }
     }
 
     function completeLevel() {
@@ -628,7 +628,31 @@
         running = false;
         score += 500;
         updateHud();
-        showOverlay(true);
+        const root = document.getElementById('gameRoot');
+
+        const finish = async () => {
+            let newlyUnlocked = null;
+            if (window.RunwayAuth && RunwayAuth.getToken()) {
+                try {
+                    const data = await RunwayAuth.api('/api/levels/unlock-next', {
+                        method: 'POST',
+                        body: JSON.stringify({ completedLevelId: cityId })
+                    });
+                    newlyUnlocked = data.newlyUnlocked;
+                    if (data.user) RunwayAuth.setSession(RunwayAuth.getToken(), data.user);
+                } catch (_) { /* offline ok */ }
+            }
+            if (newlyUnlocked && window.RunwayCinematic) {
+                await RunwayCinematic.levelUnlocked(root, newlyUnlocked, gamerTag);
+            }
+            showOverlay(true, newlyUnlocked);
+        };
+
+        if (window.RunwayCinematic) {
+            RunwayCinematic.levelClosing(root, cityId, true).then(finish);
+        } else {
+            finish();
+        }
     }
 
     function hideOverlay() {
@@ -636,17 +660,22 @@
         if (el) el.remove();
     }
 
-    function showOverlay(won) {
+    function showOverlay(won, newlyUnlocked) {
         hideOverlay();
         const screen = document.createElement('div');
         screen.className = 'game-over-screen';
         const lookName = show?.pieces[Math.min(outfitStage, show.pieces.length - 1)]?.name || 'Street';
+        const unlockLine = newlyUnlocked
+            ? `<p class="game-over-meta unlock-line">Unlocked: ${RunwayCinematic.LEVEL_NAMES[newlyUnlocked] || newlyUnlocked}</p>`
+            : '';
         if (won) {
             screen.innerHTML = `
                 <h2>Show Complete</h2>
+                <p>${characterName} · @${gamerTag}</p>
                 <p>Walked for ${show.designer}</p>
                 <p class="game-over-meta">${show.rareGoal.fullName}: ${rareCollected}/${show.rareGoal.target}</p>
                 <p class="game-over-meta">Final look: ${lookName}</p>
+                ${unlockLine}
                 <p>Score: ${Math.floor(score)}</p>
                 <button id="restartBtn" class="game-btn">Walk Again</button>
                 <a href="show-select.html" class="game-btn" style="margin-top:10px;display:inline-block;">Change Show</a>
@@ -654,6 +683,7 @@
         } else {
             screen.innerHTML = `
                 <h2>Runway Wipeout</h2>
+                <p>${characterName} · @${gamerTag}</p>
                 <p>Score: ${Math.floor(score)}</p>
                 <p class="game-over-meta">${show ? show.designer : 'Show'}: ${rareCollected}/${show?.rareGoal?.target || 0} rares</p>
                 <p class="game-over-meta">Dressed: ${lookName}</p>
@@ -844,44 +874,50 @@
         ctx.restore();
     }
 
-    function drawOutfitLayers(x, y, pw, ph, facingFront) {
-        if (!show) return;
-        const pieces = show.pieces;
+    function drawPlayer() {
+        const baseY = height * 0.72 - playerYOffset;
+        const pulse = 1 + dressPulse * 0.15;
+        const pw = (isSliding ? 78 : 64) * pulse;
+        const ph = (isSliding ? 48 : 110) * pulse;
+        const x = laneX;
+        const y = baseY;
+
         ctx.save();
-        if (facingFront) {
-            ctx.translate(x, y);
-            ctx.scale(-1, 1);
-            x = 0;
-            y = 0;
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.beginPath();
+        ctx.ellipse(x, height * 0.74, pw * 0.35, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (shieldTimer > 0) {
+            ctx.strokeStyle = `rgba(255,255,255,${0.35 + shieldTimer})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.ellipse(x, y - ph * 0.45, pw * 0.7, ph * 0.55, 0, 0, Math.PI * 2);
+            ctx.stroke();
         }
 
-        // Progressive clothing overlays that "dress" the model
-        const drawSlot = (slot, rect) => {
-            if (!ownedSlots[slot]) return;
-            const piece = pieces.find((p) => p.slot === slot);
-            if (!piece) return;
-            ctx.globalAlpha = 0.72;
-            ctx.fillStyle = piece.color;
-            ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-            ctx.globalAlpha = 1;
-            ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
-        };
+        // 3D avatar render → blit onto runway canvas
+        if (avatar3d && avatarCanvas) {
+            if (show) avatar3d.avatar.applyPieceColors(show.pieces, ownedSlots);
+            avatar3d.setCameraMode(cameraMode);
+            avatar3d.avatar.update(lastFrameDt, {
+                jumping: isJumping,
+                sliding: isSliding,
+                dressing: dressAnimT
+            });
+            avatar3d.render();
+            ctx.drawImage(avatarCanvas, x - pw / 2, y - ph, pw, ph);
+        } else {
+            // Fallback blocky stand-in if Three.js failed to load
+            ctx.fillStyle = '#c4a484';
+            ctx.fillRect(x - pw * 0.25, y - ph * 0.95, pw * 0.5, ph * 0.28);
+            ctx.fillStyle = ownedSlots.top ? (show?.pieces.find(p => p.slot === 'top')?.color || '#666') : '#9ca3af';
+            ctx.fillRect(x - pw * 0.35, y - ph * 0.7, pw * 0.7, ph * 0.35);
+            ctx.fillStyle = ownedSlots.bottoms ? (show?.pieces.find(p => p.slot === 'bottoms')?.color || '#444') : '#9ca3af';
+            ctx.fillRect(x - pw * 0.3, y - ph * 0.38, pw * 0.6, ph * 0.35);
+        }
 
-        // Street base wash
-        ctx.globalAlpha = outfitStage === 0 ? 0.35 : 0.12;
-        ctx.fillStyle = '#9ca3af';
-        ctx.fillRect(x - pw * 0.42, y - ph * 0.92, pw * 0.84, ph * 0.9);
-        ctx.globalAlpha = 1;
-
-        drawSlot('bottoms', { x: x - pw * 0.38, y: y - ph * 0.42, w: pw * 0.76, h: ph * 0.4 });
-        drawSlot('top', { x: x - pw * 0.4, y: y - ph * 0.78, w: pw * 0.8, h: ph * 0.38 });
-        drawSlot('shoes', { x: x - pw * 0.4, y: y - ph * 0.08, w: pw * 0.8, h: ph * 0.12 });
-        drawSlot('outer', { x: x - pw * 0.48, y: y - ph * 0.82, w: pw * 0.96, h: ph * 0.55 });
-        drawSlot('finale', { x: x - pw * 0.2, y: y - ph * 0.95, w: pw * 0.4, h: ph * 0.12 });
-
-        // Dress-up flying piece animation
+        // Dress-up fly-in piece
         if (dressAnimT > 0 && dressAnimPiece) {
             const t = 1 - dressAnimT / 0.85;
             const ease = 1 - Math.pow(1 - t, 3);
@@ -901,71 +937,24 @@
             ctx.globalAlpha = 1;
         }
 
-        ctx.restore();
-    }
-
-    function drawPlayer() {
-        const baseY = height * 0.72 - playerYOffset;
-        const pulse = 1 + dressPulse * 0.15;
-        const pw = (isSliding ? 70 : 56) * pulse;
-        const ph = (isSliding ? 42 : 96) * pulse;
-        const x = laneX;
-        const y = baseY;
-        const useFinale = outfitStage >= (show?.pieces.length || 1) - 1 && finaleImg;
-        const img = useFinale ? finaleImg : characterImg;
-
-        ctx.save();
-        ctx.fillStyle = 'rgba(0,0,0,0.35)';
-        ctx.beginPath();
-        ctx.ellipse(x, height * 0.74, pw * 0.35, 10, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        if (shieldTimer > 0) {
-            ctx.strokeStyle = `rgba(255,255,255,${0.35 + shieldTimer})`;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.ellipse(x, y - ph * 0.45, pw * 0.7, ph * 0.55, 0, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        if (cameraMode === 'front') {
-            ctx.save();
-            ctx.translate(x, y - ph * 0.55);
-            ctx.scale(-1, 1);
-            if (img && img.complete) ctx.drawImage(img, -pw / 2, -ph / 2, pw, ph);
-            else {
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(-pw / 2, -ph / 2, pw, ph);
-            }
-            ctx.restore();
-            drawOutfitLayers(x, y, pw, ph, false);
-            ctx.fillStyle = show?.accent || theme.accent;
-            ctx.font = 'bold 12px Fredoka One, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('FRONT CAM', x, y - ph - 8);
-        } else {
-            if (img && img.complete) ctx.drawImage(img, x - pw / 2, y - ph, pw, ph);
-            else {
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(x - pw / 2, y - ph, pw, ph);
-            }
-            drawOutfitLayers(x, y, pw, ph, false);
-            ctx.fillStyle = 'rgba(255,255,255,0.7)';
-            ctx.font = 'bold 11px Fredoka One, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('BACK CAM', x, y - ph - 8);
-        }
+        // Name + @tag over the 3D model
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px Fredoka One, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(characterName, x, y - ph - 22);
+        ctx.fillStyle = show?.accent || theme.accent;
+        ctx.font = 'bold 11px Fredoka One, sans-serif';
+        ctx.fillText(`@${gamerTag}`, x, y - ph - 8);
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.font = 'bold 10px Fredoka One, sans-serif';
+        ctx.fillText(cameraMode === 'front' ? 'FRONT CAM' : 'BACK CAM', x, y - ph - 36);
 
         if (isJumping) {
             ctx.fillStyle = theme.accent;
-            ctx.font = '10px Fredoka One, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('JUMP', x, y - ph - 22);
+            ctx.fillText('JUMP', x, y - ph - 48);
         }
         if (isSliding) {
             ctx.fillStyle = theme.accent;
-            ctx.font = '10px Fredoka One, sans-serif';
-            ctx.textAlign = 'center';
             ctx.fillText('SLIDE', x, y + 14);
         }
         ctx.restore();
@@ -1011,6 +1000,7 @@
         let dt = (ts - lastTs) / 1000;
         lastTs = ts;
         dt = Math.min(0.033, dt);
+        lastFrameDt = dt;
 
         updatePlayer(dt);
         if (!gameOver && !levelComplete) updateEntities(dt);
@@ -1090,18 +1080,12 @@
         }, { once: true });
     }
 
-    function loadImage(src) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = () => resolve(null);
-            img.src = src;
-        });
-    }
-
     async function init() {
         canvas = document.getElementById('gameCanvas');
         ctx = canvas.getContext('2d');
+        avatarCanvas = document.getElementById('avatar3d');
+        readPlayerIdentity();
+        cityId = readCityId();
         theme = readMapTheme();
         show = readShow();
         if (!show) {
@@ -1109,13 +1093,24 @@
             return;
         }
 
-        characterImg = await loadImage(readStreetImage());
-        finaleImg = await loadImage(readFinaleImage());
+        if (window.THREE && window.Runway3D && avatarCanvas) {
+            avatar3d = Runway3D.createRenderer(avatarCanvas, THREE);
+            avatar3d.resize(160, 220);
+            if (show) avatar3d.avatar.applyPieceColors(show.pieces, { base: true });
+        }
 
         resize();
         window.addEventListener('resize', resize);
         setupInput();
         resetRun();
+
+        const root = document.getElementById('gameRoot');
+        if (window.RunwayCinematic) {
+            await RunwayCinematic.levelOpening(root, cityId, characterName);
+        }
+
+        running = true;
+        lastTs = 0;
         rafId = requestAnimationFrame(loop);
     }
 

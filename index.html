@@ -12,27 +12,31 @@
         <div class="app-container">
             <div class="game-header">
                 <h1 class="game-title">Runway Rascals</h1>
+                <p class="map-subtitle" id="homeTagline">3D runway · Fashion Week cities</p>
             </div>
-            <div id="gameContainer">
-                <canvas id="gameCanvas" style="display: none;"></canvas>
-                <div id="mobileControls" style="display: none;">
-                    <button id="leftArrow">&#9668;</button>
-                    <button id="upArrow">&#9650;</button>
-                    <button id="rightArrow">&#9658;</button>
-                </div>
+            <div class="home-profile" id="homeProfile" hidden>
+                <div id="homeName" class="home-name">Model</div>
+                <div id="homeTag" class="home-tag">@tag</div>
             </div>
-            <div class="game-footer">
-                <a href="character-select.html" class="game-btn customize-btn">
-                    <span class="btn-text">Customize Character</span>
+            <div id="gameContainer" class="home-hero-spacer"></div>
+            <div class="game-footer home-actions">
+                <a href="login.html" id="loginLink" class="game-btn"><span class="btn-text">Log In</span></a>
+                <a href="signup.html" id="signupLink" class="game-btn"><span class="btn-text">Sign Up</span></a>
+                <a href="profile-setup.html" id="profileLink" class="game-btn" hidden><span class="btn-text">Name / @Tag</span></a>
+                <a href="store.html" id="storeLink" class="game-btn" hidden><span class="btn-text">Boutique</span></a>
+                <a href="character-select.html" id="customizeLink" class="game-btn customize-btn" hidden>
+                    <span class="btn-text">Customize</span>
                     <span class="btn-shine"></span>
                 </a>
-                <button id="enterGameBtn" class="game-btn enter-game-btn hexagon-btn">
+                <button id="enterGameBtn" class="game-btn enter-game-btn hexagon-btn" hidden>
                     <span class="btn-text">Enter Game</span>
                     <span class="btn-shine"></span>
                 </button>
+                <button id="logoutBtn" class="game-btn" hidden type="button"><span class="btn-text">Log Out</span></button>
             </div>
         </div>
     </div>
+    <script src="auth-client.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

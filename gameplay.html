@@ -18,6 +18,7 @@
                 <div class="hud-center">
                     <div id="mapLabel" class="hud-map-label">Fashion Week</div>
                     <div id="showLabel" class="hud-show-label">Walking for…</div>
+                    <div id="playerTag" class="hud-player-tag">@model</div>
                     <div id="scoreDisplay" class="hud-score">0</div>
                     <div id="goalDisplay" class="hud-goal">RARE: 0/3</div>
                     <div id="collectDisplay" class="hud-collect">Looks: 0</div>
@@ -34,7 +35,8 @@
             </div>
             <div id="gameWrapper">
                 <canvas id="gameCanvas"></canvas>
-                <div id="swipeHint" class="swipe-hint">Start in street clothes · collect to get dressed</div>
+                <canvas id="avatar3d" width="160" height="220" aria-hidden="true"></canvas>
+                <div id="swipeHint" class="swipe-hint">3D model · collect looks to get dressed</div>
             </div>
             <div id="controlsWrapper">
                 <div id="mobileControls">
@@ -46,7 +48,11 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="auth-client.js"></script>
     <script src="shows-data.js"></script>
+    <script src="character-3d.js"></script>
+    <script src="level-cinematic.js"></script>
     <script src="gameplay.js"></script>
 </body>
 </html>

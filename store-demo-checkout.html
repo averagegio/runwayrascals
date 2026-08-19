@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Demo Checkout — Runway Rascals</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="app-container map-select-bg auth-screen">
+            <div class="game-header">
+                <h1 class="game-title">Stripe Demo</h1>
+                <p class="map-subtitle">Keys not set — confirm to simulate payment</p>
+            </div>
+            <div class="auth-form">
+                <p id="itemName" class="hud-outfit" style="text-align:center;font-size:18px;"></p>
+                <p id="itemPrice" class="map-subtitle" style="text-align:center;"></p>
+                <p class="auth-hint">Add <code>STRIPE_SECRET_KEY</code> in <code>server/.env</code> for real Stripe Checkout.</p>
+                <p id="authError" class="auth-error" hidden></p>
+                <button id="confirmBtn" class="game-btn confirm-btn auth-submit"><span class="btn-text">Confirm Demo Pay</span></button>
+                <a href="store.html" class="game-btn" style="text-align:center;margin-top:10px;"><span class="btn-text">Cancel</span></a>
+            </div>
+        </div>
+    </div>
+    <script src="auth-client.js"></script>
+    <script>
+        if (!RunwayAuth.requireAuth()) { /* redirect */ }
+        const params = new URLSearchParams(location.search);
+        const itemId = params.get('item');
+        const name = params.get('name') || itemId;
+        const price = Number(params.get('price') || 0);
+        document.getElementById('itemName').textContent = name;
+        document.getElementById('itemPrice').textContent = `$${(price / 100).toFixed(2)} USD`;
+        document.getElementById('confirmBtn').addEventListener('click', async () => {
+            const err = document.getElementById('authError');
+            err.hidden = true;
+            try {
+                await RunwayAuth.api('/api/store/confirm-demo', {
+                    method: 'POST',
+                    body: JSON.stringify({ itemId })
+                });
+                location.href = `store.html?success=1&item=${encodeURIComponent(itemId)}`;
+            } catch (ex) {
+                err.textContent = ex.message;
+                err.hidden = false;
+            }
+        });
+    </script>
+</body>
+</html>

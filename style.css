@@ -1122,3 +1122,77 @@ body, html {
     font-size: 20px;
     margin-bottom: 12px;
 }
+
+/* Auth / store / home profile */
+.auth-screen .auth-form {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 10px auto 20px;
+}
+.auth-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #fff;
+    font-size: 13px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+.auth-form input {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+}
+.auth-submit { width: 100%; text-align: center; }
+.auth-error {
+    background: rgba(127,29,29,0.85);
+    color: #fecaca;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+.auth-hint { color: #eee; font-size: 12px; opacity: 0.9; }
+.auth-footer { flex-wrap: wrap; gap: 8px; }
+.home-profile {
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    margin-top: 8px;
+}
+.home-name { font-size: 22px; font-family: 'Playfair Display', 'Fredoka One', serif; }
+.home-tag { color: #FFD700; font-size: 14px; margin-top: 4px; }
+.home-actions { flex-wrap: wrap; gap: 8px; justify-content: center; }
+.home-hero-spacer { flex: 1; min-height: 120px; }
+.hud-player-tag {
+    font-size: 11px;
+    color: #FFD700;
+    margin-bottom: 2px;
+}
+#avatar3d {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    left: -9999px;
+}
+.map-card.locked {
+    opacity: 0.45;
+    filter: grayscale(0.4);
+    cursor: not-allowed;
+}
+.store-status {
+    width: 90%;
+    margin: 0 auto 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    text-align: center;
+}
+.store-status.ok { background: rgba(22,101,52,0.85); color: #bbf7d0; }
+.store-status.err { background: rgba(127,29,29,0.85); color: #fecaca; }
+.store-card.owned { opacity: 0.7; }
+.unlock-line { color: #fbbf24 !important; }
