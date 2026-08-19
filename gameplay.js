@@ -202,6 +202,7 @@
     let dressAnimT = 0;
     let dressAnimPiece = null;
     let dressPulse = 0;
+    let selectedGait = 'strut';
 
     /** @type {Array<object>} */
     let entities = [];
@@ -615,11 +616,14 @@
 
     function triggerDressAnimation(piece) {
         dressAnimPiece = piece;
-        dressAnimT = 0.85;
+        dressAnimT = 0.9;
         dressPulse = 1;
         const baseY = height * 0.86 - playerYOffset * 0.2;
         burst(laneX, baseY - 70, piece.color || show.accent);
         pushFloat(`+${piece.name}`, piece.color || '#fff', laneX, baseY - 120);
+        if (avatar3d && avatar3d.avatar && avatar3d.avatar.playDressSnap) {
+            try { avatar3d.avatar.playDressSnap(piece.slot || 'top'); } catch (_) { /* ignore */ }
+        }
     }
 
     function grantOutfitPiece(pieceLike) {
@@ -639,6 +643,7 @@
             }
         }
 
+        const prevStage = outfitStage;
         ownedSlots[slot] = true;
         let stage = 0;
         for (let i = 0; i < show.pieces.length; i++) {
@@ -647,6 +652,24 @@
         }
         outfitStage = stage;
         triggerDressAnimation(piece);
+
+        // Popup when a new look / outfit level is reached (after don animation)
+        if (outfitStage > prevStage && window.RunwayCinematic && RunwayCinematic.lookUnlocked) {
+            const root = document.getElementById('gameRoot');
+            window.setTimeout(function () {
+                if (dying || levelComplete) return;
+                const wasLive = runLive;
+                running = false;
+                runLive = false;
+                RunwayCinematic.lookUnlocked(root, piece.name || 'New Look', outfitStage).then(function () {
+                    if (dying || levelComplete) return;
+                    running = true;
+                    runLive = wasLive;
+                    lastTs = 0;
+                    rafId = requestAnimationFrame(loop);
+                });
+            }, 920);
+        }
         return true;
     }
 
@@ -1825,6 +1848,8 @@
                     jumping: isJumping && !dying,
                     sliding: isSliding && !dying,
                     dressing: dressAnimT,
+                    dressSlot: dressAnimPiece && dressAnimPiece.slot,
+                    gait: selectedGait,
                     dying,
                     deathT
                 });
@@ -1865,31 +1890,43 @@
             ctx.fillRect(x - pw * 0.3, footY - ph * 0.38, pw * 0.6, ph * 0.35);
         }
 
-        // Dress-up fly-in — piece snaps onto the body slot
+        // Dress-up fly-in — garment silhouette snaps onto the body slot
         if (dressAnimT > 0 && dressAnimPiece && !dying) {
-            const t = 1 - dressAnimT / 0.85;
+            const t = 1 - dressAnimT / 0.9;
             const ease = 1 - Math.pow(1 - t, 3);
             const slot = dressAnimPiece.slot || 'top';
             const slotY = slot === 'shoes' ? footY - ph * 0.12
                 : slot === 'bottoms' ? footY - ph * 0.35
                 : slot === 'outer' || slot === 'top' ? footY - ph * 0.62
                 : footY - ph * 0.55;
-            const fromY = footY - ph - 90;
+            const fromY = footY - ph - 110;
             const py = fromY + (slotY - fromY) * ease;
-            const scale = 1.55 - ease * 0.7;
-            ctx.globalAlpha = 1 - t * 0.25;
+            const scale = 1.7 - ease * 0.85;
+            const alpha = 0.95 - ease * 0.55;
+            ctx.save();
+            ctx.globalAlpha = alpha;
             ctx.fillStyle = dressAnimPiece.color || '#fff';
+            // Soft garment shape instead of a raw orb
             ctx.beginPath();
-            ctx.arc(x, py, 18 * scale, 0, Math.PI * 2);
+            if (slot === 'shoes') {
+                ctx.ellipse(x, py, 14 * scale, 8 * scale, 0, 0, Math.PI * 2);
+            } else if (slot === 'bottoms') {
+                ctx.moveTo(x - 16 * scale, py - 10 * scale);
+                ctx.lineTo(x + 16 * scale, py - 10 * scale);
+                ctx.lineTo(x + 12 * scale, py + 18 * scale);
+                ctx.lineTo(x - 12 * scale, py + 18 * scale);
+                ctx.closePath();
+            } else {
+                ctx.moveTo(x - 18 * scale, py + 16 * scale);
+                ctx.quadraticCurveTo(x, py - 22 * scale, x + 18 * scale, py + 16 * scale);
+                ctx.closePath();
+            }
             ctx.fill();
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillStyle = '#111';
-            ctx.font = `600 ${Math.floor(10 * scale)}px Syne, sans-serif`;
+            ctx.font = `700 ${Math.max(9, 11 * scale)}px Helvetica, Arial, sans-serif`;
             ctx.textAlign = 'center';
+            ctx.fillStyle = '#fff';
             ctx.fillText((dressAnimPiece.name || '').split(' ').pop().toUpperCase(), x, py + 3);
-            ctx.globalAlpha = 1;
+            ctx.restore();
         }
 
         if (dying) {
@@ -2071,8 +2108,10 @@
 
         if (window.THREE && window.Runway3D && avatarCanvas) {
             const characterId = localStorage.getItem('selectedCharacter') || 'female';
+            selectedGait = localStorage.getItem('selectedGait') || 'strut';
             avatar3d = Runway3D.createRenderer(avatarCanvas, THREE, { characterId });
             avatar3d.resize(180, 260);
+            if (avatar3d.avatar.setGait) avatar3d.avatar.setGait(selectedGait);
             if (show) avatar3d.avatar.applyPieceColors(show.pieces, { base: true });
         }
 

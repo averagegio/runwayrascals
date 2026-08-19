@@ -1,5 +1,5 @@
 /**
- * Intro: paparazzi snaps → Bodoni RR glint → brown runway fade → swipe with gradient veil.
+ * Intro: Bodoni RR slides apart like glass panes → runway fade → brand → swipe.
  */
 (function () {
     const splash = document.getElementById('introSplash');
@@ -22,69 +22,19 @@
     const sub = splash.querySelector('.sub');
     const rule = splash.querySelector('.intro-rule');
     const swipeHint = document.getElementById('introSwipeHint');
-    const flashEl = document.getElementById('introFlash');
     const rrEl = document.getElementById('introRR');
     const bgEl = document.getElementById('introBg');
     const veilEl = document.getElementById('introSwipeVeil');
 
-    // Paparazzi burst → RR glint → runway bg → brand → swipe
-    const PAPARAZZI = [
-        { at: 180, strength: 0.88, hold: 55 },
-        { at: 340, strength: 0.72, hold: 40 },
-        { at: 520, strength: 0.95, hold: 60 },
-        { at: 720, strength: 0.65, hold: 35 },
-        { at: 910, strength: 0.9, hold: 50 }
-    ];
-    const GLINT_START = 1100;
-    const BG_START = 2400;
-    const BRAND_AT = 3200;
-    const READY_AT = 3800;
+    const SPLIT_AT = 280;
+    const BG_START = 1600;
+    const BRAND_AT = 2300;
+    const READY_AT = 2900;
 
     let readyToSwipe = false;
     let dismissing = false;
-    let flashLevel = 0;
-    let flashHoldMs = 0;
-    let flashIdx = 0;
-    let lastTick = 0;
     let brandShown = false;
-
-    function triggerFlash(strength, holdMs) {
-        flashLevel = Math.max(flashLevel, strength);
-        flashHoldMs = Math.max(flashHoldMs, holdMs || 40);
-        if (flashEl) {
-            flashEl.style.opacity = String(flashLevel);
-            flashEl.classList.add('is-on');
-        }
-        // Soft paparazzi — don't nuke the whole mark unless very bright
-        if (strength >= 0.92) splash.classList.add('is-flashing');
-    }
-
-    function decayFlash(dtMs) {
-        if (flashHoldMs > 0) {
-            flashHoldMs -= dtMs;
-            if (flashEl) flashEl.style.opacity = String(flashLevel);
-            return;
-        }
-        splash.classList.remove('is-flashing');
-        if (flashLevel <= 0.02) {
-            flashLevel = 0;
-            if (flashEl) {
-                flashEl.style.opacity = '0';
-                flashEl.classList.remove('is-on');
-            }
-            return;
-        }
-        flashLevel *= Math.pow(0.5, dtMs / 40);
-        if (flashEl) flashEl.style.opacity = String(flashLevel);
-    }
-
-    function schedulePaparazzi(elapsed) {
-        while (flashIdx < PAPARAZZI.length && elapsed >= PAPARAZZI[flashIdx].at) {
-            const beat = PAPARAZZI[flashIdx];
-            triggerFlash(beat.strength, beat.hold);
-            flashIdx += 1;
-        }
-    }
+    let done = false;
 
     function dismissIntro() {
         if (!readyToSwipe || dismissing) return;
@@ -100,22 +50,14 @@
     }
 
     const t0 = performance.now();
-    lastTick = t0;
 
     function frame(now) {
         const elapsed = now - t0;
-        const dt = Math.min(50, now - lastTick);
-        lastTick = now;
 
-        schedulePaparazzi(elapsed);
-        decayFlash(dt);
-
-        // RR slowly glints into view
-        if (elapsed >= GLINT_START && rrEl && !rrEl.classList.contains('is-glinting')) {
-            rrEl.classList.add('is-glinting');
+        if (elapsed >= SPLIT_AT && rrEl && !rrEl.classList.contains('is-splitting')) {
+            rrEl.classList.add('is-splitting');
         }
 
-        // Brown runway background fades in under the mark
         if (elapsed >= BG_START && bgEl && !bgEl.classList.contains('is-in')) {
             bgEl.classList.add('is-in');
             splash.classList.add('has-runway');
@@ -132,13 +74,10 @@
             if (swipeHint) swipeHint.classList.add('is-visible');
             splash.classList.add('intro-ready');
             readyToSwipe = true;
+            done = true;
         }
 
-        if (!dismissing && (!readyToSwipe || flashLevel > 0 || flashHoldMs > 0)) {
-            requestAnimationFrame(frame);
-        } else if (!dismissing && readyToSwipe && flashLevel <= 0) {
-            // keep idle — no loop needed
-        }
+        if (!done) requestAnimationFrame(frame);
     }
 
     let touchY0 = null;
@@ -169,7 +108,5 @@
         if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'Enter') dismissIntro();
     });
 
-    requestAnimationFrame(function () {
-        requestAnimationFrame(frame);
-    });
+    requestAnimationFrame(frame);
 })();
