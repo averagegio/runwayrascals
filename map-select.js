@@ -50,14 +50,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     ];
 
-    let unlocked = ['newyork'];
+    let unlocked = maps.map((m) => m.id);
     if (window.RunwayAuth && RunwayAuth.getToken()) {
         try {
             const data = await RunwayAuth.api('/api/levels');
-            unlocked = data.unlocked || unlocked;
+            const fromServer = data.unlocked || [];
+            // Keep every city selectable; server unlocks still merge in
+            unlocked = Array.from(new Set([...unlocked, ...fromServer]));
         } catch (_) {
             const user = RunwayAuth.getCachedUser();
-            if (user && user.unlockedLevels) unlocked = user.unlockedLevels;
+            if (user && user.unlockedLevels) {
+                unlocked = Array.from(new Set([...unlocked, ...user.unlockedLevels]));
+            }
         }
     }
 
@@ -78,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <span class="map-event">${map.event}</span>
             <span class="map-name">${map.name}</span>
             <span class="map-tagline">${map.tagline}</span>
-            <span class="show-meta">${isUnlocked ? 'Unlocked' : 'Locked — finish previous city'}</span>
+            <span class="show-meta">${isUnlocked ? 'Open runway' : 'Coming soon'}</span>
         `;
         if (!isUnlocked) el.classList.add('locked');
         el.addEventListener('click', () => {
