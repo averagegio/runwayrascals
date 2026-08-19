@@ -4,93 +4,99 @@
     const MAP_THEMES = {
         newyork: {
             name: 'New York Fashion Week',
-            wallTop: '#e8e4dc',
-            wallBot: '#cfc8bc',
-            floor: '#1a1a1a',
-            catwalk: '#141414',
-            catwalkSheen: 'rgba(255,255,255,0.08)',
-            seat: '#f4f1ea',
-            seatEdge: '#d6d0c6',
+            wallTop: '#fff4d6',
+            wallBot: '#f0c96a',
+            floor: '#1f1a12',
+            catwalk: '#1a1410',
+            catwalkSheen: 'rgba(255,220,120,0.22)',
+            seat: '#fff8e8',
+            seatEdge: '#f0d89a',
             crowd: '#2a2a2a',
             accent: '#F4C430',
-            light: 'rgba(255,248,230,0.35)',
+            light: 'rgba(255,230,140,0.55)',
+            wash: 'rgba(244,196,48,0.18)',
             city: 'ny',
             skyline: 'ny'
         },
         milan: {
             name: 'Milan Fashion Week',
-            wallTop: '#ebe6df',
-            wallBot: '#d4cbc0',
-            floor: '#1c1917',
-            catwalk: '#171412',
-            catwalkSheen: 'rgba(201,162,39,0.08)',
-            seat: '#f7f3ec',
-            seatEdge: '#ddd5c8',
+            wallTop: '#ffe8e0',
+            wallBot: '#e8a090',
+            floor: '#221816',
+            catwalk: '#1c1210',
+            catwalkSheen: 'rgba(220,80,60,0.2)',
+            seat: '#fff5f0',
+            seatEdge: '#f0c8b8',
             crowd: '#292524',
-            accent: '#8B0000',
-            light: 'rgba(255,240,220,0.3)',
+            accent: '#C41E3A',
+            light: 'rgba(255,200,180,0.5)',
+            wash: 'rgba(196,30,58,0.16)',
             city: 'milan',
             skyline: 'milan'
         },
         paris: {
             name: 'Paris Fashion Week',
-            wallTop: '#f0ebe3',
-            wallBot: '#d9d2c8',
-            floor: '#161616',
-            catwalk: '#121212',
-            catwalkSheen: 'rgba(255,255,255,0.1)',
-            seat: '#faf8f4',
-            seatEdge: '#e5dfd4',
+            wallTop: '#e8f0ff',
+            wallBot: '#a8c4f0',
+            floor: '#141820',
+            catwalk: '#10141c',
+            catwalkSheen: 'rgba(120,170,255,0.22)',
+            seat: '#f4f8ff',
+            seatEdge: '#c8d8f5',
             crowd: '#292524',
-            accent: '#1d4ed8',
-            light: 'rgba(255,252,245,0.4)',
+            accent: '#3B82F6',
+            light: 'rgba(200,220,255,0.55)',
+            wash: 'rgba(59,130,246,0.16)',
             city: 'paris',
             skyline: 'paris',
             backdrop: 'eiffel-tower.jpg'
         },
         london: {
             name: 'London Fashion Week',
-            wallTop: '#e6eaf0',
-            wallBot: '#c5ced8',
-            floor: '#18181b',
-            catwalk: '#111113',
-            catwalkSheen: 'rgba(200,16,46,0.07)',
-            seat: '#f3f5f7',
-            seatEdge: '#d2d8df',
+            wallTop: '#ffe4e8',
+            wallBot: '#e8a0a8',
+            floor: '#1a1214',
+            catwalk: '#161012',
+            catwalkSheen: 'rgba(220,40,70,0.2)',
+            seat: '#fff0f2',
+            seatEdge: '#f0c0c8',
             crowd: '#27272a',
-            accent: '#C8102E',
-            light: 'rgba(230,240,255,0.28)',
+            accent: '#E11D48',
+            light: 'rgba(255,200,210,0.48)',
+            wash: 'rgba(200,16,46,0.16)',
             city: 'london',
             skyline: 'london',
             wet: true
         },
         berlin: {
             name: 'Berlin Fashion Week',
-            wallTop: '#e4e4e4',
-            wallBot: '#c4c4c4',
-            floor: '#0f0f0f',
-            catwalk: '#0a0a0a',
-            catwalkSheen: 'rgba(46,204,113,0.06)',
-            seat: '#f5f5f5',
-            seatEdge: '#d4d4d4',
+            wallTop: '#e4ffe8',
+            wallBot: '#88d4a0',
+            floor: '#101612',
+            catwalk: '#0c1410',
+            catwalkSheen: 'rgba(80,220,140,0.2)',
+            seat: '#f0fff4',
+            seatEdge: '#b8e8c8',
             crowd: '#171717',
-            accent: '#2ECC71',
-            light: 'rgba(240,255,245,0.25)',
+            accent: '#22C55E',
+            light: 'rgba(180,255,210,0.48)',
+            wash: 'rgba(46,204,113,0.16)',
             city: 'berlin',
             skyline: 'berlin'
         },
         miami: {
             name: 'Miami Fashion Week',
-            wallTop: '#fff1e8',
-            wallBot: '#ffd6c8',
-            floor: '#1e1b4b',
-            catwalk: '#15132e',
-            catwalkSheen: 'rgba(255,110,199,0.1)',
-            seat: '#fffaf5',
-            seatEdge: '#ffdcc8',
+            wallTop: '#ffe8f8',
+            wallBot: '#ff9ed0',
+            floor: '#1a1030',
+            catwalk: '#161028',
+            catwalkSheen: 'rgba(255,120,200,0.25)',
+            seat: '#fff0fa',
+            seatEdge: '#ffc0e0',
             crowd: '#4c1d95',
-            accent: '#FF6EC7',
-            light: 'rgba(255,230,245,0.32)',
+            accent: '#FF4DB8',
+            light: 'rgba(255,180,230,0.55)',
+            wash: 'rgba(255,110,199,0.2)',
             city: 'miami',
             skyline: 'miami'
         }
@@ -309,24 +315,25 @@
     function laneCenterX(laneIndex, z) {
         const zz = z == null ? 0 : z;
         const curve = curveAt(zz);
-        const runwayLeft = width * (0.18 + curve * 0.35);
-        const runwayRight = width * (0.82 + curve * 0.35);
+        const runwayLeft = width * (0.12 + curve * 0.32);
+        const runwayRight = width * (0.88 + curve * 0.32);
         const runwayW = runwayRight - runwayLeft;
         const laneW = runwayW / LANES;
         return runwayLeft + laneW * (laneIndex + 0.5);
     }
 
     function project(z, laneIndex) {
-        const near = 0.55;
-        const far = 0.12;
-        const t = 1 / (1 + z * 0.0045);
+        // Close chase cam — steep falloff so near field fills the frame
+        const near = 1.05;
+        const far = 0.28;
+        const t = 1 / (1 + z * 0.0072);
         const scale = near * t + far * (1 - t);
-        const horizonY = height * 0.28;
-        const groundY = height * 0.88;
-        const y = horizonY + (groundY - horizonY) * (1 - Math.pow(1 - t, 1.35));
-        const center = width / 2 + curveAt(z) * width * 0.42 * (0.2 + 0.8 * t);
+        const horizonY = height * 0.40;
+        const groundY = height * 0.92;
+        const y = horizonY + (groundY - horizonY) * (1 - Math.pow(1 - t, 1.2));
+        const center = width / 2 + curveAt(z) * width * 0.38 * (0.25 + 0.75 * t);
         const laneXWorld = laneCenterX(laneIndex, z);
-        const x = center + (laneXWorld - center) * (0.25 + 0.75 * t);
+        const x = center + (laneXWorld - center) * (0.3 + 0.7 * t);
         return { x, y, scale, t, curve: curveAt(z) };
     }
 
@@ -722,11 +729,11 @@
     }
 
     function playerHitbox() {
-        const footY = height * 0.86 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15);
+        const footY = height * 0.90 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15);
         const scale = isSliding ? 0.55 : 1;
-        const mag = (boost().magnet || 0) * 0.35;
-        const pw = 48 + mag;
-        const ph = 90 * scale;
+        const mag = (boost().magnet || 0) * 0.45;
+        const pw = 88 + mag;
+        const ph = 160 * scale;
         return {
             x: laneX - pw / 2,
             y: footY - ph,
@@ -1001,56 +1008,85 @@
     }
 
     function drawShowroomWalls() {
-        // Cohesive fashion-show room — walls + floor (not a floating sky plane)
-        const wall = ctx.createLinearGradient(0, 0, 0, height * 0.55);
-        wall.addColorStop(0, theme.wallTop || '#ebe6df');
-        wall.addColorStop(1, theme.wallBot || '#d4cbc0');
+        // Vibrant fashion-show room — saturated walls + colored wash
+        const wall = ctx.createLinearGradient(0, 0, 0, height * 0.52);
+        wall.addColorStop(0, theme.wallTop || '#fff4d6');
+        wall.addColorStop(0.55, theme.wallBot || '#f0c96a');
+        wall.addColorStop(1, theme.floor || '#1a1a1a');
         ctx.fillStyle = wall;
-        ctx.fillRect(0, 0, width, height * 0.55);
+        ctx.fillRect(0, 0, width, height * 0.52);
 
-        // Soft ceiling wash
-        const ceil = ctx.createLinearGradient(0, 0, 0, height * 0.18);
-        ceil.addColorStop(0, 'rgba(255,255,255,0.35)');
+        // City accent wash across the walls
+        const wash = ctx.createRadialGradient(width * 0.5, height * 0.1, 10, width * 0.5, height * 0.25, width * 0.7);
+        wash.addColorStop(0, theme.wash || 'rgba(255,200,100,0.2)');
+        wash.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = wash;
+        ctx.fillRect(0, 0, width, height * 0.5);
+
+        // Soft ceiling glow
+        const ceil = ctx.createLinearGradient(0, 0, 0, height * 0.2);
+        ceil.addColorStop(0, 'rgba(255,255,255,0.5)');
         ceil.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = ceil;
-        ctx.fillRect(0, 0, width, height * 0.18);
+        ctx.fillRect(0, 0, width, height * 0.2);
 
-        // Floor flanking the runway (same dark plane — runway is flush, not floating)
-        ctx.fillStyle = theme.floor || '#161616';
-        ctx.fillRect(0, height * 0.48, width, height * 0.52);
+        // Side curtains / drapes for venue depth
+        for (let side = -1; side <= 1; side += 2) {
+            const gx = side < 0 ? 0 : width * 0.82;
+            const drape = ctx.createLinearGradient(gx, 0, gx + width * 0.18, 0);
+            drape.addColorStop(0, side < 0 ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0)');
+            drape.addColorStop(0.5, theme.wash || 'rgba(255,200,100,0.12)');
+            drape.addColorStop(1, side < 0 ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.28)');
+            ctx.fillStyle = drape;
+            ctx.fillRect(gx, 0, width * 0.18, height * 0.48);
+        }
+
+        // Floor flanking the runway
+        const floorGrad = ctx.createLinearGradient(0, height * 0.45, 0, height);
+        floorGrad.addColorStop(0, theme.floor || '#161616');
+        floorGrad.addColorStop(1, '#050505');
+        ctx.fillStyle = floorGrad;
+        ctx.fillRect(0, height * 0.45, width, height * 0.55);
     }
 
     function drawFarBackdrop() {
-        const horizon = height * 0.34;
-        const portalW = width * 0.42;
+        const horizon = height * 0.40;
+        const portalW = width * 0.55;
         const portalX = width / 2 - portalW / 2;
-        const portalH = height * 0.22;
+        const portalH = height * 0.28;
 
-        // Entry portal / end of runway (like the white opening in a real show)
-        ctx.fillStyle = '#f8f6f1';
+        // Bright entry portal with accent rim
+        const portalGrad = ctx.createLinearGradient(portalX, horizon - portalH, portalX, horizon);
+        portalGrad.addColorStop(0, '#ffffff');
+        portalGrad.addColorStop(1, theme.wallTop || '#fff8e8');
+        ctx.fillStyle = portalGrad;
         ctx.fillRect(portalX, horizon - portalH, portalW, portalH);
+
+        ctx.strokeStyle = theme.accent || '#F4C430';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(portalX + 2, horizon - portalH + 2, portalW - 4, portalH - 4);
+
         // Steps into the portal
-        ctx.fillStyle = '#111';
-        for (let i = 0; i < 3; i++) {
-            const y = horizon - 4 - i * 7;
-            const inset = i * 8;
-            ctx.fillRect(portalX + portalW * 0.2 + inset, y, portalW * 0.6 - inset * 2, 6);
+        ctx.fillStyle = '#0a0a0a';
+        for (let i = 0; i < 4; i++) {
+            const y = horizon - 3 - i * 8;
+            const inset = i * 10;
+            ctx.fillRect(portalX + portalW * 0.18 + inset, y, portalW * 0.64 - inset * 2, 7);
         }
 
         if (theme.skyline === 'paris' && backdropReady && backdropImg) {
-            const iw = portalW * 0.95;
-            const ih = portalH * 1.35;
+            const iw = portalW * 0.98;
+            const ih = portalH * 1.45;
             ctx.save();
             ctx.beginPath();
-            ctx.rect(portalX, horizon - ih * 0.85, portalW, ih * 0.85);
+            ctx.rect(portalX, horizon - ih * 0.88, portalW, ih * 0.88);
             ctx.clip();
-            ctx.globalAlpha = 0.92;
-            ctx.drawImage(backdropImg, portalX + (portalW - iw) / 2, horizon - ih * 0.9, iw, ih);
+            ctx.globalAlpha = 1;
+            ctx.drawImage(backdropImg, portalX + (portalW - iw) / 2, horizon - ih * 0.92, iw, ih);
             ctx.restore();
-            // Soft vignette so it sits in the room
             const vg = ctx.createLinearGradient(portalX, horizon - portalH, portalX, horizon);
-            vg.addColorStop(0, 'rgba(248,246,241,0.15)');
-            vg.addColorStop(1, 'rgba(20,20,20,0.25)');
+            vg.addColorStop(0, 'rgba(255,255,255,0.05)');
+            vg.addColorStop(1, 'rgba(20,30,50,0.2)');
             ctx.fillStyle = vg;
             ctx.fillRect(portalX, horizon - portalH, portalW, portalH);
         } else {
@@ -1095,9 +1131,9 @@
     }
 
     function drawGuest(x, y, scale, side, seed) {
-        const s = Math.max(7, scale * 30);
-        const skins = ['#e8c4a8', '#c68c6c', '#f0d2b4', '#8d5524', '#ffdbac'];
-        const dresses = ['#111', '#f4efe6', '#7c2d12', '#1e3a5f', '#9f1239', '#334155', theme.accent || '#c9a56a'];
+        const s = Math.max(16, scale * 58);
+        const skins = ['#f0c8a8', '#d4a07a', '#ffdbac', '#a0673a', '#ffc8a0', '#c68642'];
+        const dresses = ['#111', '#fff0e8', '#9f1239', '#1e3a8a', '#f59e0b', '#7c3aed', theme.accent || '#c9a56a', '#ec4899'];
         const skin = skins[seed % skins.length];
         const dress = dresses[seed % dresses.length];
 
@@ -1105,34 +1141,62 @@
         ctx.translate(x, y);
         ctx.scale(side < 0 ? 1 : -1, 1);
 
-        // White bench seat (fixed to floor)
-        ctx.fillStyle = theme.seat || '#f4f1ea';
-        ctx.fillRect(-s * 0.4, s * 0.28, s * 0.8, s * 0.18);
+        // White bench seat
+        ctx.fillStyle = theme.seat || '#fff8e8';
+        ctx.fillRect(-s * 0.45, s * 0.3, s * 0.9, s * 0.2);
         ctx.fillStyle = theme.seatEdge || '#ddd';
-        ctx.fillRect(-s * 0.42, s * 0.22, s * 0.12, s * 0.4);
+        ctx.fillRect(-s * 0.48, s * 0.22, s * 0.14, s * 0.42);
 
+        // Body / gown
         ctx.fillStyle = dress;
         ctx.beginPath();
-        ctx.ellipse(0, s * 0.1, s * 0.28, s * 0.32, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, s * 0.12, s * 0.32, s * 0.36, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillRect(-s * 0.26, s * 0.25, s * 0.52, s * 0.14);
+        ctx.fillRect(-s * 0.3, s * 0.28, s * 0.6, s * 0.16);
 
+        // Head
         ctx.fillStyle = skin;
         ctx.beginPath();
-        ctx.arc(0, -s * 0.26, s * 0.18, 0, Math.PI * 2);
+        ctx.arc(0, -s * 0.28, s * 0.22, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = seed % 2 ? '#1a1a1a' : '#4a3728';
+        // Hair with volume
+        ctx.fillStyle = seed % 3 === 0 ? '#1a1a1a' : seed % 3 === 1 ? '#4a2c1a' : '#8B4513';
         ctx.beginPath();
-        ctx.ellipse(0, -s * 0.34, s * 0.2, s * 0.12, 0, Math.PI, Math.PI * 2);
+        ctx.ellipse(0, -s * 0.38, s * 0.24, s * 0.16, 0, Math.PI, Math.PI * 2);
         ctx.fill();
+        if (seed % 2 === 0) {
+            ctx.beginPath();
+            ctx.ellipse(-s * 0.18, -s * 0.22, s * 0.1, s * 0.22, -0.3, 0, Math.PI * 2);
+            ctx.ellipse(s * 0.18, -s * 0.22, s * 0.1, s * 0.22, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
-        // Phone / camera raised (fashion show energy)
+        // Face features
+        ctx.fillStyle = '#1a1a1a';
+        ctx.beginPath();
+        ctx.ellipse(-s * 0.08, -s * 0.3, s * 0.035, s * 0.045, 0, 0, Math.PI * 2);
+        ctx.ellipse(s * 0.08, -s * 0.3, s * 0.035, s * 0.045, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.beginPath();
+        ctx.arc(-s * 0.07, -s * 0.31, s * 0.012, 0, Math.PI * 2);
+        ctx.arc(s * 0.09, -s * 0.31, s * 0.012, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#c45c5c';
+        ctx.lineWidth = Math.max(1, s * 0.03);
+        ctx.beginPath();
+        ctx.arc(0, -s * 0.2, s * 0.06, 0.15, Math.PI - 0.15);
+        ctx.stroke();
+
+        // Phone / camera
         if (seed % 3 !== 2) {
             ctx.fillStyle = '#111';
-            ctx.fillRect(s * 0.12, -s * 0.55, s * 0.14, s * 0.22);
-            ctx.fillStyle = 'rgba(255,255,255,0.35)';
-            ctx.fillRect(s * 0.14, -s * 0.52, s * 0.1, s * 0.1);
+            ctx.fillRect(s * 0.14, -s * 0.62, s * 0.16, s * 0.26);
+            ctx.fillStyle = theme.accent || '#fff';
+            ctx.globalAlpha = 0.7;
+            ctx.fillRect(s * 0.16, -s * 0.58, s * 0.12, s * 0.12);
+            ctx.globalAlpha = 1;
         }
         ctx.restore();
     }
@@ -1171,27 +1235,28 @@
                     const lateral = (70 + row * 26) * (0.48 + 0.52 * p.t);
                     const x = p.x + side * lateral;
                     const y = p.y + 4 + row * 3;
-                    if (y < height * 0.36 || y > height * 0.94) continue;
+                    if (y < height * 0.38 || y > height * 0.96) continue;
                     const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
-                    drawGuest(x, y, p.scale * (1 - row * 0.06), side, seed);
+                    drawGuest(x, y, p.scale * (1.15 - row * 0.05), side, seed);
                 }
             }
         }
     }
 
     function drawSpotlights() {
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
             const bend = curveAt(i * 100) * width * 0.15;
-            const x = width * (0.22 + i * 0.18) + bend;
-            const g = ctx.createRadialGradient(x, height * 0.08, 2, x, height * 0.55, height * 0.45);
-            g.addColorStop(0, theme.light || 'rgba(255,255,255,0.28)');
+            const x = width * (0.18 + i * 0.16) + bend;
+            const g = ctx.createRadialGradient(x, height * 0.06, 2, x, height * 0.58, height * 0.5);
+            g.addColorStop(0, theme.light || 'rgba(255,255,255,0.5)');
+            g.addColorStop(0.45, theme.wash || 'rgba(255,200,100,0.12)');
             g.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = g;
             ctx.beginPath();
-            ctx.moveTo(x - 10, height * 0.06);
-            ctx.lineTo(x + 10, height * 0.06);
-            ctx.lineTo(x + width * 0.1, height * 0.9);
-            ctx.lineTo(x - width * 0.1, height * 0.9);
+            ctx.moveTo(x - 14, height * 0.04);
+            ctx.lineTo(x + 14, height * 0.04);
+            ctx.lineTo(x + width * 0.12, height * 0.92);
+            ctx.lineTo(x - width * 0.12, height * 0.92);
             ctx.closePath();
             ctx.fill();
         }
@@ -1206,27 +1271,27 @@
     }
 
     function catwalkEdgeX(z, side) {
-        const t = 1 / (1 + z * 0.0045);
-        const halfNear = width * 0.28;
-        const halfFar = width * 0.075;
+        const t = 1 / (1 + z * 0.0072);
+        const halfNear = width * 0.38;
+        const halfFar = width * 0.12;
         const half = halfFar + (halfNear - halfFar) * t;
-        const bend = curveAt(z) * width * 0.42 * (0.18 + 0.82 * t);
+        const bend = curveAt(z) * width * 0.38 * (0.22 + 0.78 * t);
         const bank = curveDeriv(z) * width * 0.28 * side * t;
         const cx = width / 2 + bend;
         return cx + side * half + bank * 0.12;
     }
 
     function drawCatwalk() {
-        // Dark polished runway flush with the floor — finished show surface, not a floating plane
-        const topY = height * 0.34;
-        const botY = height * 0.96;
+        // Wide polished runway — fills the near field so the player feels close
+        const topY = height * 0.40;
+        const botY = height * 0.98;
         const steps = 44;
 
         const left = [];
         const right = [];
         for (let i = 0; i <= steps; i++) {
             const u = i / steps;
-            const z = (1 - u) * 900;
+            const z = (1 - u) * 720;
             const y = topY + (botY - topY) * u;
             left.push({ x: catwalkEdgeX(z, -1), y, z });
             right.push({ x: catwalkEdgeX(z, 1), y, z });
@@ -1241,7 +1306,7 @@
         ctx.closePath();
         ctx.fill();
 
-        // Gloss / reflection sheen down the center (like polished show floors)
+        // Gloss / reflection sheen
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(left[0].x, left[0].y);
@@ -1249,19 +1314,34 @@
         for (let i = steps; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
         ctx.closePath();
         ctx.clip();
-        const sheen = ctx.createLinearGradient(width * 0.35, topY, width * 0.65, botY);
+        const sheen = ctx.createLinearGradient(width * 0.3, topY, width * 0.7, botY);
         sheen.addColorStop(0, 'rgba(255,255,255,0)');
-        sheen.addColorStop(0.45, theme.catwalkSheen || 'rgba(255,255,255,0.08)');
-        sheen.addColorStop(1, 'rgba(255,255,255,0.02)');
+        sheen.addColorStop(0.4, theme.catwalkSheen || 'rgba(255,255,255,0.18)');
+        sheen.addColorStop(0.7, 'rgba(255,255,255,0.06)');
+        sheen.addColorStop(1, 'rgba(255,255,255,0.12)');
         ctx.fillStyle = sheen;
         ctx.fillRect(0, topY, width, botY - topY);
 
-        // Subtle seam lines (panel joints, not highway dashes)
-        ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+        // Accent LED edges
+        ctx.strokeStyle = theme.accent || '#F4C430';
+        ctx.globalAlpha = 0.55;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(left[0].x, left[0].y);
+        for (let i = 1; i <= steps; i++) ctx.lineTo(left[i].x, left[i].y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(right[0].x, right[0].y);
+        for (let i = 1; i <= steps; i++) ctx.lineTo(right[i].x, right[i].y);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // Panel seams
+        ctx.strokeStyle = 'rgba(255,255,255,0.07)';
         ctx.lineWidth = 1;
-        for (let i = 0; i < 12; i++) {
-            const t = ((i / 12) + (distance * 0.0035) % 1) % 1;
-            const z = (1 - t) * 900;
+        for (let i = 0; i < 10; i++) {
+            const t = ((i / 10) + (distance * 0.004) % 1) % 1;
+            const z = (1 - t) * 720;
             const y = topY + (botY - topY) * t;
             ctx.beginPath();
             ctx.moveTo(catwalkEdgeX(z, -1) + 2, y);
@@ -1271,16 +1351,16 @@
         ctx.restore();
 
         if (theme.wet) {
-            ctx.fillStyle = 'rgba(140,170,210,0.1)';
-            const mid = project(100, 1);
+            ctx.fillStyle = 'rgba(140,170,210,0.12)';
+            const mid = project(80, 1);
             ctx.beginPath();
-            ctx.ellipse(mid.x, mid.y, width * 0.08, 10, 0, 0, Math.PI * 2);
+            ctx.ellipse(mid.x, mid.y, width * 0.1, 12, 0, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Hairline edge where runway meets seating (finished join, not floating lip)
-        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-        ctx.lineWidth = 1.5;
+        // Soft edge join
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(left[0].x, left[0].y);
         for (let i = 1; i <= steps; i++) ctx.lineTo(left[i].x, left[i].y);
@@ -1510,10 +1590,10 @@
         const tumbleY = dying ? Math.sin(deathProg * Math.PI) * 40 - deathProg * 70 : 0;
         const tumbleX = dying ? Math.sin(deathT * 14) * 18 * deathProg : 0;
         // Feet planted on near catwalk surface (Subway Surfers–style grounding)
-        const footY = height * 0.86 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15) + tumbleY;
+        const footY = height * 0.90 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15) + tumbleY;
         const pulse = 1 + dressPulse * 0.12;
-        const pw = (isSliding && !dying ? 86 : 72) * pulse;
-        const ph = (isSliding && !dying ? 52 : 128) * pulse;
+        const pw = (isSliding && !dying ? 140 : 124) * pulse;
+        const ph = (isSliding && !dying ? 88 : 220) * pulse;
         const x = laneX + tumbleX;
         const lean = curveDeriv(0) * width * 0.08;
 
@@ -1784,7 +1864,7 @@
         if (window.THREE && window.Runway3D && avatarCanvas) {
             const characterId = localStorage.getItem('selectedCharacter') || 'female';
             avatar3d = Runway3D.createRenderer(avatarCanvas, THREE, { characterId });
-            avatar3d.resize(200, 280);
+            avatar3d.resize(320, 480);
             if (show) avatar3d.avatar.applyPieceColors(show.pieces, { base: true });
         }
 

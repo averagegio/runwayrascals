@@ -138,17 +138,65 @@
         collar.visible = false;
         root.add(collar);
 
-        const head = mesh(new THREE.SphereGeometry(0.28, 18, 14), mats.skin);
+        const head = mesh(new THREE.SphereGeometry(0.3, 20, 16), mats.skin);
         head.position.y = 1.72;
         root.add(head);
 
-        const hair = mesh(new THREE.SphereGeometry(0.31, 14, 12), mats.hair);
-        hair.scale.set(1.05, 0.72, 1.08);
-        hair.position.set(0, 1.84, -0.02);
+        const hair = mesh(new THREE.SphereGeometry(0.34, 16, 14), mats.hair);
+        hair.scale.set(1.08, 0.78, 1.12);
+        hair.position.set(0, 1.88, -0.02);
         root.add(hair);
 
-        // Face cards — front + back so both cams show the character library face
-        const faceGeo = new THREE.PlaneGeometry(0.5, 0.58);
+        // Side bangs for silhouette
+        const bangL = mesh(new THREE.SphereGeometry(0.12, 10, 8), mats.hair);
+        bangL.position.set(-0.22, 1.78, 0.12);
+        bangL.scale.set(0.7, 1.1, 0.7);
+        root.add(bangL);
+        const bangR = mesh(new THREE.SphereGeometry(0.12, 10, 8), mats.hair);
+        bangR.position.set(0.22, 1.78, 0.12);
+        bangR.scale.set(0.7, 1.1, 0.7);
+        root.add(bangR);
+
+        // Built-in face features (always readable at gameplay scale)
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4 });
+        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35 });
+        const lipMat = new THREE.MeshStandardMaterial({ color: 0xc45c6a, roughness: 0.45 });
+        const browMat = new THREE.MeshStandardMaterial({ color: profile.hair, roughness: 0.9 });
+
+        [[-0.09, 1.74, 0.26], [0.09, 1.74, 0.26]].forEach((pos) => {
+            const white = mesh(new THREE.SphereGeometry(0.045, 10, 8), whiteMat);
+            white.position.set(pos[0], pos[1], pos[2]);
+            white.scale.set(1.15, 1, 0.6);
+            root.add(white);
+            const pupil = mesh(new THREE.SphereGeometry(0.024, 8, 8), eyeMat);
+            pupil.position.set(pos[0], pos[1], pos[2] + 0.03);
+            root.add(pupil);
+            const shine = mesh(new THREE.SphereGeometry(0.01, 6, 6), whiteMat);
+            shine.position.set(pos[0] - 0.01, pos[1] + 0.01, pos[2] + 0.045);
+            root.add(shine);
+        });
+
+        const browL = mesh(new THREE.BoxGeometry(0.1, 0.018, 0.02), browMat);
+        browL.position.set(-0.09, 1.8, 0.27);
+        browL.rotation.z = 0.12;
+        root.add(browL);
+        const browR = mesh(new THREE.BoxGeometry(0.1, 0.018, 0.02), browMat);
+        browR.position.set(0.09, 1.8, 0.27);
+        browR.rotation.z = -0.12;
+        root.add(browR);
+
+        const nose = mesh(new THREE.SphereGeometry(0.028, 8, 8), mats.skin);
+        nose.position.set(0, 1.7, 0.29);
+        nose.scale.set(0.7, 0.9, 0.8);
+        root.add(nose);
+
+        const mouth = mesh(new THREE.BoxGeometry(0.09, 0.025, 0.02), lipMat);
+        mouth.position.set(0, 1.63, 0.28);
+        mouth.scale.set(1, 0.7, 1);
+        root.add(mouth);
+
+        // Face cards — library art sits over procedural features
+        const faceGeo = new THREE.PlaneGeometry(0.58, 0.66);
         const faceMat = new THREE.MeshBasicMaterial({
             transparent: true,
             opacity: 0,
@@ -156,11 +204,11 @@
             side: THREE.DoubleSide
         });
         const faceFront = new THREE.Mesh(faceGeo, faceMat);
-        faceFront.position.set(0, 1.74, 0.29);
+        faceFront.position.set(0, 1.74, 0.31);
         faceFront.name = 'faceFront';
         root.add(faceFront);
         const faceBack = new THREE.Mesh(faceGeo.clone(), faceMat.clone());
-        faceBack.position.set(0, 1.74, -0.29);
+        faceBack.position.set(0, 1.74, -0.31);
         faceBack.rotation.y = Math.PI;
         faceBack.name = 'faceBack';
         root.add(faceBack);
@@ -176,7 +224,9 @@
             });
             mats.hair.color.setHex(profile.hair);
             mats.skin.color.setHex(profile.skin);
+            browMat.color.setHex(profile.hair);
         }, undefined, () => {
+            // Keep procedural features if library art fails
             faceFront.visible = false;
             faceBack.visible = false;
         });
@@ -307,10 +357,10 @@
         }
 
         function setCameraFacing(mode) {
-            // Only front cam shows the library face card
-            const showFace = mode === 'front';
+            // Face card visible on both cams so features read at gameplay size
+            const showFace = !!faceFront.material.map;
             faceFront.visible = showFace;
-            faceBack.visible = false;
+            faceBack.visible = showFace && mode === 'back';
         }
 
         let walkT = 0;
@@ -382,21 +432,24 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
-        camera.position.set(0, 1.15, 3.6);
-        camera.lookAt(0, 1.05, 0);
+        const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
+        camera.position.set(0, 1.15, 2.85);
+        camera.lookAt(0, 1.15, 0);
 
-        const hemi = new THREE.HemisphereLight(0xfff5e8, 0x2a2a32, 1.2);
+        const hemi = new THREE.HemisphereLight(0xfff8ee, 0x3a3040, 1.45);
         scene.add(hemi);
-        const key = new THREE.DirectionalLight(0xffffff, 1.15);
-        key.position.set(2.2, 4.2, 3.2);
+        const key = new THREE.DirectionalLight(0xffffff, 1.45);
+        key.position.set(2.0, 4.0, 2.8);
         scene.add(key);
-        const rim = new THREE.DirectionalLight(0xc9a56a, 0.55);
-        rim.position.set(-2, 2, -2);
+        const rim = new THREE.DirectionalLight(0xffd080, 0.85);
+        rim.position.set(-2.2, 2.4, -1.8);
         scene.add(rim);
-        const fill = new THREE.PointLight(0xffffff, 0.35, 12);
-        fill.position.set(0, 2.2, 2);
+        const fill = new THREE.PointLight(0xffffff, 0.55, 14);
+        fill.position.set(0, 2.0, 2.2);
         scene.add(fill);
+        const faceLight = new THREE.PointLight(0xfff0e0, 0.7, 6);
+        faceLight.position.set(0, 1.75, 1.2);
+        scene.add(faceLight);
 
         const avatar = createAvatar(THREE, options);
         scene.add(avatar.root);
@@ -410,17 +463,17 @@
         function setCameraMode(mode) {
             avatar.setCameraFacing(mode);
             if (mode === 'front') {
-                // Face the player — selfie / front cam, framed on the face
+                // Tight selfie framing — face fills the blit
                 avatar.root.rotation.y = 0;
-                camera.position.set(0, 1.72, 2.35);
-                camera.lookAt(0, 1.7, 0);
-                camera.fov = 32;
+                camera.position.set(0, 1.68, 1.75);
+                camera.lookAt(0, 1.68, 0);
+                camera.fov = 34;
             } else {
-                // Chase cam behind the model looking down the runway
+                // Close chase cam — full body readable
                 avatar.root.rotation.y = 0;
-                camera.position.set(0, 1.2, 3.7);
-                camera.lookAt(0, 1.05, 0);
-                camera.fov = 36;
+                camera.position.set(0, 1.2, 2.9);
+                camera.lookAt(0, 1.15, 0);
+                camera.fov = 40;
             }
             camera.updateProjectionMatrix();
         }
