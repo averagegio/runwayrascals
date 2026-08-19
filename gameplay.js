@@ -328,8 +328,8 @@
         const far = 0.28;
         const t = 1 / (1 + z * 0.0072);
         const scale = near * t + far * (1 - t);
-        const horizonY = height * 0.40;
-        const groundY = height * 0.92;
+        const horizonY = height * 0.46;
+        const groundY = height * 0.94;
         const y = horizonY + (groundY - horizonY) * (1 - Math.pow(1 - t, 1.2));
         const center = width / 2 + curveAt(z) * width * 0.38 * (0.25 + 0.75 * t);
         const laneXWorld = laneCenterX(laneIndex, z);
@@ -729,11 +729,11 @@
     }
 
     function playerHitbox() {
-        const footY = height * 0.90 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15);
+        const footY = height * 0.93 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15);
         const scale = isSliding ? 0.55 : 1;
-        const mag = (boost().magnet || 0) * 0.45;
-        const pw = 88 + mag;
-        const ph = 160 * scale;
+        const mag = (boost().magnet || 0) * 0.5;
+        const pw = 110 + mag;
+        const ph = 200 * scale;
         return {
             x: laneX - pw / 2,
             y: footY - ph,
@@ -1050,7 +1050,7 @@
     }
 
     function drawFarBackdrop() {
-        const horizon = height * 0.40;
+        const horizon = height * 0.46;
         const portalW = width * 0.55;
         const portalX = width / 2 - portalW / 2;
         const portalH = height * 0.28;
@@ -1100,31 +1100,39 @@
         ctx.beginPath();
         ctx.rect(portalX, horizon - portalH, portalW, portalH);
         ctx.clip();
-        ctx.fillStyle = 'rgba(30,30,35,0.45)';
+        ctx.fillStyle = 'rgba(40,40,55,0.7)';
         if (kind === 'ny') {
             for (let i = 0; i < 8; i++) {
                 const bx = portalX + 8 + i * (portalW / 8);
-                const bh = 30 + (i % 4) * 18;
-                ctx.fillRect(bx, horizon - bh, 14, bh);
+                const bh = 40 + (i % 4) * 22;
+                ctx.fillRect(bx, horizon - bh, 16, bh);
+                ctx.fillStyle = 'rgba(255,220,100,0.35)';
+                for (let w = 0; w < 3; w++) {
+                    ctx.fillRect(bx + 3, horizon - bh + 8 + w * 14, 4, 4);
+                }
+                ctx.fillStyle = 'rgba(40,40,55,0.7)';
             }
         } else if (kind === 'milan') {
+            ctx.fillStyle = theme.accent || 'rgba(180,40,40,0.55)';
             ctx.beginPath();
-            ctx.moveTo(width * 0.42, horizon);
-            ctx.lineTo(width * 0.5, horizon - portalH * 0.9);
-            ctx.lineTo(width * 0.58, horizon);
+            ctx.moveTo(width * 0.4, horizon);
+            ctx.lineTo(width * 0.5, horizon - portalH * 0.95);
+            ctx.lineTo(width * 0.6, horizon);
             ctx.fill();
         } else if (kind === 'london') {
-            ctx.fillRect(width * 0.46, horizon - portalH * 0.85, 10, portalH * 0.85);
-            ctx.fillRect(width * 0.455, horizon - portalH * 0.95, 20, 10);
+            ctx.fillStyle = 'rgba(50,40,45,0.75)';
+            ctx.fillRect(width * 0.46, horizon - portalH * 0.9, 12, portalH * 0.9);
+            ctx.fillRect(width * 0.45, horizon - portalH * 0.98, 24, 12);
         } else if (kind === 'berlin') {
-            ctx.fillRect(width * 0.495, horizon - portalH * 0.9, 5, portalH * 0.9);
+            ctx.fillStyle = theme.accent || 'rgba(46,204,113,0.55)';
+            ctx.fillRect(width * 0.495, horizon - portalH * 0.92, 6, portalH * 0.92);
             ctx.beginPath();
-            ctx.arc(width * 0.497, horizon - portalH * 0.55, 10, 0, Math.PI * 2);
+            ctx.arc(width * 0.498, horizon - portalH * 0.55, 14, 0, Math.PI * 2);
             ctx.fill();
         } else if (kind === 'miami') {
-            ctx.fillStyle = 'rgba(255,110,199,0.35)';
+            ctx.fillStyle = 'rgba(255,110,199,0.55)';
             for (let i = 0; i < 5; i++) {
-                ctx.fillRect(portalX + 20 + i * 28, horizon - 40 - (i % 3) * 16, 22, 40 + (i % 3) * 16);
+                ctx.fillRect(portalX + 24 + i * 32, horizon - 50 - (i % 3) * 20, 26, 50 + (i % 3) * 20);
             }
         }
         ctx.restore();
@@ -1283,8 +1291,8 @@
 
     function drawCatwalk() {
         // Wide polished runway — fills the near field so the player feels close
-        const topY = height * 0.40;
-        const botY = height * 0.98;
+        const topY = height * 0.46;
+        const botY = height * 0.99;
         const steps = 44;
 
         const left = [];
@@ -1590,10 +1598,10 @@
         const tumbleY = dying ? Math.sin(deathProg * Math.PI) * 40 - deathProg * 70 : 0;
         const tumbleX = dying ? Math.sin(deathT * 14) * 18 * deathProg : 0;
         // Feet planted on near catwalk surface (Subway Surfers–style grounding)
-        const footY = height * 0.90 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15) + tumbleY;
+        const footY = height * 0.93 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15) + tumbleY;
         const pulse = 1 + dressPulse * 0.12;
-        const pw = (isSliding && !dying ? 140 : 124) * pulse;
-        const ph = (isSliding && !dying ? 88 : 220) * pulse;
+        const pw = (isSliding && !dying ? 168 : 148) * pulse;
+        const ph = (isSliding && !dying ? 108 : 268) * pulse;
         const x = laneX + tumbleX;
         const lean = curveDeriv(0) * width * 0.08;
 
@@ -1695,15 +1703,15 @@
 
         // Name + @tag over the 3D model
         ctx.fillStyle = '#fff';
-        ctx.font = '600 12px Syne, sans-serif';
+        ctx.font = '700 15px Syne, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(characterName, x, footY - ph - 22);
+        ctx.fillText(characterName, x, footY - ph - 28);
         ctx.fillStyle = show?.accent || theme.accent;
+        ctx.font = '600 13px Syne, sans-serif';
+        ctx.fillText(`@${gamerTag}`, x, footY - ph - 10);
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
         ctx.font = '600 11px Syne, sans-serif';
-        ctx.fillText(`@${gamerTag}`, x, footY - ph - 8);
-        ctx.fillStyle = 'rgba(255,255,255,0.75)';
-        ctx.font = '600 10px Syne, sans-serif';
-        ctx.fillText(cameraMode === 'front' ? 'FRONT CAM' : 'BACK CAM', x, footY - ph - 36);
+        ctx.fillText(cameraMode === 'front' ? 'FRONT CAM' : 'BACK CAM', x, footY - ph - 44);
 
         if (isJumping) {
             ctx.fillStyle = theme.accent;
@@ -1864,7 +1872,7 @@
         if (window.THREE && window.Runway3D && avatarCanvas) {
             const characterId = localStorage.getItem('selectedCharacter') || 'female';
             avatar3d = Runway3D.createRenderer(avatarCanvas, THREE, { characterId });
-            avatar3d.resize(320, 480);
+            avatar3d.resize(360, 540);
             if (show) avatar3d.avatar.applyPieceColors(show.pieces, { base: true });
         }
 
