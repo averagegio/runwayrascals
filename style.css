@@ -1591,3 +1591,116 @@ a {
 .outfit-option.set-option img {
     display: none;
 }
+
+.set-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.55rem;
+}
+
+.logo-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.65rem;
+    height: 1.65rem;
+    padding: 0 0.35rem;
+    border-radius: 4px;
+    font-family: var(--font-ui);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    background: var(--logo-bg, #111);
+    color: var(--logo-fg, #fff);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.logo-badge.logo-crest {
+    border-radius: 999px;
+}
+
+.logo-badge.logo-bars {
+    letter-spacing: 0;
+    font-size: 0;
+}
+.logo-badge.logo-bars::before {
+    content: '';
+    display: block;
+    width: 0.85rem;
+    height: 0.7rem;
+    background:
+        linear-gradient(var(--logo-fg, #fff), var(--logo-fg, #fff)) 0 0 / 100% 22%,
+        linear-gradient(var(--logo-fg, #fff), var(--logo-fg, #fff)) 0 39% / 100% 22%,
+        linear-gradient(var(--logo-fg, #fff), var(--logo-fg, #fff)) 0 78% / 100% 22%;
+    background-repeat: no-repeat;
+    transform: skewX(-18deg);
+}
+
+.lock-pill,
+.open-pill {
+    font-family: var(--font-ui);
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.lock-pill {
+    color: var(--champagne);
+    background: rgba(201, 165, 106, 0.12);
+}
+
+.open-pill {
+    color: #86efac;
+    background: rgba(134, 239, 172, 0.1);
+}
+
+.set-option.is-locked,
+.shop-set-card.is-locked,
+.gait-option.is-locked,
+.store-card.is-locked {
+    opacity: 0.78;
+}
+
+.gait-option.is-locked .gait-name {
+    color: var(--champagne);
+}
+
+.walk-model-toggle {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin: 0 0 0.85rem;
+}
+
+.model-toggle-btn {
+    appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--ivory);
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.model-toggle-btn.selected {
+    border-color: var(--champagne);
+    background: rgba(201, 165, 106, 0.16);
+    color: var(--champagne);
+}
+
+.store-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 0.45rem;
+}

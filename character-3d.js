@@ -341,6 +341,42 @@
         bagProp.name = 'bagProp';
         torsoGroup.add(bagProp);
 
+        // Chest / back logo badge (canvas texture)
+        const logoGeo = new THREE.PlaneGeometry(0.28, 0.28);
+        const logoCanvas = document.createElement('canvas');
+        logoCanvas.width = 128;
+        logoCanvas.height = 128;
+        const logoMat = new THREE.MeshBasicMaterial({
+            map: new THREE.CanvasTexture(logoCanvas),
+            transparent: true,
+            opacity: 0,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+        const logoBadge = new THREE.Mesh(logoGeo, logoMat);
+        logoBadge.position.set(0, 0.08, 0.3);
+        logoBadge.visible = false;
+        logoBadge.name = 'logoBadge';
+        torsoGroup.add(logoBadge);
+
+        function paintLogo(markKey) {
+            const g = logoCanvas.getContext('2d');
+            g.clearRect(0, 0, 128, 128);
+            if (!markKey || !global.drawLogoMark) {
+                logoMat.opacity = 0;
+                logoBadge.visible = false;
+                logoMat.map.needsUpdate = true;
+                return;
+            }
+            g.save();
+            g.translate(64, 64);
+            global.drawLogoMark(g, markKey, 88);
+            g.restore();
+            logoMat.map.needsUpdate = true;
+            logoMat.opacity = 1;
+            logoBadge.visible = true;
+        }
+
         // Leg pivots at hips — shoes ride with legs
         const legL = new THREE.Group();
         legL.position.set(-0.17, 0, 0);
@@ -406,6 +442,7 @@
                 dressMaterial('top', 0x9ca3af, 'knit');
                 sleeveL.material = mats.top;
                 sleeveR.material = mats.top;
+                paintLogo(null);
             }
             if (!has('bottoms')) dressMaterial('bottoms', 0x9ca3af, 'denim');
             outer.visible = has('outer');
@@ -434,6 +471,7 @@
                     dressMaterial('top', hex, pat);
                     sleeveL.material = mats.top;
                     sleeveR.material = mats.top;
+                    paintLogo(p.logo || null);
                 }
                 if (p.slot === 'bottoms') {
                     dressMaterial('bottoms', hex, pat);
@@ -766,12 +804,19 @@
 
         function setCameraMode(mode) {
             avatar.setCameraFacing(mode);
-            camera.fov = 36;
-            camera.position.set(0, 1.05, 2.75);
-            camera.lookAt(0, 1.0, 0);
+            camera.fov = mode === 'side' ? 34 : 36;
             if (mode === 'front') {
+                camera.position.set(0, 1.05, 2.75);
+                camera.lookAt(0, 1.0, 0);
+                avatar.root.rotation.y = 0;
+            } else if (mode === 'side') {
+                // Camera on +X, character faces +Z → clear side silhouette for gait
+                camera.position.set(3.05, 1.08, 0);
+                camera.lookAt(0, 1.02, 0);
                 avatar.root.rotation.y = 0;
             } else {
+                camera.position.set(0, 1.05, 2.75);
+                camera.lookAt(0, 1.0, 0);
                 avatar.root.rotation.y = Math.PI;
             }
             camera.updateProjectionMatrix();

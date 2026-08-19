@@ -33,17 +33,8 @@ const STORE_CATALOG = [
         currency: 'usd',
         description: 'Starter street clothes — free with every account.',
         color: '#6b7280',
-        free: true
-    },
-    {
-        id: 'set-balenciaga',
-        name: 'Concrete Logo Set',
-        designer: 'Balenciaga',
-        priceCents: 3499,
-        currency: 'usd',
-        description: 'Royal blue logo tee + Triple-S stack — full Berlin look.',
-        color: '#1d4ed8',
-        setId: 'balenciaga-concrete'
+        free: true,
+        membersOnly: false
     },
     {
         id: 'balenciaga-logo-tee',
@@ -51,74 +42,10 @@ const STORE_CATALOG = [
         designer: 'Balenciaga',
         priceCents: 1299,
         currency: 'usd',
-        description: 'Oversized royal blue tee with white back mark.',
-        color: '#1e40af'
-    },
-    {
-        id: 'balenciaga-triple',
-        name: 'Balenciaga Triple-S',
-        designer: 'Balenciaga',
-        priceCents: 2299,
-        currency: 'usd',
-        description: 'Chunky red / blue / cream stack sneaker.',
-        color: '#ef4444'
-    },
-    {
-        id: 'set-rick',
-        name: 'DRKSHDW Set',
-        designer: 'Rick Owens',
-        priceCents: 3299,
-        currency: 'usd',
-        description: 'Drop-crotch black + Ramones cream sole — full Owens look.',
-        color: '#111111',
-        setId: 'rick-drkshdw'
-    },
-    {
-        id: 'rick-ramones',
-        name: 'Rick Owens Ramones',
-        designer: 'Rick Owens',
-        priceCents: 2499,
-        currency: 'usd',
-        description: 'Black high-top with oversized cream toe.',
-        color: '#111111'
-    },
-    {
-        id: 'rick-drop-pants',
-        name: 'Drop-Crotch Pants',
-        designer: 'Rick Owens',
-        priceCents: 1599,
-        currency: 'usd',
-        description: 'Black prisoner pant with long cream drawstrings.',
-        color: '#0a0a0a'
-    },
-    {
-        id: 'set-casablanca',
-        name: 'Silk Club Set',
-        designer: 'Casablanca',
-        priceCents: 3199,
-        currency: 'usd',
-        description: 'Cream silk club shirt with navy & emerald trim.',
-        color: '#0f3d2e',
-        setId: 'casablanca-silk'
-    },
-    {
-        id: 'casablanca-silk',
-        name: 'Casablanca Silk Shirt',
-        designer: 'Casablanca',
-        priceCents: 1799,
-        currency: 'usd',
-        description: 'Cream silk camp shirt with crest back graphic.',
-        color: '#f5f0e6'
-    },
-    {
-        id: 'set-ralph',
-        name: 'Polo Crest Set',
-        designer: 'Ralph Lauren',
-        priceCents: 2999,
-        currency: 'usd',
-        description: 'Kelly green crest polo with navy & yellow slash.',
-        color: '#16a34a',
-        setId: 'ralph-polo-green'
+        description: 'Royal blue tee with white logo bars.',
+        color: '#1e40af',
+        logo: 'balenciaga',
+        membersOnly: false
     },
     {
         id: 'ralph-crest-polo',
@@ -126,18 +53,54 @@ const STORE_CATALOG = [
         designer: 'Ralph Lauren',
         priceCents: 1499,
         currency: 'usd',
-        description: 'Kelly green polo — navy collar, polo-player graphic.',
-        color: '#16a34a'
+        description: 'Kelly green polo with crest mark.',
+        color: '#16a34a',
+        logo: 'ralph',
+        membersOnly: false
     },
     {
-        id: 'set-dior',
-        name: 'Book Tote Set',
-        designer: 'Dior',
-        priceCents: 3599,
+        id: 'rick-drkshdw-tee',
+        name: 'DRKSHDW Tee',
+        designer: 'Rick Owens',
+        priceCents: 1199,
         currency: 'usd',
-        description: 'Navy oblique Book Tote + bar jacket polish.',
-        color: '#1e3a5f',
-        setId: 'dior-book-tote'
+        description: 'Black tee with RO mark.',
+        color: '#262626',
+        logo: 'rick',
+        membersOnly: false
+    },
+    {
+        id: 'balenciaga-triple',
+        name: 'Balenciaga Triple-S',
+        designer: 'Balenciaga',
+        priceCents: 2299,
+        currency: 'usd',
+        description: 'Chunky red / blue / cream stack sneaker. Members.',
+        color: '#ef4444',
+        logo: 'balenciaga',
+        membersOnly: true
+    },
+    {
+        id: 'rick-ramones',
+        name: 'Rick Owens Ramones',
+        designer: 'Rick Owens',
+        priceCents: 2499,
+        currency: 'usd',
+        description: 'Black high-top with cream sole. Members.',
+        color: '#111111',
+        logo: 'rick',
+        membersOnly: true
+    },
+    {
+        id: 'casablanca-silk',
+        name: 'Casablanca Silk Shirt',
+        designer: 'Casablanca',
+        priceCents: 1799,
+        currency: 'usd',
+        description: 'Cream silk club shirt with crest. Members.',
+        color: '#f5f0e6',
+        logo: 'casablanca',
+        membersOnly: true
     },
     {
         id: 'dior-book-tote',
@@ -145,35 +108,70 @@ const STORE_CATALOG = [
         designer: 'Dior',
         priceCents: 2499,
         currency: 'usd',
-        description: 'Navy & cream embroidered tote — runway finale piece.',
-        color: '#1e3a5f'
+        description: 'Navy & cream tote — runway finale. Members.',
+        color: '#1e3a5f',
+        logo: 'dior',
+        membersOnly: true
     },
     {
-        id: 'prada-nylon',
-        name: 'Prada Nylon Bag',
-        designer: 'Prada',
-        priceCents: 1999,
+        id: 'set-balenciaga',
+        name: 'Concrete Logo Set',
+        designer: 'Balenciaga',
+        priceCents: 3499,
         currency: 'usd',
-        description: 'Milan essential. Unlocks nylon finale piece.',
-        color: '#166534'
+        description: 'Full Berlin look — logo tee + Triple-S. Members.',
+        color: '#1d4ed8',
+        logo: 'balenciaga',
+        setId: 'balenciaga-concrete',
+        membersOnly: true
     },
     {
-        id: 'mcqueen-skull',
-        name: 'McQueen Skull Clutch',
-        designer: 'Alexander McQueen',
-        priceCents: 2199,
+        id: 'set-rick',
+        name: 'DRKSHDW Set',
+        designer: 'Rick Owens',
+        priceCents: 3299,
         currency: 'usd',
-        description: 'London savage beauty accessory.',
-        color: '#9f1239'
+        description: 'Drop-crotch + Ramones full look. Members.',
+        color: '#111111',
+        logo: 'rick',
+        setId: 'rick-drkshdw',
+        membersOnly: true
     },
     {
-        id: 'versace-baroque',
-        name: 'Versace Baroque Print',
-        designer: 'Versace',
-        priceCents: 1899,
+        id: 'set-casablanca',
+        name: 'Silk Club Set',
+        designer: 'Casablanca',
+        priceCents: 3199,
         currency: 'usd',
-        description: 'Miami Art Deco heat — gold baroque top.',
-        color: '#f59e0b'
+        description: 'Cream silk club look. Members.',
+        color: '#0f3d2e',
+        logo: 'casablanca',
+        setId: 'casablanca-silk',
+        membersOnly: true
+    },
+    {
+        id: 'set-ralph',
+        name: 'Polo Crest Set',
+        designer: 'Ralph Lauren',
+        priceCents: 2999,
+        currency: 'usd',
+        description: 'Crest polo full look. Members.',
+        color: '#16a34a',
+        logo: 'ralph',
+        setId: 'ralph-polo-green',
+        membersOnly: true
+    },
+    {
+        id: 'set-dior',
+        name: 'Book Tote Set',
+        designer: 'Dior',
+        priceCents: 3599,
+        currency: 'usd',
+        description: 'Book Tote + bar jacket polish. Members.',
+        color: '#1e3a5f',
+        logo: 'dior',
+        setId: 'dior-book-tote',
+        membersOnly: true
     }
 ];
 
@@ -294,20 +292,16 @@ app.post('/api/store/checkout', authRequired, async (req, res) => {
             return res.json({ url: session.url, sessionId: session.id });
         }
 
-        // Fallback: Stripe Payment Link (shared) or demo checkout URL
+        // Fallback: shared payment link or confirm checkout page
         if (STRIPE_PAYMENT_LINK) {
             return res.json({
                 url: STRIPE_PAYMENT_LINK,
-                fallback: 'payment_link',
-                note: 'Using shared Stripe Payment Link. Set STRIPE_SECRET_KEY for per-item Checkout.'
+                fallback: 'payment_link'
             });
         }
 
-        // Demo mode: grant item after "fake" checkout confirmation page
         return res.json({
-            demo: true,
-            url: `/store-demo-checkout.html?item=${encodeURIComponent(item.id)}&name=${encodeURIComponent(item.name)}&price=${item.priceCents}`,
-            note: 'Stripe keys not configured. Demo checkout will grant the item locally after confirm.'
+            url: `/checkout.html?item=${encodeURIComponent(item.id)}&name=${encodeURIComponent(item.name)}&price=${item.priceCents}`
         });
     } catch (err) {
         console.error(err);
@@ -315,13 +309,29 @@ app.post('/api/store/checkout', authRequired, async (req, res) => {
     }
 });
 
+app.post('/api/store/confirm-checkout', authRequired, (req, res) => {
+    try {
+        const { itemId } = req.body || {};
+        const item = STORE_CATALOG.find((i) => i.id === itemId);
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+        if (stripe) {
+            return res.status(400).json({ error: 'Confirm checkout is only available without Stripe keys' });
+        }
+        const user = db.addOwnedItem(req.userId, item.id);
+        res.json({ user });
+    } catch (err) {
+        res.status(err.status || 500).json({ error: err.message || 'Confirm failed' });
+    }
+});
+
+// Back-compat alias (older clients)
 app.post('/api/store/confirm-demo', authRequired, (req, res) => {
     try {
         const { itemId } = req.body || {};
         const item = STORE_CATALOG.find((i) => i.id === itemId);
         if (!item) return res.status(404).json({ error: 'Item not found' });
         if (stripe) {
-            return res.status(400).json({ error: 'Demo confirm disabled while Stripe is configured' });
+            return res.status(400).json({ error: 'Confirm checkout is only available without Stripe keys' });
         }
         const user = db.addOwnedItem(req.userId, item.id);
         res.json({ user });
@@ -360,5 +370,5 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req,
 
 app.listen(PORT, () => {
     console.log(`Runway Rascals API on http://127.0.0.1:${PORT}`);
-    console.log(`Stripe Checkout: ${stripe ? 'enabled' : 'demo / payment-link mode'}`);
+    console.log(`Stripe Checkout: ${stripe ? 'enabled' : 'confirm-checkout / payment-link mode'}`);
 });

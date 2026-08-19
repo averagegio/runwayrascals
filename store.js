@@ -26,24 +26,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         catalog = await RunwayAuth.api('/api/store');
         user = await RunwayAuth.me();
         subtitle.textContent = catalog.stripe.configured
-            ? 'Stripe Checkout enabled'
-            : (catalog.stripe.paymentLink ? 'Stripe Payment Link mode' : 'Demo checkout (add Stripe keys for live pay)');
+            ? 'Member boutique · Stripe Checkout'
+            : (catalog.stripe.paymentLink ? 'Member boutique · Payment Link' : 'Member boutique · Checkout');
     } catch (ex) {
-        showStatus(`Store API offline: ${ex.message}. Start server with npm start in /server`, false);
+        showStatus(`Store offline: ${ex.message}. Start the API server in /server`, false);
         return;
     }
 
     const owned = new Set(user.ownedItems || []);
 
+    function logoHtml(logoKey) {
+        if (!logoKey || !window.getLogoMark) return '';
+        const mark = window.getLogoMark(logoKey);
+        if (!mark) return '';
+        return `<span class="logo-badge logo-${mark.monogram}" style="--logo-bg:${mark.bg};--logo-fg:${mark.color}">${mark.label}</span>`;
+    }
+
     catalog.items.forEach((item) => {
         const el = document.createElement('button');
         el.type = 'button';
-        el.className = 'map-card store-card';
+        el.className = 'map-card store-card' + (item.membersOnly ? ' is-locked' : '');
         el.style.setProperty('--map-accent', item.color);
         el.style.background = `linear-gradient(135deg, #111, ${item.color}66)`;
         const price = item.free ? 'FREE' : `$${(item.priceCents / 100).toFixed(2)}`;
-        const ownedLabel = owned.has(item.id) ? 'Owned' : 'Buy with Stripe';
+        const ownedLabel = owned.has(item.id)
+            ? 'Owned'
+            : (item.membersOnly ? 'Members · Buy' : 'Buy');
         el.innerHTML = `
+            <div class="store-card-top">${logoHtml(item.logo)}${item.membersOnly ? '<span class="lock-pill">Members</span>' : ''}</div>
             <span class="map-event">${item.designer}</span>
             <span class="map-name">${item.name}</span>
             <span class="map-tagline">${item.description}</span>
@@ -73,7 +83,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             if (data.url) {
-                // Absolute Stripe URL or relative demo page
                 if (data.url.startsWith('http')) location.href = data.url;
                 else location.href = data.url;
                 return;

@@ -53,7 +53,8 @@
                     email: document.getElementById('email').value,
                     password: document.getElementById('password').value
                 });
-                window.location.href = 'profile-setup.html';
+                const next = new URLSearchParams(location.search).get('next');
+                window.location.href = next || 'profile-setup.html';
             } catch (ex) {
                 err.textContent = ex.message;
                 err.hidden = false;

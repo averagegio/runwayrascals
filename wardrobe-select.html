@@ -21,28 +21,33 @@
             </div>
             <div class="game-header">
                 <h1 class="game-title">Select Outfit</h1>
-                <p class="map-subtitle" id="wardrobeSubtitle">Match the set · walk the gait</p>
+                <p class="map-subtitle" id="wardrobeSubtitle">Logo looks · member unlocks</p>
             </div>
             <div class="character-display" id="characterDisplay">
                 <img id="selectedCharacter" src="" alt="Selected Character">
                 <canvas id="walkPreview" width="220" height="320" aria-label="Walk preview" hidden></canvas>
-                <p class="walk-preview-label" id="walkPreviewLabel" hidden>Walking in place</p>
+                <p class="walk-preview-label" id="walkPreviewLabel" hidden>Side profile · walking</p>
             </div>
             <div class="wardrobe-tabs">
-                <button class="tab-btn active" data-tab="outfits">Sets</button>
+                <button class="tab-btn active" data-tab="outfits">Looks</button>
                 <button class="tab-btn" data-tab="walk">Walk</button>
                 <button class="tab-btn" data-tab="designers">Shop &amp; Checkout</button>
             </div>
             <div class="wardrobe-selection">
                 <div id="outfits" class="tab-content active">
+                    <p class="walk-hint">Open logo pieces · locked looks need a member account</p>
                     <div class="outfit-options" id="outfitOptions"></div>
                 </div>
                 <div id="walk" class="tab-content">
-                    <p class="walk-hint">Model walks in place — switch gaits to change the stride</p>
+                    <p class="walk-hint">Side profile walk — switch model &amp; gait</p>
+                    <div class="walk-model-toggle" id="walkModelToggle" role="group" aria-label="Model">
+                        <button type="button" class="model-toggle-btn" data-model="female">Female</button>
+                        <button type="button" class="model-toggle-btn" data-model="male">Male</button>
+                    </div>
                     <div class="gait-options" id="gaitOptions"></div>
                 </div>
                 <div id="designers" class="tab-content">
-                    <p class="walk-hint">Buy the set · Stripe or demo checkout</p>
+                    <p class="walk-hint">Members unlock locked pieces at checkout</p>
                     <div class="designer-options" id="designerOptions"></div>
                     <p class="store-inline-status" id="shopStatus" hidden></p>
                 </div>
@@ -62,7 +67,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="auth-client.js"></script>
     <script src="designer-sets.js"></script>
-    <script src="character-3d.js?v=walk1"></script>
-    <script src="wardrobe-select.js?v=sets2"></script>
+    <script src="character-3d.js?v=logo2"></script>
+    <script src="wardrobe-select.js?v=members2"></script>
 </body>
 </html>
