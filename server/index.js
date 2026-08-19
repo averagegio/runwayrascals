@@ -91,7 +91,7 @@ const STORE_CATALOG = [
     }
 ];
 
-const LEVEL_ORDER = ['newyork', 'milan', 'london', 'berlin', 'miami'];
+const LEVEL_ORDER = ['newyork', 'milan', 'paris', 'london', 'berlin', 'miami'];
 
 const app = express();
 app.use(cors({ origin: CLIENT_ORIGIN === '*' ? true : CLIENT_ORIGIN, credentials: true }));
