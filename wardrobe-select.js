@@ -17,6 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
         || (localStorage.getItem('selectedCharacter') === 'male' ? 'male' : 'female');
     if (walkModel !== 'male' && walkModel !== 'female') walkModel = 'female';
 
+    let characterScans = {};
+    try {
+        characterScans = JSON.parse(localStorage.getItem('characterScans') || '{}') || {};
+    } catch (_) {
+        characterScans = {};
+    }
+    const faceSrc = localStorage.getItem('selectedCharacterImage') || null;
+    let orbitDeg = 90;
+
     let walkPreview = null;
     let walkRaf = 0;
     let lastWalkTs = 0;
@@ -145,12 +154,20 @@ document.addEventListener('DOMContentLoaded', () => {
             el.classList.add('selected');
             if (walkPreview && walkPreview.avatar) {
                 walkPreview.avatar.setGait(selectedGait);
-                walkPreview.setCameraMode('side');
+                if (walkPreview.setOrbitYaw) walkPreview.setOrbitYaw(orbitDeg);
             }
-            if (subtitle) subtitle.textContent = `${gait.name} · side profile`;
+            if (subtitle) subtitle.textContent = `${gait.name} · ${orbitLabel(orbitDeg)}`;
             if (walkLabel) walkLabel.textContent = `${walkModel === 'male' ? 'Male' : 'Female'} · ${gait.name}`;
         });
         return el;
+    }
+
+    function orbitLabel(deg) {
+        const d = ((Number(deg) % 360) + 360) % 360;
+        if (d < 45 || d >= 315) return 'Front';
+        if (d < 135) return 'Side';
+        if (d < 225) return 'Back';
+        return 'Side';
     }
 
     wardrobeItems.forEach((item) => outfitOptions.appendChild(createItemElement(item)));
@@ -177,6 +194,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 rebuildWalkPreview();
                 if (walkLabel) walkLabel.textContent = `${walkModel === 'male' ? 'Male' : 'Female'} · ${selectedGait}`;
             });
+        });
+    }
+
+    const orbitSlider = document.getElementById('orbitSlider');
+    const orbitAngleLabel = document.getElementById('orbitAngleLabel');
+    const orbitDegLabel = document.getElementById('orbitDegLabel');
+    function syncOrbitUi(deg) {
+        orbitDeg = deg;
+        if (orbitAngleLabel) orbitAngleLabel.textContent = orbitLabel(deg);
+        if (orbitDegLabel) orbitDegLabel.textContent = `${Math.round(deg)}°`;
+        if (walkPreview && walkPreview.setOrbitYaw) walkPreview.setOrbitYaw(deg);
+    }
+    if (orbitSlider) {
+        orbitSlider.addEventListener('input', () => {
+            syncOrbitUi(Number(orbitSlider.value));
+            if (subtitle) subtitle.textContent = `${selectedGait} · ${orbitLabel(orbitDeg)}`;
         });
     }
 
@@ -230,11 +263,15 @@ document.addEventListener('DOMContentLoaded', () => {
             walkCanvas.width = w;
             walkCanvas.height = h;
             walkPreview = window.Runway3D.createRenderer(walkCanvas, window.THREE, {
-                characterId: walkModel
+                characterId: walkModel,
+                faceSrc: faceSrc || undefined,
+                scans: characterScans
             });
             walkPreview.resize(w, h);
-            walkPreview.setCameraMode('side');
+            if (walkPreview.setOrbitYaw) walkPreview.setOrbitYaw(orbitDeg);
+            else walkPreview.setCameraMode('side');
             if (walkPreview.avatar.setGait) walkPreview.avatar.setGait(selectedGait);
+            if (walkPreview.avatar.applySavedScans) walkPreview.avatar.applySavedScans(characterScans);
             if (selectedOutfit && selectedOutfit.pieces) applyWalkOutfit(selectedOutfit);
             else {
                 const open = wardrobeItems.find((i) => !i.membersOnly) || wardrobeItems[0];
@@ -257,8 +294,11 @@ document.addEventListener('DOMContentLoaded', () => {
             walkLabel.hidden = false;
             walkLabel.textContent = `${walkModel === 'male' ? 'Male' : 'Female'} · ${selectedGait}`;
         }
-        walkPreview.setCameraMode('side');
+        walkPreview.setOrbitYaw ? walkPreview.setOrbitYaw(orbitDeg) : walkPreview.setCameraMode('side');
+        if (orbitSlider) orbitSlider.value = String(Math.round(orbitDeg));
+        syncOrbitUi(orbitDeg);
         if (selectedOutfit && selectedOutfit.pieces) applyWalkOutfit(selectedOutfit);
+        if (walkPreview.avatar.applySavedScans) walkPreview.avatar.applySavedScans(characterScans);
         cancelAnimationFrame(walkRaf);
         lastWalkTs = performance.now();
 

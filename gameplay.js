@@ -2213,9 +2213,21 @@
             const memberGaits = { power: true, sashay: true };
             const isMember = !!(window.RunwayAuth && RunwayAuth.getToken && RunwayAuth.getToken());
             if (memberGaits[selectedGait] && !isMember) selectedGait = 'strut';
-            avatar3d = Runway3D.createRenderer(avatarCanvas, THREE, { characterId });
+            let scans = {};
+            try {
+                scans = JSON.parse(localStorage.getItem('characterScans') || '{}') || {};
+            } catch (_) {
+                scans = {};
+            }
+            const faceSrc = localStorage.getItem('selectedCharacterImage') || undefined;
+            avatar3d = Runway3D.createRenderer(avatarCanvas, THREE, {
+                characterId,
+                faceSrc,
+                scans
+            });
             avatar3d.resize(180, 260);
             if (avatar3d.avatar.setGait) avatar3d.avatar.setGait(selectedGait);
+            if (avatar3d.avatar.applySavedScans) avatar3d.avatar.applySavedScans(scans);
             if (show) avatar3d.avatar.applyPieceColors(show.pieces, { base: true });
         }
 

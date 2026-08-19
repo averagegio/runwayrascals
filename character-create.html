@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#070708" />
+  <title>Runway Rascals — Create Model</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600;6..96,700&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="app-container character-select-bg create-model-bg">
+      <div class="page-nav">
+        <a href="character-select.html" class="game-btn back-btn"><span class="btn-text">Back</span></a>
+      </div>
+      <div class="game-header">
+        <h1 class="game-title">Create Model</h1>
+        <p class="map-subtitle" id="createSubtitle">Lookalike 3D · scan a wardrobe look</p>
+      </div>
+
+      <div class="create-preview-wrap">
+        <canvas id="createPreview" width="260" height="360" aria-label="Model preview"></canvas>
+        <p class="walk-preview-label" id="createAnimLabel">Walking</p>
+      </div>
+
+      <div class="create-base-row" id="createBaseRow" role="group" aria-label="Base model">
+        <button type="button" class="create-base-btn" data-character="female" data-img="chibidoll2.png">
+          <img src="chibidoll2.png" alt="" /><span>Mouse Girl</span>
+        </button>
+        <button type="button" class="create-base-btn" data-character="male" data-img="chibibrodoll.png">
+          <img src="chibibrodoll.png" alt="" /><span>Devil Boy</span>
+        </button>
+        <button type="button" class="create-base-btn" data-character="fashion" data-img="chibidollfashion.png">
+          <img src="chibidollfashion.png" alt="" /><span>Fashion</span>
+        </button>
+        <button type="button" class="create-base-btn" data-character="evening" data-img="chibidoll3.png">
+          <img src="chibidoll3.png" alt="" /><span>Evening</span>
+        </button>
+      </div>
+
+      <div class="create-scan-panel">
+        <p class="walk-hint">Scan wardrobe — paste an image URL or upload a photo to impose on the model</p>
+        <div class="scan-slot-row" id="scanSlotRow">
+          <button type="button" class="scan-slot-btn selected" data-slot="top">Top</button>
+          <button type="button" class="scan-slot-btn" data-slot="bottoms">Bottoms</button>
+          <button type="button" class="scan-slot-btn" data-slot="outer">Outer</button>
+        </div>
+        <label class="scan-url-label">
+          Image URL
+          <input type="url" id="scanUrl" placeholder="https://… wardrobe photo" autocomplete="off" />
+        </label>
+        <div class="scan-actions">
+          <label class="game-btn scan-upload-btn">
+            <span class="btn-text">Upload</span>
+            <input type="file" id="scanFile" accept="image/*" hidden />
+          </label>
+          <button type="button" class="game-btn confirm-btn" id="scanApplyBtn">
+            <span class="btn-text">Impose on model</span>
+          </button>
+        </div>
+        <p class="store-inline-status" id="scanStatus" hidden></p>
+      </div>
+
+      <div class="game-footer">
+        <a href="character-select.html" class="game-btn back-btn"><span class="btn-text">Back</span></a>
+        <a href="#" id="createContinueBtn" class="game-btn confirm-btn"><span class="btn-text">Continue</span></a>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="character-3d.js?v=create1"></script>
+  <script src="character-create.js?v=1"></script>
+</body>
+</html>
