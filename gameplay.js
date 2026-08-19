@@ -1251,7 +1251,7 @@
     }
 
     function drawGuest(x, y, scale, side, seed) {
-        const s = Math.max(20, scale * height * 0.088);
+        const s = Math.max(16, scale * height * 0.072);
         const skins = ['#f0c8a8', '#d4a07a', '#ffdbac', '#a0673a', '#ffc8a0', '#c68642'];
         const dresses = ['#111', '#fff0e8', '#9f1239', '#1e3a8a', '#f59e0b', '#7c3aed', theme.accent || '#c9a56a', '#ec4899'];
         const skin = skins[seed % skins.length];
@@ -1318,11 +1318,11 @@
     }
 
     function drawAudienceBanks() {
-        // Spaced seating — room between guests so the banks aren't scrunched
-        const seatSpacing = 78;
-        const rows = 4;
-        const ahead = 22;
-        const startSlot = Math.floor(distance / seatSpacing) - 2;
+        // Generous seating — clear gaps along the runway and between rows
+        const seatSpacing = 110;
+        const rows = 3;
+        const ahead = 16;
+        const startSlot = Math.floor(distance / seatSpacing) - 1;
         const scroll = distance % seatSpacing;
 
         for (let slot = startSlot; slot < startSlot + ahead; slot++) {
@@ -1330,24 +1330,24 @@
             if (worldZ < -50 || worldZ > 540) continue;
             for (let row = 0; row < rows; row++) {
                 for (let side = -1; side <= 1; side += 2) {
-                    const stagger = ((slot + row * 3) % 4) * 10;
-                    const p = project(Math.max(0, worldZ + row * 8 + stagger), side < 0 ? 0 : 2);
-                    const lateral = (78 + row * 32) * (0.7 + 0.3 * p.t);
+                    const stagger = ((slot * 2 + row * 5) % 5) * 14;
+                    const p = project(Math.max(0, worldZ + row * 14 + stagger), side < 0 ? 0 : 2);
+                    const lateral = (110 + row * 48) * (0.75 + 0.25 * p.t);
                     const x = p.x + side * lateral;
-                    const y = p.y + 4 + row * 2.5;
-                    if (y < height * 0.38 || y > height * 0.98) continue;
+                    const y = p.y + 6 + row * 4;
+                    if (y < height * 0.4 || y > height * 0.98) continue;
 
                     const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
-                    // Natural empty seats — denser gaps farther back
-                    if (seed % (row === 0 ? 7 : 4) === 0) continue;
+                    // Leave empty chairs so banks breathe
+                    if (seed % (row === 0 ? 5 : 3) === 0) continue;
 
-                    const sw = Math.max(8, p.scale * height * 0.042);
+                    const sw = Math.max(6, p.scale * height * 0.032);
                     ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
-                    ctx.globalAlpha = 0.45;
-                    ctx.fillRect(x - sw * 0.65, y + sw * 0.12, sw * 1.3, sw * 0.28);
+                    ctx.globalAlpha = 0.4;
+                    ctx.fillRect(x - sw * 0.55, y + sw * 0.1, sw * 1.1, sw * 0.22);
                     ctx.globalAlpha = 1;
 
-                    drawGuest(x, y, p.scale * (0.82 - row * 0.05), side, seed);
+                    drawGuest(x, y, p.scale * (0.68 - row * 0.06), side, seed);
                 }
             }
         }
