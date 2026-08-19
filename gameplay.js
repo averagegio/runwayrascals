@@ -698,7 +698,7 @@
             jumpT += dt;
             const dur = 0.55;
             const p = Math.min(1, jumpT / dur);
-            playerYOffset = Math.sin(p * Math.PI) * (90 * jumpMult);
+            playerYOffset = Math.sin(p * Math.PI) * Math.min(72, height * 0.09) * jumpMult;
             if (p >= 1) {
                 isJumping = false;
                 playerYOffset = 0;
@@ -731,10 +731,10 @@
     }
 
     function playerHitbox() {
-        const footY = height * 0.94 - (isJumping ? playerYOffset * 0.9 : playerYOffset * 0.15);
+        const footY = height * 0.92 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15);
         const scale = isSliding ? 0.55 : 1;
-        const mag = (boost().magnet || 0) * height * 0.04;
-        const ph = height * 0.36 * scale;
+        const mag = (boost().magnet || 0) * height * 0.03;
+        const ph = height * 0.30 * scale;
         const pw = ph * 0.55 + mag;
         return {
             x: laneX - pw / 2,
@@ -1103,46 +1103,123 @@
         ctx.beginPath();
         ctx.rect(portalX, horizon - portalH, portalW, portalH);
         ctx.clip();
-        ctx.fillStyle = 'rgba(40,40,55,0.7)';
+
+        const sky = ctx.createLinearGradient(portalX, horizon - portalH, portalX, horizon);
         if (kind === 'ny') {
-            for (let i = 0; i < 8; i++) {
-                const bx = portalX + 8 + i * (portalW / 8);
-                const bh = 40 + (i % 4) * 22;
-                ctx.fillRect(bx, horizon - bh, 16, bh);
-                ctx.fillStyle = 'rgba(255,220,100,0.35)';
-                for (let w = 0; w < 3; w++) {
-                    ctx.fillRect(bx + 3, horizon - bh + 8 + w * 14, 4, 4);
-                }
-                ctx.fillStyle = 'rgba(40,40,55,0.7)';
-            }
+            sky.addColorStop(0, '#1a2744');
+            sky.addColorStop(1, '#f0a060');
         } else if (kind === 'milan') {
-            ctx.fillStyle = theme.accent || 'rgba(180,40,40,0.55)';
+            sky.addColorStop(0, '#c8d8e8');
+            sky.addColorStop(1, '#f5e6d3');
+        } else if (kind === 'london') {
+            sky.addColorStop(0, '#6a7a8a');
+            sky.addColorStop(1, '#c5cdd6');
+        } else if (kind === 'berlin') {
+            sky.addColorStop(0, '#2a2a32');
+            sky.addColorStop(1, '#5a6a5a');
+        } else if (kind === 'miami') {
+            sky.addColorStop(0, '#ff6eb4');
+            sky.addColorStop(0.45, '#ffb347');
+            sky.addColorStop(1, '#6ec8ff');
+        } else {
+            sky.addColorStop(0, '#a8c4f0');
+            sky.addColorStop(1, '#ffe0b0');
+        }
+        ctx.fillStyle = sky;
+        ctx.fillRect(portalX, horizon - portalH, portalW, portalH);
+
+        if (kind === 'ny') {
+            for (let i = 0; i < 14; i++) {
+                const bx = portalX + 4 + i * (portalW / 14);
+                const bh = portalH * (0.35 + ((i * 37) % 5) * 0.12);
+                ctx.fillStyle = i % 3 === 0 ? '#0e1420' : '#161e2e';
+                ctx.fillRect(bx, horizon - bh, portalW / 16, bh);
+                ctx.fillStyle = 'rgba(255,220,100,0.55)';
+                for (let wy = 6; wy < bh - 8; wy += 10) {
+                    for (let wx = 2; wx < portalW / 16 - 3; wx += 5) {
+                        if ((i + wy + wx) % 3 !== 0) ctx.fillRect(bx + wx, horizon - bh + wy, 2.5, 2.5);
+                    }
+                }
+            }
+            ctx.fillStyle = '#0a1018';
+            ctx.fillRect(portalX + portalW * 0.46, horizon - portalH * 0.98, 10, portalH * 0.98);
             ctx.beginPath();
-            ctx.moveTo(width * 0.4, horizon);
-            ctx.lineTo(width * 0.5, horizon - portalH * 0.95);
-            ctx.lineTo(width * 0.6, horizon);
+            ctx.moveTo(portalX + portalW * 0.46, horizon - portalH * 0.98);
+            ctx.lineTo(portalX + portalW * 0.46 + 5, horizon - portalH * 1.08);
+            ctx.lineTo(portalX + portalW * 0.46 + 10, horizon - portalH * 0.98);
+            ctx.fill();
+        } else if (kind === 'milan') {
+            ctx.fillStyle = '#8a9098';
+            ctx.beginPath();
+            ctx.moveTo(portalX + portalW * 0.12, horizon);
+            for (let i = 0; i < 11; i++) {
+                const x = portalX + portalW * (0.15 + i * 0.07);
+                const peak = horizon - portalH * (0.45 + (i % 2) * 0.25 + (i === 5 ? 0.4 : 0));
+                ctx.lineTo(x, peak);
+                ctx.lineTo(x + portalW * 0.03, horizon - portalH * 0.35);
+            }
+            ctx.lineTo(portalX + portalW * 0.92, horizon);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#b8c0c8';
+            ctx.beginPath();
+            ctx.moveTo(width * 0.46, horizon - portalH * 0.55);
+            ctx.lineTo(width * 0.5, horizon - portalH * 0.98);
+            ctx.lineTo(width * 0.54, horizon - portalH * 0.55);
             ctx.fill();
         } else if (kind === 'london') {
-            ctx.fillStyle = 'rgba(50,40,45,0.75)';
-            ctx.fillRect(width * 0.46, horizon - portalH * 0.9, 12, portalH * 0.9);
-            ctx.fillRect(width * 0.45, horizon - portalH * 0.98, 24, 12);
+            ctx.fillStyle = '#3a4048';
+            for (let i = 0; i < 9; i++) {
+                const bx = portalX + 10 + i * (portalW / 9);
+                const bh = portalH * (0.28 + (i % 4) * 0.1);
+                ctx.fillRect(bx, horizon - bh, 18, bh);
+            }
+            ctx.fillStyle = '#2a3038';
+            ctx.fillRect(width * 0.47, horizon - portalH * 0.92, 14, portalH * 0.92);
+            ctx.fillRect(width * 0.455, horizon - portalH * 0.98, 36, 12);
+            ctx.fillStyle = '#c8102e';
+            ctx.fillRect(width * 0.475, horizon - portalH * 0.72, 6, 6);
+            ctx.fillStyle = 'rgba(140,170,200,0.25)';
+            ctx.fillRect(portalX, horizon - 8, portalW, 8);
         } else if (kind === 'berlin') {
-            ctx.fillStyle = theme.accent || 'rgba(46,204,113,0.55)';
-            ctx.fillRect(width * 0.495, horizon - portalH * 0.92, 6, portalH * 0.92);
+            ctx.fillStyle = '#1e2220';
+            for (let i = 0; i < 7; i++) {
+                const bx = portalX + 16 + i * (portalW / 7);
+                ctx.fillRect(bx, horizon - portalH * (0.3 + (i % 3) * 0.12), 28, portalH * (0.3 + (i % 3) * 0.12));
+            }
+            ctx.fillStyle = theme.accent || '#22C55E';
+            ctx.fillRect(width * 0.495, horizon - portalH * 0.95, 5, portalH * 0.95);
             ctx.beginPath();
-            ctx.arc(width * 0.498, horizon - portalH * 0.55, 14, 0, Math.PI * 2);
+            ctx.arc(width * 0.4975, horizon - portalH * 0.55, 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#e8e8e8';
+            ctx.beginPath();
+            ctx.arc(width * 0.4975, horizon - portalH * 0.55, 7, 0, Math.PI * 2);
             ctx.fill();
         } else if (kind === 'miami') {
-            ctx.fillStyle = 'rgba(255,110,199,0.55)';
-            for (let i = 0; i < 5; i++) {
-                ctx.fillRect(portalX + 24 + i * 32, horizon - 50 - (i % 3) * 20, 26, 50 + (i % 3) * 20);
+            for (let i = 0; i < 6; i++) {
+                const bx = portalX + 18 + i * (portalW / 6.2);
+                const bh = portalH * (0.4 + (i % 3) * 0.18);
+                ctx.fillStyle = i % 2 ? 'rgba(255,80,180,0.75)' : 'rgba(80,200,255,0.7)';
+                ctx.fillRect(bx, horizon - bh, 30, bh);
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.fillRect(bx + 4, horizon - bh + 6, 22, 4);
+            }
+            ctx.strokeStyle = 'rgba(20,80,40,0.7)';
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 4; i++) {
+                const px = portalX + 30 + i * 50;
+                ctx.beginPath();
+                ctx.moveTo(px, horizon);
+                ctx.quadraticCurveTo(px - 18, horizon - 40, px + 8, horizon - 70);
+                ctx.stroke();
             }
         }
         ctx.restore();
     }
 
     function drawGuest(x, y, scale, side, seed) {
-        const s = Math.max(22, scale * height * 0.085);
+        const s = Math.max(18, scale * height * 0.072);
         const skins = ['#f0c8a8', '#d4a07a', '#ffdbac', '#a0673a', '#ffc8a0', '#c68642'];
         const dresses = ['#111', '#fff0e8', '#9f1239', '#1e3a8a', '#f59e0b', '#7c3aed', theme.accent || '#c9a56a', '#ec4899'];
         const skin = skins[seed % skins.length];
@@ -1152,86 +1229,63 @@
         ctx.translate(x, y);
         ctx.scale(side < 0 ? 1 : -1, 1);
 
-        // White bench seat
         ctx.fillStyle = theme.seat || '#fff8e8';
-        ctx.fillRect(-s * 0.45, s * 0.3, s * 0.9, s * 0.2);
+        ctx.fillRect(-s * 0.42, s * 0.28, s * 0.84, s * 0.18);
         ctx.fillStyle = theme.seatEdge || '#ddd';
-        ctx.fillRect(-s * 0.48, s * 0.22, s * 0.14, s * 0.42);
+        ctx.fillRect(-s * 0.45, s * 0.2, s * 0.12, s * 0.38);
 
-        // Body / gown
         ctx.fillStyle = dress;
         ctx.beginPath();
-        ctx.ellipse(0, s * 0.12, s * 0.32, s * 0.36, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, s * 0.1, s * 0.3, s * 0.34, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillRect(-s * 0.3, s * 0.28, s * 0.6, s * 0.16);
+        ctx.fillRect(-s * 0.28, s * 0.26, s * 0.56, s * 0.14);
 
-        // Head
         ctx.fillStyle = skin;
         ctx.beginPath();
-        ctx.arc(0, -s * 0.28, s * 0.22, 0, Math.PI * 2);
+        ctx.arc(0, -s * 0.26, s * 0.2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Hair with volume
         ctx.fillStyle = seed % 3 === 0 ? '#1a1a1a' : seed % 3 === 1 ? '#4a2c1a' : '#8B4513';
         ctx.beginPath();
-        ctx.ellipse(0, -s * 0.38, s * 0.24, s * 0.16, 0, Math.PI, Math.PI * 2);
+        ctx.ellipse(0, -s * 0.36, s * 0.22, s * 0.14, 0, Math.PI, Math.PI * 2);
         ctx.fill();
-        if (seed % 2 === 0) {
-            ctx.beginPath();
-            ctx.ellipse(-s * 0.18, -s * 0.22, s * 0.1, s * 0.22, -0.3, 0, Math.PI * 2);
-            ctx.ellipse(s * 0.18, -s * 0.22, s * 0.1, s * 0.22, 0.3, 0, Math.PI * 2);
-            ctx.fill();
-        }
 
-        // Face features
         ctx.fillStyle = '#1a1a1a';
         ctx.beginPath();
-        ctx.ellipse(-s * 0.08, -s * 0.3, s * 0.035, s * 0.045, 0, 0, Math.PI * 2);
-        ctx.ellipse(s * 0.08, -s * 0.3, s * 0.035, s * 0.045, 0, 0, Math.PI * 2);
+        ctx.ellipse(-s * 0.07, -s * 0.28, s * 0.03, s * 0.04, 0, 0, Math.PI * 2);
+        ctx.ellipse(s * 0.07, -s * 0.28, s * 0.03, s * 0.04, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.beginPath();
-        ctx.arc(-s * 0.07, -s * 0.31, s * 0.012, 0, Math.PI * 2);
-        ctx.arc(s * 0.09, -s * 0.31, s * 0.012, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#c45c5c';
-        ctx.lineWidth = Math.max(1, s * 0.03);
-        ctx.beginPath();
-        ctx.arc(0, -s * 0.2, s * 0.06, 0.15, Math.PI - 0.15);
-        ctx.stroke();
 
-        // Phone / camera
         if (seed % 3 !== 2) {
             ctx.fillStyle = '#111';
-            ctx.fillRect(s * 0.14, -s * 0.62, s * 0.16, s * 0.26);
+            ctx.fillRect(s * 0.12, -s * 0.58, s * 0.14, s * 0.22);
             ctx.fillStyle = theme.accent || '#fff';
-            ctx.globalAlpha = 0.7;
-            ctx.fillRect(s * 0.16, -s * 0.58, s * 0.12, s * 0.12);
+            ctx.globalAlpha = 0.65;
+            ctx.fillRect(s * 0.14, -s * 0.54, s * 0.1, s * 0.1);
             ctx.globalAlpha = 1;
         }
         ctx.restore();
     }
 
     function drawAudienceBanks() {
-        // White tiered benches flush with the dark floor — fixed seats along both margins
-        const seatSpacing = 88;
-        const rows = 4;
-        const ahead = 16;
+        // Pack seats from runway edge out to the screen margins
+        const seatSpacing = 34;
+        const rows = 8;
+        const ahead = 32;
         const startSlot = Math.floor(distance / seatSpacing) - 1;
 
-        // Bench platforms first (cohesive blocks, not floating dots)
         for (let row = 0; row < rows; row++) {
             for (let side = -1; side <= 1; side += 2) {
-                const near = project(20, side < 0 ? 0 : 2);
-                const far = project(420, side < 0 ? 0 : 2);
-                const latN = (58 + row * 26) * (0.5 + 0.5 * near.t);
-                const latF = (58 + row * 26) * (0.5 + 0.5 * far.t);
+                const near = project(8, side < 0 ? 0 : 2);
+                const far = project(480, side < 0 ? 0 : 2);
+                const latN = (36 + row * 16) * (0.6 + 0.4 * near.t);
+                const latF = (36 + row * 16) * (0.6 + 0.4 * far.t);
                 ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
                 ctx.beginPath();
-                ctx.moveTo(near.x + side * latN * 0.85, near.y + 8);
-                ctx.lineTo(far.x + side * latF * 0.85, far.y + 4);
-                ctx.lineTo(far.x + side * (latF + 22), far.y + 4);
-                ctx.lineTo(near.x + side * (latN + 36), near.y + 10);
+                ctx.moveTo(near.x + side * latN * 0.75, near.y + 5);
+                ctx.lineTo(far.x + side * latF * 0.75, far.y + 2);
+                ctx.lineTo(far.x + side * (latF + 20), far.y + 2);
+                ctx.lineTo(near.x + side * (latN + 32), near.y + 7);
                 ctx.closePath();
                 ctx.fill();
             }
@@ -1239,16 +1293,19 @@
 
         for (let slot = startSlot; slot < startSlot + ahead; slot++) {
             const worldZ = slot * seatSpacing - (distance % seatSpacing);
-            if (worldZ < -20 || worldZ > 480) continue;
+            if (worldZ < -40 || worldZ > 520) continue;
             for (let row = 0; row < rows; row++) {
                 for (let side = -1; side <= 1; side += 2) {
-                    const p = project(Math.max(0, worldZ + row * 8), side < 0 ? 0 : 2);
-                    const lateral = (70 + row * 26) * (0.48 + 0.52 * p.t);
+                    const stagger = ((slot + row * 2) % 3) * 6;
+                    const p = project(Math.max(0, worldZ + row * 4 + stagger), side < 0 ? 0 : 2);
+                    const lateral = (40 + row * 15) * (0.62 + 0.38 * p.t);
                     const x = p.x + side * lateral;
-                    const y = p.y + 4 + row * 3;
-                    if (y < height * 0.38 || y > height * 0.96) continue;
+                    const y = p.y + 1 + row * 1.5;
+                    if (y < height * 0.44 || y > height * 0.98) continue;
+                    // Keep near-edge seats filled; only rare gaps in back rows
                     const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
-                    drawGuest(x, y, p.scale * (1.15 - row * 0.05), side, seed);
+                    if (row > 4 && seed % 7 === 0) continue;
+                    drawGuest(x, y, p.scale * (1.08 - row * 0.035), side, seed);
                 }
             }
         }
@@ -1620,11 +1677,11 @@
         const deathProg = dying ? Math.min(1, deathT / 1.15) : 0;
         const tumbleY = dying ? Math.sin(deathProg * Math.PI) * 40 - deathProg * 70 : 0;
         const tumbleX = dying ? Math.sin(deathT * 14) * 18 * deathProg : 0;
-        // ~52% of viewport — full-body blit from the 3D canvas
-        const footY = height * 0.95 - (isJumping ? playerYOffset * 0.9 : playerYOffset * 0.15) + tumbleY;
-        const pulse = 1 + dressPulse * 0.12;
-        const ph = height * (isSliding && !dying ? 0.32 : 0.52) * pulse;
-        const pw = ph * (isSliding && !dying ? 0.78 : 0.6);
+        // Stable near-field size — large enough to read, small enough to jump safely
+        const footY = height * 0.92 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15) + tumbleY;
+        const pulse = 1 + dressPulse * 0.08;
+        const ph = height * (isSliding && !dying ? 0.26 : 0.38) * pulse;
+        const pw = ph * (isSliding && !dying ? 0.72 : 0.55);
         const x = laneX + tumbleX;
         const lean = curveDeriv(0) * width * 0.08;
 

@@ -180,27 +180,23 @@ a {
 
 .rr-stroke {
     fill: none;
-    filter: drop-shadow(0 0 14px rgba(201, 165, 106, 0.28));
-}
-
-.rr-lace {
-    opacity: 0.92;
+    filter: drop-shadow(0 0 10px rgba(201, 165, 106, 0.22));
 }
 
 .intro-pen {
     position: absolute;
     left: 0;
     top: 0;
-    width: 56px;
-    height: 56px;
-    margin-left: -8px;
-    margin-top: -40px;
+    width: 44px;
+    height: 44px;
+    margin-left: -6px;
+    margin-top: -32px;
     pointer-events: none;
     opacity: 0;
-    transform: rotate(-28deg);
-    transition: opacity 0.25s ease;
+    transform: rotate(-22deg);
+    transition: opacity 0.2s ease;
     z-index: 3;
-    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
 }
 
 .intro-pen.is-writing {
