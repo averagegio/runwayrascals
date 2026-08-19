@@ -66,6 +66,9 @@
     let running = false;
     let gameOver = false;
     let levelComplete = false;
+    let dying = false;
+    let deathT = 0;
+    let paused = false;
     let rafId = 0;
     let lastTs = 0;
 
@@ -226,10 +229,14 @@
         entities = [];
         gameOver = false;
         levelComplete = false;
+        dying = false;
+        deathT = 0;
+        paused = false;
         running = true;
         lastTs = 0;
         updateHud();
         hideOverlay();
+        hidePauseMenu();
         seedStarterPack();
         pushFloat('Street clothes · get dressed!', '#fff', laneX, height * 0.55);
     }
@@ -584,7 +591,7 @@
                     if (canJump && hit.jumping) continue;
                     if (canSlide && hit.sliding) continue;
                     e.hit = true;
-                    endGame();
+                    startDeath();
                     return;
                 }
             }
@@ -609,17 +616,53 @@
         }
     }
 
-    function endGame() {
+    function startDeath() {
+        if (dying || gameOver || levelComplete) return;
+        dying = true;
+        deathT = 0;
+        isJumping = false;
+        isSliding = false;
+        burst(laneX, height * 0.62, '#ef4444');
+        burst(laneX, height * 0.58, '#fbbf24');
+        pushFloat('CRASH!', '#ef4444', laneX, height * 0.5);
+        flashTimer = 0.35;
+    }
+
+    function updateDeath(dt) {
+        if (!dying) return;
+        deathT += dt;
+        // Keep particles alive during tumble
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.life -= dt;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.vy += 220 * dt;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+        for (let i = floatTexts.length - 1; i >= 0; i--) {
+            const f = floatTexts[i];
+            f.life -= dt;
+            f.y += f.vy * dt;
+            if (f.life <= 0) floatTexts.splice(i, 1);
+        }
+        if (flashTimer > 0) flashTimer -= dt;
+        if (deathT >= 1.15) {
+            dying = false;
+            finishDeath();
+        }
+    }
+
+    function finishDeath() {
         gameOver = true;
         running = false;
         updateHud();
-        const root = document.getElementById('gameRoot');
-        const finish = () => showOverlay(false);
-        if (window.RunwayCinematic) {
-            RunwayCinematic.levelClosing(root, cityId, false).then(finish);
-        } else {
-            finish();
-        }
+        showOverlay(false);
+    }
+
+    function endGame() {
+        // Legacy path — prefer animated death
+        startDeath();
     }
 
     function completeLevel() {
@@ -660,8 +703,67 @@
         if (el) el.remove();
     }
 
+    function hidePauseMenu() {
+        const el = document.getElementById('pauseMenu');
+        if (el) el.remove();
+    }
+
+    function restartRun() {
+        hideOverlay();
+        hidePauseMenu();
+        if (rafId) cancelAnimationFrame(rafId);
+        resetRun();
+        lastTs = 0;
+        running = true;
+        paused = false;
+        rafId = requestAnimationFrame(loop);
+    }
+
+    function exitToMenu() {
+        hideOverlay();
+        hidePauseMenu();
+        running = false;
+        paused = false;
+        window.location.href = 'show-select.html';
+    }
+
+    function togglePauseMenu() {
+        if (dying || gameOver || levelComplete) return;
+        if (paused) {
+            resumeGame();
+            return;
+        }
+        paused = true;
+        running = false;
+        hidePauseMenu();
+        const menu = document.createElement('div');
+        menu.id = 'pauseMenu';
+        menu.className = 'game-over-screen pause-menu';
+        menu.innerHTML = `
+            <h2>Paused</h2>
+            <p class="game-over-meta">Exit mid-walk or keep going</p>
+            <button id="resumeBtn" class="game-btn">Resume</button>
+            <button id="pauseRestartBtn" class="game-btn restart-btn" style="margin-top:10px;">Restart</button>
+            <button id="pauseExitBtn" class="game-btn exit-btn" style="margin-top:10px;">Exit to Menu</button>
+        `;
+        document.getElementById('gameRoot').appendChild(menu);
+        document.getElementById('resumeBtn').addEventListener('click', resumeGame);
+        document.getElementById('pauseRestartBtn').addEventListener('click', restartRun);
+        document.getElementById('pauseExitBtn').addEventListener('click', exitToMenu);
+    }
+
+    function resumeGame() {
+        hidePauseMenu();
+        if (gameOver || levelComplete || dying) return;
+        paused = false;
+        running = true;
+        lastTs = 0;
+        rafId = requestAnimationFrame(loop);
+    }
+
     function showOverlay(won, newlyUnlocked) {
         hideOverlay();
+        hidePauseMenu();
         const screen = document.createElement('div');
         screen.className = 'game-over-screen';
         const lookName = show?.pieces[Math.min(outfitStage, show.pieces.length - 1)]?.name || 'Street';
@@ -677,8 +779,8 @@
                 <p class="game-over-meta">Final look: ${lookName}</p>
                 ${unlockLine}
                 <p>Score: ${Math.floor(score)}</p>
-                <button id="restartBtn" class="game-btn">Walk Again</button>
-                <a href="show-select.html" class="game-btn" style="margin-top:10px;display:inline-block;">Change Show</a>
+                <button id="restartBtn" class="game-btn restart-btn">Restart</button>
+                <a href="show-select.html" class="game-btn exit-btn" style="margin-top:10px;display:inline-block;">Exit to Menu</a>
             `;
         } else {
             screen.innerHTML = `
@@ -687,17 +789,12 @@
                 <p>Score: ${Math.floor(score)}</p>
                 <p class="game-over-meta">${show ? show.designer : 'Show'}: ${rareCollected}/${show?.rareGoal?.target || 0} rares</p>
                 <p class="game-over-meta">Dressed: ${lookName}</p>
-                <button id="restartBtn" class="game-btn">Walk Again</button>
-                <a href="show-select.html" class="game-btn" style="margin-top:10px;display:inline-block;">Change Show</a>
+                <button id="restartBtn" class="game-btn restart-btn">Restart</button>
+                <a href="show-select.html" class="game-btn exit-btn" style="margin-top:10px;display:inline-block;">Exit to Menu</a>
             `;
         }
         document.getElementById('gameRoot').appendChild(screen);
-        document.getElementById('restartBtn').addEventListener('click', () => {
-            resetRun();
-            lastTs = 0;
-            running = true;
-            loop(performance.now());
-        });
+        document.getElementById('restartBtn').addEventListener('click', restartRun);
     }
 
     function drawBackground() {
@@ -875,20 +972,23 @@
     }
 
     function drawPlayer() {
-        const baseY = height * 0.72 - playerYOffset;
+        const deathProg = dying ? Math.min(1, deathT / 1.15) : 0;
+        const tumbleY = dying ? Math.sin(deathProg * Math.PI) * 40 - deathProg * 70 : 0;
+        const tumbleX = dying ? Math.sin(deathT * 14) * 18 * deathProg : 0;
+        const baseY = height * 0.72 - playerYOffset + tumbleY;
         const pulse = 1 + dressPulse * 0.15;
-        const pw = (isSliding ? 78 : 64) * pulse;
-        const ph = (isSliding ? 48 : 110) * pulse;
-        const x = laneX;
+        const pw = (isSliding && !dying ? 78 : 64) * pulse;
+        const ph = (isSliding && !dying ? 48 : 110) * pulse;
+        const x = laneX + tumbleX;
         const y = baseY;
 
         ctx.save();
         ctx.fillStyle = 'rgba(0,0,0,0.35)';
         ctx.beginPath();
-        ctx.ellipse(x, height * 0.74, pw * 0.35, 10, 0, 0, Math.PI * 2);
+        ctx.ellipse(laneX, height * 0.74, pw * 0.35 * (1 - deathProg * 0.5), 10, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        if (shieldTimer > 0) {
+        if (shieldTimer > 0 && !dying) {
             ctx.strokeStyle = `rgba(255,255,255,${0.35 + shieldTimer})`;
             ctx.lineWidth = 3;
             ctx.beginPath();
@@ -901,14 +1001,34 @@
             if (show) avatar3d.avatar.applyPieceColors(show.pieces, ownedSlots);
             avatar3d.setCameraMode(cameraMode);
             avatar3d.avatar.update(lastFrameDt, {
-                jumping: isJumping,
-                sliding: isSliding,
-                dressing: dressAnimT
+                jumping: isJumping && !dying,
+                sliding: isSliding && !dying,
+                dressing: dressAnimT,
+                dying,
+                deathT
             });
             avatar3d.render();
-            ctx.drawImage(avatarCanvas, x - pw / 2, y - ph, pw, ph);
+            if (dying) {
+                ctx.save();
+                ctx.translate(x, y - ph * 0.5);
+                ctx.rotate(deathProg * Math.PI * 1.2);
+                ctx.globalAlpha = 1 - deathProg * 0.35;
+                ctx.drawImage(avatarCanvas, -pw / 2, -ph / 2, pw, ph);
+                ctx.restore();
+            } else {
+                ctx.drawImage(avatarCanvas, x - pw / 2, y - ph, pw, ph);
+            }
+        } else if (dying) {
+            ctx.save();
+            ctx.translate(x, y - ph * 0.5);
+            ctx.rotate(deathProg * Math.PI);
+            ctx.globalAlpha = 1 - deathProg * 0.4;
+            ctx.fillStyle = '#c4a484';
+            ctx.fillRect(-pw * 0.25, -ph * 0.45, pw * 0.5, ph * 0.28);
+            ctx.fillStyle = '#9ca3af';
+            ctx.fillRect(-pw * 0.35, -ph * 0.2, pw * 0.7, ph * 0.55);
+            ctx.restore();
         } else {
-            // Fallback blocky stand-in if Three.js failed to load
             ctx.fillStyle = '#c4a484';
             ctx.fillRect(x - pw * 0.25, y - ph * 0.95, pw * 0.5, ph * 0.28);
             ctx.fillStyle = ownedSlots.top ? (show?.pieces.find(p => p.slot === 'top')?.color || '#666') : '#9ca3af';
@@ -918,7 +1038,7 @@
         }
 
         // Dress-up fly-in piece
-        if (dressAnimT > 0 && dressAnimPiece) {
+        if (dressAnimT > 0 && dressAnimPiece && !dying) {
             const t = 1 - dressAnimT / 0.85;
             const ease = 1 - Math.pow(1 - t, 3);
             const fromY = y - ph - 80;
@@ -935,6 +1055,15 @@
             ctx.textAlign = 'center';
             ctx.fillText((dressAnimPiece.name || '').split(' ').pop().toUpperCase(), x, py + 3);
             ctx.globalAlpha = 1;
+        }
+
+        if (dying) {
+            ctx.fillStyle = '#ef4444';
+            ctx.font = 'bold 18px Fredoka One, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('CRASH!', laneX, height * 0.42);
+            ctx.restore();
+            return;
         }
 
         // Name + @tag over the 3D model
@@ -1002,14 +1131,18 @@
         dt = Math.min(0.033, dt);
         lastFrameDt = dt;
 
-        updatePlayer(dt);
-        if (!gameOver && !levelComplete) updateEntities(dt);
+        if (dying) {
+            updateDeath(dt);
+        } else if (!gameOver && !levelComplete && !paused) {
+            updatePlayer(dt);
+            updateEntities(dt);
+        }
         drawFrame();
-        rafId = requestAnimationFrame(loop);
+        if (running) rafId = requestAnimationFrame(loop);
     }
 
     function onSwipe(dx, dy) {
-        if (gameOver || levelComplete) return;
+        if (gameOver || levelComplete || dying || paused) return;
         const ax = Math.abs(dx);
         const ay = Math.abs(dy);
         if (ax < 24 && ay < 24) return;
@@ -1050,7 +1183,12 @@
         });
 
         window.addEventListener('keydown', (e) => {
-            if (gameOver || levelComplete) return;
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                togglePauseMenu();
+                return;
+            }
+            if (gameOver || levelComplete || dying || paused) return;
             if (e.key === 'ArrowLeft' || e.key === 'a') setLane(targetLane - 1);
             if (e.key === 'ArrowRight' || e.key === 'd') setLane(targetLane + 1);
             if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') {
@@ -1068,11 +1206,12 @@
             const el = document.getElementById(id);
             if (el) el.addEventListener('click', fn);
         };
-        bind('leftArrow', () => setLane(targetLane - 1));
-        bind('rightArrow', () => setLane(targetLane + 1));
-        bind('upArrow', jump);
-        bind('downArrow', slide);
+        bind('leftArrow', () => { if (!dying && !paused && !gameOver) setLane(targetLane - 1); });
+        bind('rightArrow', () => { if (!dying && !paused && !gameOver) setLane(targetLane + 1); });
+        bind('upArrow', () => { if (!dying && !paused && !gameOver) jump(); });
+        bind('downArrow', () => { if (!dying && !paused && !gameOver) slide(); });
         bind('cameraToggleBtn', toggleCamera);
+        bind('exitGameBtn', togglePauseMenu);
 
         surface.addEventListener('pointerdown', () => {
             const hint = document.getElementById('swipeHint');

@@ -1195,4 +1195,23 @@ body, html {
 .store-status.ok { background: rgba(22,101,52,0.85); color: #bbf7d0; }
 .store-status.err { background: rgba(127,29,29,0.85); color: #fecaca; }
 .store-card.owned { opacity: 0.7; }
-.unlock-line { color: #fbbf24 !important; }
+.restart-btn {
+    background: linear-gradient(45deg, #22c55e, #86efac) !important;
+    color: #052e16 !important;
+    min-width: 160px;
+}
+.exit-btn {
+    background: linear-gradient(45deg, #64748b, #94a3b8) !important;
+    color: #0f172a !important;
+}
+.pause-menu .game-btn {
+    display: block;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+#exitGameBtn {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+}
