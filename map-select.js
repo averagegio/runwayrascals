@@ -17,6 +17,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             sky: ['#2c1810', '#4a2c2a']
         },
         {
+            id: 'paris',
+            name: 'Paris',
+            event: 'Paris Fashion Week',
+            tagline: 'Eiffel atelier light',
+            accent: '#1d4ed8',
+            sky: ['#1e3a5f', '#93c5fd']
+        },
+        {
             id: 'london',
             name: 'London',
             event: 'London Fashion Week',

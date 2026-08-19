@@ -5,6 +5,7 @@
     const LEVEL_NAMES = {
         newyork: 'New York Fashion Week',
         milan: 'Milan Fashion Week',
+        paris: 'Paris Fashion Week',
         london: 'London Fashion Week',
         berlin: 'Berlin Fashion Week',
         miami: 'Miami Fashion Week'

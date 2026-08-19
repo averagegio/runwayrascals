@@ -17,20 +17,42 @@
   <div class="intro-splash" id="introSplash" aria-hidden="false">
     <div class="intro-mark">
       <div class="intro-write-stage" id="introWriteStage">
-        <!-- Interlocking RR (Rolls-Royce–inspired alignment), stroked by feather pen -->
-        <svg id="rrMonogramSvg" class="intro-rr-svg" viewBox="0 0 240 200" aria-label="RR">
+        <!-- Cursive RR: first R, shoelace loop, second R askew -->
+        <svg id="rrMonogramSvg" class="intro-rr-svg" viewBox="0 0 320 220" aria-label="RR">
           <defs>
             <linearGradient id="rrStrokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#f4efe6" />
+              <stop offset="55%" stop-color="#e8d5a8" />
               <stop offset="100%" stop-color="#c9a56a" />
             </linearGradient>
           </defs>
-          <!-- Left R -->
-          <path id="rrPathL" class="rr-stroke" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"
-            d="M58 28 L58 172 M58 28 L118 28 C148 28 162 48 162 72 C162 96 148 116 118 116 L58 116 M118 116 L168 172" />
-          <!-- Right R — interlocking / overlapping like RR badge -->
-          <path id="rrPathR" class="rr-stroke" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"
-            d="M92 28 L92 172 M92 28 L152 28 C182 28 196 48 196 72 C196 96 182 116 152 116 L92 116 M152 116 L202 172" />
+          <!-- First cursive R (upright) -->
+          <path id="rrPathL" class="rr-stroke" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"
+            d="M 52 178
+               C 48 140, 46 78, 54 42
+               C 58 24, 78 16, 98 22
+               C 128 30, 142 58, 132 84
+               C 122 110, 92 118, 68 112
+               C 68 112, 96 118, 118 148
+               C 132 168, 148 182, 168 188" />
+          <!-- Shoelace tie flourish between the Rs -->
+          <path id="rrPathLace" class="rr-stroke rr-lace" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"
+            d="M 168 188
+               C 188 198, 210 186, 208 164
+               C 206 142, 178 138, 172 156
+               C 166 174, 188 192, 214 176
+               C 236 162, 242 140, 228 128" />
+          <!-- Second cursive R — askew -->
+          <g transform="translate(198,18) rotate(-16 70 100)">
+            <path id="rrPathR" class="rr-stroke" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"
+              d="M 36 172
+                 C 34 132, 32 72, 42 38
+                 C 48 18, 72 10, 94 20
+                 C 124 32, 136 62, 124 88
+                 C 112 114, 82 120, 58 112
+                 C 58 112, 88 122, 112 154
+                 C 126 174, 140 186, 158 190" />
+          </g>
         </svg>
         <div class="intro-pen" id="introPen" aria-hidden="true">
           <svg viewBox="0 0 64 64" width="56" height="56">
@@ -45,12 +67,10 @@
       <p class="intro-rule" aria-hidden="true"></p>
       <p class="brand">Runway Rascals</p>
       <p class="sub">Fashion endless runner</p>
-      <div class="intro-cast" id="introCast" aria-hidden="true">
-        <img src="chibibrodoll.png" alt="Devil Boy" />
-        <img src="chibidoll2.png" alt="Mouse Girl" />
-        <img src="chibidollfashion.png" alt="Fashion Doll" />
-        <img src="chibidoll3.png" alt="Evening Doll" />
-      </div>
+      <button type="button" class="intro-swipe-hint" id="introSwipeHint" aria-label="Swipe up to enter">
+        <span class="intro-swipe-chevron" aria-hidden="true"></span>
+        <span>Swipe up</span>
+      </button>
     </div>
   </div>
 

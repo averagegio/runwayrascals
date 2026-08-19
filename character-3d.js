@@ -96,12 +96,12 @@
         const mats = {
             skin: new THREE.MeshStandardMaterial({ color: profile.skin, roughness: 0.55 }),
             hair: new THREE.MeshStandardMaterial({ color: profile.hair, roughness: 0.85 }),
-            street: new THREE.MeshStandardMaterial({ color: 0x9ca3af, roughness: 0.9 }),
-            bottoms: new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.8 }),
-            top: new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.75 }),
-            shoes: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.45, metalness: 0.15 }),
-            outer: new THREE.MeshStandardMaterial({ color: 0x374151, roughness: 0.65 }),
-            accent: new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.35, metalness: 0.35 })
+            street: new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.85 }),
+            bottoms: new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.75 }),
+            top: new THREE.MeshStandardMaterial({ color: 0x374151, roughness: 0.7 }),
+            shoes: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.4, metalness: 0.2 }),
+            outer: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 }),
+            accent: new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.35, metalness: 0.35 })
         };
 
         function mesh(geo, mat) {
@@ -138,40 +138,111 @@
         collar.visible = false;
         root.add(collar);
 
-        const head = mesh(new THREE.SphereGeometry(0.28, 18, 14), mats.skin);
+        const head = mesh(new THREE.SphereGeometry(0.3, 20, 16), mats.skin);
         head.position.y = 1.72;
         root.add(head);
 
-        const hair = mesh(new THREE.SphereGeometry(0.31, 14, 12), mats.hair);
-        hair.scale.set(1.05, 0.72, 1.08);
-        hair.position.set(0, 1.84, -0.02);
+        const hair = mesh(new THREE.SphereGeometry(0.34, 16, 14), mats.hair);
+        hair.scale.set(1.08, 0.78, 1.12);
+        hair.position.set(0, 1.88, -0.02);
         root.add(hair);
 
-        // Face card from character library PNG
-        const faceGeo = new THREE.PlaneGeometry(0.42, 0.42);
+        // Side bangs for silhouette
+        const bangL = mesh(new THREE.SphereGeometry(0.12, 10, 8), mats.hair);
+        bangL.position.set(-0.22, 1.78, 0.12);
+        bangL.scale.set(0.7, 1.1, 0.7);
+        root.add(bangL);
+        const bangR = mesh(new THREE.SphereGeometry(0.12, 10, 8), mats.hair);
+        bangR.position.set(0.22, 1.78, 0.12);
+        bangR.scale.set(0.7, 1.1, 0.7);
+        root.add(bangR);
+
+        // Built-in face features (always readable at gameplay scale)
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4 });
+        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35 });
+        const lipMat = new THREE.MeshStandardMaterial({ color: 0xc45c6a, roughness: 0.45 });
+        const browMat = new THREE.MeshStandardMaterial({ color: profile.hair, roughness: 0.9 });
+
+        [[-0.09, 1.74, 0.26], [0.09, 1.74, 0.26]].forEach((pos) => {
+            const white = mesh(new THREE.SphereGeometry(0.045, 10, 8), whiteMat);
+            white.position.set(pos[0], pos[1], pos[2]);
+            white.scale.set(1.15, 1, 0.6);
+            root.add(white);
+            const pupil = mesh(new THREE.SphereGeometry(0.024, 8, 8), eyeMat);
+            pupil.position.set(pos[0], pos[1], pos[2] + 0.03);
+            root.add(pupil);
+            const shine = mesh(new THREE.SphereGeometry(0.01, 6, 6), whiteMat);
+            shine.position.set(pos[0] - 0.01, pos[1] + 0.01, pos[2] + 0.045);
+            root.add(shine);
+        });
+
+        const browL = mesh(new THREE.BoxGeometry(0.1, 0.018, 0.02), browMat);
+        browL.position.set(-0.09, 1.8, 0.27);
+        browL.rotation.z = 0.12;
+        root.add(browL);
+        const browR = mesh(new THREE.BoxGeometry(0.1, 0.018, 0.02), browMat);
+        browR.position.set(0.09, 1.8, 0.27);
+        browR.rotation.z = -0.12;
+        root.add(browR);
+
+        const nose = mesh(new THREE.SphereGeometry(0.028, 8, 8), mats.skin);
+        nose.position.set(0, 1.7, 0.29);
+        nose.scale.set(0.7, 0.9, 0.8);
+        root.add(nose);
+
+        const mouth = mesh(new THREE.BoxGeometry(0.09, 0.025, 0.02), lipMat);
+        mouth.position.set(0, 1.63, 0.28);
+        mouth.scale.set(1, 0.7, 1);
+        root.add(mouth);
+
+        // Face cards — library art sits over procedural features
+        const faceGeo = new THREE.PlaneGeometry(0.58, 0.66);
         const faceMat = new THREE.MeshBasicMaterial({
             transparent: true,
             opacity: 0,
             depthWrite: false,
             side: THREE.DoubleSide
         });
-        const face = new THREE.Mesh(faceGeo, faceMat);
-        face.position.set(0, 1.72, 0.27);
-        root.add(face);
+        const faceFront = new THREE.Mesh(faceGeo, faceMat);
+        faceFront.position.set(0, 1.74, 0.31);
+        faceFront.name = 'faceFront';
+        root.add(faceFront);
+        const faceBack = new THREE.Mesh(faceGeo.clone(), faceMat.clone());
+        faceBack.position.set(0, 1.74, -0.31);
+        faceBack.rotation.y = Math.PI;
+        faceBack.name = 'faceBack';
+        root.add(faceBack);
 
         const loader = new THREE.TextureLoader();
         loader.load(profile.src, (tex) => {
             tex.minFilter = THREE.LinearFilter;
             tex.magFilter = THREE.LinearFilter;
-            faceMat.map = tex;
-            faceMat.opacity = 0.95;
-            faceMat.needsUpdate = true;
-            // Soften hair/skin toward library vibe
+            [faceFront, faceBack].forEach((f) => {
+                f.material.map = tex;
+                f.material.opacity = 1;
+                f.material.needsUpdate = true;
+            });
             mats.hair.color.setHex(profile.hair);
             mats.skin.color.setHex(profile.skin);
+            browMat.color.setHex(profile.hair);
         }, undefined, () => {
-            face.visible = false;
+            // Keep procedural features if library art fails
+            faceFront.visible = false;
+            faceBack.visible = false;
         });
+
+        // Extra garment volume that “snaps on” when collected
+        const skirt = mesh(new THREE.CylinderGeometry(0.18, 0.42, 0.45, 10, 1, true), mats.bottoms.clone());
+        skirt.position.y = 0.72;
+        skirt.visible = false;
+        skirt.name = 'skirt';
+        root.add(skirt);
+
+        const bagProp = mesh(new THREE.BoxGeometry(0.2, 0.26, 0.08), mats.accent);
+        bagProp.position.set(0.42, 1.05, 0.12);
+        bagProp.visible = false;
+        bagProp.name = 'bagProp';
+        root.add(bagProp);
 
         const armL = mesh(new THREE.BoxGeometry(0.14, 0.5, 0.14), mats.skin);
         armL.position.set(-0.42, 0.95, 0);
@@ -240,6 +311,8 @@
             finale.visible = has('finale');
             heelL.visible = has('shoes');
             heelR.visible = has('shoes');
+            skirt.visible = has('bottoms') || has('finale');
+            bagProp.visible = has('finale') || has('outer');
             if (!has('shoes')) dressMaterial('shoes', 0x6b7280, 'leather');
         }
 
@@ -253,7 +326,13 @@
                     sleeveL.material = mats.top;
                     sleeveR.material = mats.top;
                 }
-                if (p.slot === 'bottoms') dressMaterial('bottoms', hex, pat);
+                if (p.slot === 'bottoms') {
+                    dressMaterial('bottoms', hex, pat);
+                    skirt.material = mats.bottoms.clone();
+                    skirt.material.side = THREE.DoubleSide;
+                    skirt.visible = true;
+                    skirt.scale.set(1.05, 1.05, 1.05);
+                }
                 if (p.slot === 'shoes') {
                     dressMaterial('shoes', hex, 'leather');
                     heelL.visible = true;
@@ -263,16 +342,37 @@
                     dressMaterial('outer', hex, pat);
                     outer.visible = true;
                     collar.visible = true;
+                    outer.scale.set(1.08, 1.08, 1.08);
+                    bagProp.visible = true;
+                    bagProp.material.color.setHex(hex);
                 }
                 if (p.slot === 'finale') {
                     dressMaterial('accent', hex, 'silk');
                     finale.visible = true;
+                    bagProp.visible = true;
+                    skirt.visible = true;
                 }
             });
             setOwnedSlots(ownedSlots);
         }
 
+        function setCameraFacing(mode) {
+            // Library face always faces the gameplay camera so features stay readable
+            const hasFace = !!faceFront.material.map;
+            faceFront.visible = hasFace;
+            faceBack.visible = false;
+            if (mode === 'back') {
+                // Billboard on the rear so chase-cam still sees the face card
+                faceFront.position.set(0, 1.74, -0.34);
+                faceFront.rotation.y = Math.PI;
+            } else {
+                faceFront.position.set(0, 1.74, 0.32);
+                faceFront.rotation.y = 0;
+            }
+        }
+
         let walkT = 0;
+        const BASE_SCALE = 1.0;
         function update(dt, state) {
             state = state || {};
             const { jumping, sliding, dressing, dying, deathT } = state;
@@ -282,7 +382,7 @@
                 root.rotation.x = t * 0.9;
                 root.position.y = Math.sin(t * Math.PI) * 0.35 - t * 0.55;
                 root.position.x = Math.sin(t * 10) * 0.08;
-                const s = 1 - t * 0.25;
+                const s = BASE_SCALE * (1 - t * 0.25);
                 root.scale.set(s, s * (1 - t * 0.35), s);
                 return;
             }
@@ -299,10 +399,10 @@
             sleeveR.rotation.x = armR.rotation.x * 0.5;
             if (jumping) root.position.y = 0.25;
             else if (sliding) {
-                root.scale.set(1.15, 0.55, 1.1);
+                root.scale.set(BASE_SCALE * 1.15, BASE_SCALE * 0.55, BASE_SCALE * 1.1);
                 root.position.y = 0;
             } else {
-                root.scale.set(1, 1, 1);
+                root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
                 root.position.y = 0;
             }
             if (dressing) {
@@ -320,10 +420,13 @@
             root,
             applyPieceColors,
             setOwnedSlots,
+            setCameraFacing,
             update,
             mats,
             characterId: charId,
-            profile
+            profile,
+            faceFront,
+            faceBack
         };
     }
 
@@ -338,18 +441,24 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
-        camera.position.set(0, 1.3, 4.2);
-        camera.lookAt(0, 1.1, 0);
+        const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
+        camera.position.set(0, 1.15, 2.85);
+        camera.lookAt(0, 1.15, 0);
 
-        const hemi = new THREE.HemisphereLight(0xfff5e8, 0x2a2a32, 1.15);
+        const hemi = new THREE.HemisphereLight(0xfff4e8, 0x4a4058, 1.15);
         scene.add(hemi);
         const key = new THREE.DirectionalLight(0xffffff, 1.05);
-        key.position.set(2.2, 4.2, 3.2);
+        key.position.set(2.0, 4.0, 2.8);
         scene.add(key);
-        const rim = new THREE.DirectionalLight(0xc9a56a, 0.45);
-        rim.position.set(-2, 2, -2);
+        const rim = new THREE.DirectionalLight(0xffc060, 0.95);
+        rim.position.set(-2.2, 2.4, -1.8);
         scene.add(rim);
+        const fill = new THREE.PointLight(0xffe8d0, 0.45, 14);
+        fill.position.set(0, 2.0, 2.2);
+        scene.add(fill);
+        const faceLight = new THREE.PointLight(0xfff0e0, 0.55, 6);
+        faceLight.position.set(0, 1.75, 1.2);
+        scene.add(faceLight);
 
         const avatar = createAvatar(THREE, options);
         scene.add(avatar.root);
@@ -361,14 +470,20 @@
         }
 
         function setCameraMode(mode) {
+            avatar.setCameraFacing(mode);
             if (mode === 'front') {
-                camera.position.set(0, 1.35, -3.6);
-                avatar.root.rotation.y = Math.PI;
-            } else {
-                camera.position.set(0, 1.3, 4.2);
                 avatar.root.rotation.y = 0;
+                camera.position.set(0, 1.55, 1.55);
+                camera.lookAt(0, 1.55, 0);
+                camera.fov = 34;
+            } else {
+                // Full-body chase framing — feet to hair fill the offscreen canvas
+                avatar.root.rotation.y = 0;
+                camera.position.set(0, 1.05, 3.05);
+                camera.lookAt(0, 1.0, 0);
+                camera.fov = 36;
             }
-            camera.lookAt(0, 1.1, 0);
+            camera.updateProjectionMatrix();
         }
 
         function render() {

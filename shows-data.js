@@ -137,6 +137,75 @@ window.RUNWAY_SHOWS = {
             ]
         }
     ],
+    paris: [
+        {
+            id: 'chanel-paris',
+            designer: 'Chanel',
+            showName: 'Chanel Haute',
+            tagline: 'Rue Cambon twilight',
+            accent: '#1d4ed8',
+            palette: ['#111827', '#f8fafc', '#1d4ed8', '#c9a56a'],
+            boost: {
+                id: 'camellia',
+                name: 'Camellia Stride',
+                description: 'Soft magnet + polish score',
+                jumpMult: 1.12,
+                magnet: 20,
+                speedMult: 1.04,
+                scoreMult: 1.15
+            },
+            rareGoal: {
+                id: 'classic-flap',
+                label: 'FLAP',
+                fullName: 'Classic Flap Bag',
+                target: 3,
+                color: '#111827',
+                points: 125,
+                slot: 'finale'
+            },
+            pieces: [
+                { id: 'street', name: 'Nameless Street', slot: 'base', color: '#6b7280' },
+                { id: 'tweed-skirt', name: 'Tweed Skirt', slot: 'bottoms', color: '#a8a29e' },
+                { id: 'blouse', name: 'Ivory Blouse', slot: 'top', color: '#f8fafc' },
+                { id: 'slingback', name: 'Slingback', slot: 'shoes', color: '#1d4ed8' },
+                { id: 'jacket', name: 'Tweed Jacket', slot: 'outer', color: '#78716c' },
+                { id: 'bag', name: 'Classic Flap', slot: 'finale', color: '#111827', rare: true }
+            ]
+        },
+        {
+            id: 'dior-paris',
+            designer: 'Dior',
+            showName: 'Dior Avenue',
+            tagline: 'New Look silhouette',
+            accent: '#9f1239',
+            palette: ['#9f1239', '#fafaf9', '#44403c', '#c9a56a'],
+            boost: {
+                id: 'bar-jacket',
+                name: 'Bar Jacket Lift',
+                description: 'Higher jumps on the walk',
+                jumpMult: 1.28,
+                magnet: 12,
+                speedMult: 1.02
+            },
+            rareGoal: {
+                id: 'bar-jacket',
+                label: 'BAR',
+                fullName: 'Bar Jacket',
+                target: 3,
+                color: '#9f1239',
+                points: 122,
+                slot: 'outer'
+            },
+            pieces: [
+                { id: 'street', name: 'Nameless Street', slot: 'base', color: '#6b7280' },
+                { id: 'midi', name: 'Midi Skirt', slot: 'bottoms', color: '#44403c' },
+                { id: 'bodice', name: 'Structured Bodice', slot: 'top', color: '#9f1239' },
+                { id: 'pump', name: 'Pointed Pump', slot: 'shoes', color: '#9f1239' },
+                { id: 'jacket', name: 'Bar Jacket', slot: 'outer', color: '#9f1239', rare: true },
+                { id: 'finale', name: 'Full Dior', slot: 'finale', color: '#fafaf9' }
+            ]
+        }
+    ],
     london: [
         {
             id: 'mcqueen',
