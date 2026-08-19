@@ -258,9 +258,17 @@
     }
 
     function curveAt(worldZ) {
-        // Serpentine fashion runway — turns & S-curves along the walk
-        const w = distance * 0.085 + worldZ * 0.0042;
-        return Math.sin(w) * 0.22 + Math.sin(w * 0.47 + 1.1) * 0.1 + Math.cos(w * 0.23) * 0.05;
+        // Realistic winding catwalk: long S-bends + soft banking turns
+        const w = distance * 0.055 + worldZ * 0.0028;
+        const main = Math.sin(w * 0.65) * 0.32;
+        const secondary = Math.sin(w * 0.27 + 1.35) * 0.14;
+        const kink = Math.sin(w * 1.1 + 0.4) * 0.04;
+        return main + secondary + kink;
+    }
+
+    function curveDeriv(worldZ) {
+        const eps = 8;
+        return (curveAt(worldZ + eps) - curveAt(worldZ - eps)) / (2 * eps);
     }
 
     function laneCenterX(laneIndex, z) {
@@ -564,9 +572,9 @@
         dressAnimPiece = piece;
         dressAnimT = 0.85;
         dressPulse = 1;
-        const baseY = height * 0.72 - playerYOffset;
-        burst(laneX, baseY - 50, piece.color || show.accent);
-        pushFloat(`+${piece.name}`, piece.color || '#fff', laneX, baseY - 100);
+        const baseY = height * 0.86 - playerYOffset * 0.2;
+        burst(laneX, baseY - 70, piece.color || show.accent);
+        pushFloat(`+${piece.name}`, piece.color || '#fff', laneX, baseY - 120);
     }
 
     function grantOutfitPiece(pieceLike) {
@@ -679,14 +687,14 @@
     }
 
     function playerHitbox() {
-        const baseY = height * 0.72 - playerYOffset;
+        const footY = height * 0.86 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15);
         const scale = isSliding ? 0.55 : 1;
         const mag = (boost().magnet || 0) * 0.35;
         const pw = 48 + mag;
-        const ph = 78 * scale;
+        const ph = 90 * scale;
         return {
             x: laneX - pw / 2,
-            y: baseY - ph,
+            y: footY - ph,
             w: pw,
             h: ph,
             lane: targetLane,
@@ -1044,72 +1052,108 @@
     }
 
     function drawGuest(x, y, scale, side, seed) {
-        // Seated fashion-show guest (infinite loop silhouettes)
-        const s = Math.max(6, scale * 28);
-        const skin = seed % 3 === 0 ? '#e8c4a8' : seed % 3 === 1 ? '#c68c6c' : '#f0d2b4';
-        const dress = [
-            theme.accent || '#c9a56a',
-            '#111',
-            '#f4efe6',
-            '#7c2d12',
-            '#1e3a5f',
-            '#9f1239'
-        ][seed % 6];
+        // Fixed seated fashion-show guest — chair + body planted on the bank
+        const s = Math.max(8, scale * 34);
+        const skins = ['#e8c4a8', '#c68c6c', '#f0d2b4', '#8d5524', '#ffdbac'];
+        const dresses = [theme.accent || '#c9a56a', '#0f0f0f', '#f4efe6', '#7c2d12', '#1e3a5f', '#9f1239', '#334155'];
+        const skin = skins[seed % skins.length];
+        const dress = dresses[seed % dresses.length];
 
         ctx.save();
         ctx.translate(x, y);
-        ctx.scale(side < 0 ? -1 : 1, 1);
+        ctx.scale(side < 0 ? 1 : -1, 1);
 
-        ctx.fillStyle = theme.seat || '#111';
-        ctx.fillRect(-s * 0.35, s * 0.15, s * 0.7, s * 0.55);
-        ctx.fillRect(-s * 0.4, -s * 0.1, s * 0.12, s * 0.8);
+        // Shadow under chair
+        ctx.fillStyle = 'rgba(0,0,0,0.28)';
+        ctx.beginPath();
+        ctx.ellipse(0, s * 0.72, s * 0.38, s * 0.1, 0, 0, Math.PI * 2);
+        ctx.fill();
 
+        // Chair legs + seat (planted)
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(-s * 0.28, s * 0.35, s * 0.08, s * 0.35);
+        ctx.fillRect(s * 0.18, s * 0.35, s * 0.08, s * 0.35);
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(-s * 0.36, s * 0.22, s * 0.72, s * 0.2);
+        // Backrest
+        ctx.fillStyle = '#151515';
+        ctx.fillRect(-s * 0.36, -s * 0.15, s * 0.12, s * 0.55);
+
+        // Seated torso
         ctx.fillStyle = dress;
         ctx.beginPath();
-        ctx.ellipse(0, s * 0.2, s * 0.32, s * 0.38, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, s * 0.12, s * 0.3, s * 0.36, 0, 0, Math.PI * 2);
         ctx.fill();
+        // Lap
+        ctx.fillRect(-s * 0.28, s * 0.28, s * 0.56, s * 0.16);
 
+        // Head planted on shoulders
         ctx.fillStyle = skin;
         ctx.beginPath();
-        ctx.arc(0, -s * 0.25, s * 0.2, 0, Math.PI * 2);
+        ctx.arc(0, -s * 0.28, s * 0.2, 0, Math.PI * 2);
         ctx.fill();
+        // Neck
+        ctx.fillRect(-s * 0.06, -s * 0.12, s * 0.12, s * 0.12);
 
-        ctx.fillStyle = seed % 2 ? '#1a1a1a' : '#4a3728';
+        // Hair
+        ctx.fillStyle = seed % 3 === 0 ? '#1a1a1a' : seed % 3 === 1 ? '#4a3728' : '#d4a574';
         ctx.beginPath();
-        ctx.ellipse(0, -s * 0.34, s * 0.22, s * 0.14, 0, Math.PI, Math.PI * 2);
+        ctx.ellipse(0, -s * 0.38, s * 0.22, s * 0.15, 0, Math.PI, Math.PI * 2);
         ctx.fill();
 
-        if (seed % 4 === 0) {
-            ctx.fillStyle = '#eee';
-            ctx.fillRect(s * 0.12, s * 0.05, s * 0.18, s * 0.22);
-        } else if (seed % 4 === 1) {
-            ctx.fillStyle = '#222';
-            ctx.fillRect(s * 0.15, s * 0.08, s * 0.12, s * 0.2);
+        // Arms on lap / clapping
+        ctx.strokeStyle = skin;
+        ctx.lineWidth = Math.max(2, s * 0.08);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.22, s * 0.05);
+        ctx.quadraticCurveTo(-s * 0.05, s * 0.28, s * 0.05, s * 0.3);
+        ctx.stroke();
+
+        // Program / phone / champagne prop
+        const prop = seed % 5;
+        if (prop === 0) {
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(s * 0.08, s * 0.18, s * 0.2, s * 0.26);
+        } else if (prop === 1) {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(s * 0.1, s * 0.2, s * 0.14, s * 0.24);
             ctx.fillStyle = theme.accent || '#c9a56a';
-            ctx.fillRect(s * 0.17, s * 0.1, s * 0.08, s * 0.1);
+            ctx.fillRect(s * 0.12, s * 0.22, s * 0.1, s * 0.12);
+        } else if (prop === 2) {
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.beginPath();
+            ctx.moveTo(s * 0.12, s * 0.18);
+            ctx.lineTo(s * 0.22, s * 0.18);
+            ctx.lineTo(s * 0.2, s * 0.42);
+            ctx.lineTo(s * 0.14, s * 0.42);
+            ctx.closePath();
+            ctx.fill();
         }
 
         ctx.restore();
     }
 
     function drawAudienceBanks() {
-        // Infinite scrolling guests along both margins of the curved catwalk
-        const loop = 920;
-        const base = distance % loop;
-        const rows = 9;
+        // Fixed seat rows along catwalk margins — world Z anchors, not random floaters
+        const seatSpacing = 95;
+        const rows = 3;
+        const ahead = 14;
+        const startSlot = Math.floor(distance / seatSpacing) - 1;
 
-        for (let row = 0; row < rows; row++) {
-            for (let side = -1; side <= 1; side += 2) {
-                for (let n = 0; n < 7; n++) {
-                    const z = ((n * 130 + row * 40) - base * 1.15 + loop * 3) % loop;
-                    if (z > 780) continue;
-                    const p = project(z, side < 0 ? 0 : 2);
-                    const edge = side < 0 ? -1 : 1;
-                    const x = p.x + edge * (55 + row * 16) * (0.35 + 0.65 * p.t);
-                    const y = p.y - 8 - row * 3;
-                    if (y < height * 0.3 || y > height * 0.92) continue;
-                    const seed = (row * 17 + n * 31 + side + 3 + Math.floor(distance / loop)) & 255;
-                    drawGuest(x, y, p.scale * (1 - row * 0.05), side, seed);
+        for (let slot = startSlot; slot < startSlot + ahead; slot++) {
+            const worldZ = slot * seatSpacing - (distance % seatSpacing);
+            if (worldZ < -40 || worldZ > 780) continue;
+            for (let row = 0; row < rows; row++) {
+                for (let side = -1; side <= 1; side += 2) {
+                    const p = project(Math.max(0, worldZ + row * 12), side < 0 ? 0 : 2);
+                    const lateral = (72 + row * 28) * (0.45 + 0.55 * p.t);
+                    const x = p.x + side * lateral;
+                    // Plant feet/chair on bank — slightly below catwalk surface line
+                    const y = p.y + 6 + row * 4;
+                    if (y < height * 0.32 || y > height * 0.95) continue;
+                    const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
+                    drawGuest(x, y, p.scale * (1 - row * 0.08), side, seed);
                 }
             }
         }
@@ -1149,17 +1193,20 @@
 
     function catwalkEdgeX(z, side) {
         const t = 1 / (1 + z * 0.0045);
-        const halfNear = width * 0.34;
-        const halfFar = width * 0.1;
+        const halfNear = width * 0.32;
+        const halfFar = width * 0.09;
         const half = halfFar + (halfNear - halfFar) * t;
-        const cx = width / 2 + curveAt(z) * width * 0.42 * (0.2 + 0.8 * t);
-        return cx + side * half;
+        const bend = curveAt(z) * width * 0.48 * (0.18 + 0.82 * t);
+        // Slight bank: outer edge pushes wider on the outside of a turn
+        const bank = curveDeriv(z) * width * 0.35 * side * t;
+        const cx = width / 2 + bend;
+        return cx + side * half + bank * 0.15;
     }
 
     function drawCatwalk() {
         const topY = height * 0.28;
         const botY = height * 0.94;
-        const steps = 28;
+        const steps = 42;
 
         const left = [];
         const right = [];
@@ -1462,28 +1509,29 @@
         const deathProg = dying ? Math.min(1, deathT / 1.15) : 0;
         const tumbleY = dying ? Math.sin(deathProg * Math.PI) * 40 - deathProg * 70 : 0;
         const tumbleX = dying ? Math.sin(deathT * 14) * 18 * deathProg : 0;
-        const baseY = height * 0.72 - playerYOffset + tumbleY;
-        const pulse = 1 + dressPulse * 0.15;
-        const pw = (isSliding && !dying ? 78 : 64) * pulse;
-        const ph = (isSliding && !dying ? 48 : 110) * pulse;
+        // Feet planted on near catwalk surface (Subway Surfers–style grounding)
+        const footY = height * 0.86 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15) + tumbleY;
+        const pulse = 1 + dressPulse * 0.12;
+        const pw = (isSliding && !dying ? 86 : 72) * pulse;
+        const ph = (isSliding && !dying ? 52 : 128) * pulse;
         const x = laneX + tumbleX;
-        const y = baseY;
+        const lean = curveDeriv(0) * width * 0.08;
 
         ctx.save();
-        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        // Contact shadow on the deck
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
         ctx.beginPath();
-        ctx.ellipse(laneX, height * 0.74, pw * 0.35 * (1 - deathProg * 0.5), 10, 0, 0, Math.PI * 2);
+        ctx.ellipse(laneX, footY + 2, pw * 0.32 * (1 - deathProg * 0.5), 9, 0, 0, Math.PI * 2);
         ctx.fill();
 
         if (shieldTimer > 0 && !dying) {
             ctx.strokeStyle = `rgba(255,255,255,${0.35 + shieldTimer})`;
             ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.ellipse(x, y - ph * 0.45, pw * 0.7, ph * 0.55, 0, 0, Math.PI * 2);
+            ctx.ellipse(x, footY - ph * 0.45, pw * 0.7, ph * 0.55, 0, 0, Math.PI * 2);
             ctx.stroke();
         }
 
-        // 3D avatar render → blit onto runway canvas
         if (avatar3d && avatarCanvas) {
             if (show) avatar3d.avatar.applyPieceColors(show.pieces, ownedSlots);
             avatar3d.setCameraMode(cameraMode);
@@ -1497,17 +1545,22 @@
             avatar3d.render();
             if (dying) {
                 ctx.save();
-                ctx.translate(x, y - ph * 0.5);
+                ctx.translate(x, footY - ph * 0.5);
                 ctx.rotate(deathProg * Math.PI * 1.2);
                 ctx.globalAlpha = 1 - deathProg * 0.35;
                 ctx.drawImage(avatarCanvas, -pw / 2, -ph / 2, pw, ph);
                 ctx.restore();
             } else {
-                ctx.drawImage(avatarCanvas, x - pw / 2, y - ph, pw, ph);
+                ctx.save();
+                ctx.translate(x, footY);
+                ctx.rotate(lean * 0.15);
+                // Feet at footY — image bottom sits on the runway
+                ctx.drawImage(avatarCanvas, -pw / 2, -ph + 4, pw, ph);
+                ctx.restore();
             }
         } else if (dying) {
             ctx.save();
-            ctx.translate(x, y - ph * 0.5);
+            ctx.translate(x, footY - ph * 0.5);
             ctx.rotate(deathProg * Math.PI);
             ctx.globalAlpha = 1 - deathProg * 0.4;
             ctx.fillStyle = '#c4a484';
@@ -1517,28 +1570,35 @@
             ctx.restore();
         } else {
             ctx.fillStyle = '#c4a484';
-            ctx.fillRect(x - pw * 0.25, y - ph * 0.95, pw * 0.5, ph * 0.28);
+            ctx.fillRect(x - pw * 0.25, footY - ph * 0.95, pw * 0.5, ph * 0.28);
             ctx.fillStyle = ownedSlots.top ? (show?.pieces.find(p => p.slot === 'top')?.color || '#666') : '#9ca3af';
-            ctx.fillRect(x - pw * 0.35, y - ph * 0.7, pw * 0.7, ph * 0.35);
+            ctx.fillRect(x - pw * 0.35, footY - ph * 0.7, pw * 0.7, ph * 0.35);
             ctx.fillStyle = ownedSlots.bottoms ? (show?.pieces.find(p => p.slot === 'bottoms')?.color || '#444') : '#9ca3af';
-            ctx.fillRect(x - pw * 0.3, y - ph * 0.38, pw * 0.6, ph * 0.35);
+            ctx.fillRect(x - pw * 0.3, footY - ph * 0.38, pw * 0.6, ph * 0.35);
         }
 
-        // Dress-up fly-in piece
+        // Dress-up fly-in — piece snaps onto the body slot
         if (dressAnimT > 0 && dressAnimPiece && !dying) {
             const t = 1 - dressAnimT / 0.85;
             const ease = 1 - Math.pow(1 - t, 3);
-            const fromY = y - ph - 80;
-            const toY = y - ph * 0.55;
-            const py = fromY + (toY - fromY) * ease;
-            const scale = 1.4 - ease * 0.5;
-            ctx.globalAlpha = 1 - t * 0.3;
+            const slot = dressAnimPiece.slot || 'top';
+            const slotY = slot === 'shoes' ? footY - ph * 0.12
+                : slot === 'bottoms' ? footY - ph * 0.35
+                : slot === 'outer' || slot === 'top' ? footY - ph * 0.62
+                : footY - ph * 0.55;
+            const fromY = footY - ph - 90;
+            const py = fromY + (slotY - fromY) * ease;
+            const scale = 1.55 - ease * 0.7;
+            ctx.globalAlpha = 1 - t * 0.25;
             ctx.fillStyle = dressAnimPiece.color || '#fff';
             ctx.beginPath();
-            ctx.arc(x, py, 16 * scale, 0, Math.PI * 2);
+            ctx.arc(x, py, 18 * scale, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = `bold ${Math.floor(10 * scale)}px Fredoka One, sans-serif`;
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#111';
+            ctx.font = `600 ${Math.floor(10 * scale)}px Syne, sans-serif`;
             ctx.textAlign = 'center';
             ctx.fillText((dressAnimPiece.name || '').split(' ').pop().toUpperCase(), x, py + 3);
             ctx.globalAlpha = 1;

@@ -147,31 +147,52 @@
         hair.position.set(0, 1.84, -0.02);
         root.add(hair);
 
-        // Face card from character library PNG
-        const faceGeo = new THREE.PlaneGeometry(0.42, 0.42);
+        // Face cards — front + back so both cams show the character library face
+        const faceGeo = new THREE.PlaneGeometry(0.5, 0.58);
         const faceMat = new THREE.MeshBasicMaterial({
             transparent: true,
             opacity: 0,
             depthWrite: false,
             side: THREE.DoubleSide
         });
-        const face = new THREE.Mesh(faceGeo, faceMat);
-        face.position.set(0, 1.72, 0.27);
-        root.add(face);
+        const faceFront = new THREE.Mesh(faceGeo, faceMat);
+        faceFront.position.set(0, 1.74, 0.29);
+        faceFront.name = 'faceFront';
+        root.add(faceFront);
+        const faceBack = new THREE.Mesh(faceGeo.clone(), faceMat.clone());
+        faceBack.position.set(0, 1.74, -0.29);
+        faceBack.rotation.y = Math.PI;
+        faceBack.name = 'faceBack';
+        root.add(faceBack);
 
         const loader = new THREE.TextureLoader();
         loader.load(profile.src, (tex) => {
             tex.minFilter = THREE.LinearFilter;
             tex.magFilter = THREE.LinearFilter;
-            faceMat.map = tex;
-            faceMat.opacity = 0.95;
-            faceMat.needsUpdate = true;
-            // Soften hair/skin toward library vibe
+            [faceFront, faceBack].forEach((f) => {
+                f.material.map = tex;
+                f.material.opacity = 1;
+                f.material.needsUpdate = true;
+            });
             mats.hair.color.setHex(profile.hair);
             mats.skin.color.setHex(profile.skin);
         }, undefined, () => {
-            face.visible = false;
+            faceFront.visible = false;
+            faceBack.visible = false;
         });
+
+        // Extra garment volume that “snaps on” when collected
+        const skirt = mesh(new THREE.CylinderGeometry(0.18, 0.42, 0.45, 10, 1, true), mats.bottoms.clone());
+        skirt.position.y = 0.72;
+        skirt.visible = false;
+        skirt.name = 'skirt';
+        root.add(skirt);
+
+        const bagProp = mesh(new THREE.BoxGeometry(0.2, 0.26, 0.08), mats.accent);
+        bagProp.position.set(0.42, 1.05, 0.12);
+        bagProp.visible = false;
+        bagProp.name = 'bagProp';
+        root.add(bagProp);
 
         const armL = mesh(new THREE.BoxGeometry(0.14, 0.5, 0.14), mats.skin);
         armL.position.set(-0.42, 0.95, 0);
@@ -240,6 +261,8 @@
             finale.visible = has('finale');
             heelL.visible = has('shoes');
             heelR.visible = has('shoes');
+            skirt.visible = has('bottoms') || has('finale');
+            bagProp.visible = has('finale') || has('outer');
             if (!has('shoes')) dressMaterial('shoes', 0x6b7280, 'leather');
         }
 
@@ -253,7 +276,13 @@
                     sleeveL.material = mats.top;
                     sleeveR.material = mats.top;
                 }
-                if (p.slot === 'bottoms') dressMaterial('bottoms', hex, pat);
+                if (p.slot === 'bottoms') {
+                    dressMaterial('bottoms', hex, pat);
+                    skirt.material = mats.bottoms.clone();
+                    skirt.material.side = THREE.DoubleSide;
+                    skirt.visible = true;
+                    skirt.scale.set(1.05, 1.05, 1.05);
+                }
                 if (p.slot === 'shoes') {
                     dressMaterial('shoes', hex, 'leather');
                     heelL.visible = true;
@@ -263,13 +292,25 @@
                     dressMaterial('outer', hex, pat);
                     outer.visible = true;
                     collar.visible = true;
+                    outer.scale.set(1.08, 1.08, 1.08);
+                    bagProp.visible = true;
+                    bagProp.material.color.setHex(hex);
                 }
                 if (p.slot === 'finale') {
                     dressMaterial('accent', hex, 'silk');
                     finale.visible = true;
+                    bagProp.visible = true;
+                    skirt.visible = true;
                 }
             });
             setOwnedSlots(ownedSlots);
+        }
+
+        function setCameraFacing(mode) {
+            // Only front cam shows the library face card
+            const showFace = mode === 'front';
+            faceFront.visible = showFace;
+            faceBack.visible = false;
         }
 
         let walkT = 0;
@@ -320,10 +361,13 @@
             root,
             applyPieceColors,
             setOwnedSlots,
+            setCameraFacing,
             update,
             mats,
             characterId: charId,
-            profile
+            profile,
+            faceFront,
+            faceBack
         };
     }
 
@@ -339,17 +383,20 @@
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
-        camera.position.set(0, 1.3, 4.2);
-        camera.lookAt(0, 1.1, 0);
+        camera.position.set(0, 1.15, 3.6);
+        camera.lookAt(0, 1.05, 0);
 
-        const hemi = new THREE.HemisphereLight(0xfff5e8, 0x2a2a32, 1.15);
+        const hemi = new THREE.HemisphereLight(0xfff5e8, 0x2a2a32, 1.2);
         scene.add(hemi);
-        const key = new THREE.DirectionalLight(0xffffff, 1.05);
+        const key = new THREE.DirectionalLight(0xffffff, 1.15);
         key.position.set(2.2, 4.2, 3.2);
         scene.add(key);
-        const rim = new THREE.DirectionalLight(0xc9a56a, 0.45);
+        const rim = new THREE.DirectionalLight(0xc9a56a, 0.55);
         rim.position.set(-2, 2, -2);
         scene.add(rim);
+        const fill = new THREE.PointLight(0xffffff, 0.35, 12);
+        fill.position.set(0, 2.2, 2);
+        scene.add(fill);
 
         const avatar = createAvatar(THREE, options);
         scene.add(avatar.root);
@@ -361,14 +408,21 @@
         }
 
         function setCameraMode(mode) {
+            avatar.setCameraFacing(mode);
             if (mode === 'front') {
-                camera.position.set(0, 1.35, -3.6);
-                avatar.root.rotation.y = Math.PI;
-            } else {
-                camera.position.set(0, 1.3, 4.2);
+                // Face the player — selfie / front cam, framed on the face
                 avatar.root.rotation.y = 0;
+                camera.position.set(0, 1.72, 2.35);
+                camera.lookAt(0, 1.7, 0);
+                camera.fov = 32;
+            } else {
+                // Chase cam behind the model looking down the runway
+                avatar.root.rotation.y = 0;
+                camera.position.set(0, 1.2, 3.7);
+                camera.lookAt(0, 1.05, 0);
+                camera.fov = 36;
             }
-            camera.lookAt(0, 1.1, 0);
+            camera.updateProjectionMatrix();
         }
 
         function render() {
