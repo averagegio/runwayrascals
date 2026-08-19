@@ -409,7 +409,9 @@ a {
     font-family: var(--font-ui);
     font-size: 0.72rem;
     letter-spacing: 0.28em;
+    text-indent: 0.28em; /* optical center with letter-spacing */
     text-transform: uppercase;
+    text-align: center;
     position: absolute;
     left: 50%;
     bottom: max(2.5rem, calc(8vh + var(--safe-bottom)));
@@ -423,8 +425,9 @@ a {
     opacity: 0;
     pointer-events: none;
     cursor: pointer;
-    width: auto;
+    width: max-content;
     margin: 0;
+    padding: 0;
 }
 
 .intro-swipe-hint.is-visible {
