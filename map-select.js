@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const maps = [
         {
             id: 'newyork',
@@ -42,23 +42,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
+    let unlocked = ['newyork'];
+    if (window.RunwayAuth && RunwayAuth.getToken()) {
+        try {
+            const data = await RunwayAuth.api('/api/levels');
+            unlocked = data.unlocked || unlocked;
+        } catch (_) {
+            const user = RunwayAuth.getCachedUser();
+            if (user && user.unlockedLevels) unlocked = user.unlockedLevels;
+        }
+    }
+
     const mapList = document.getElementById('mapList');
     const confirmBtn = document.getElementById('confirmMapBtn');
     let selectedMap = null;
 
     maps.forEach((map) => {
+        const isUnlocked = unlocked.includes(map.id);
         const el = document.createElement('button');
         el.type = 'button';
         el.className = 'map-card';
         el.dataset.mapId = map.id;
+        el.disabled = !isUnlocked;
         el.style.setProperty('--map-accent', map.accent);
         el.style.background = `linear-gradient(135deg, ${map.sky[0]}, ${map.sky[1]})`;
         el.innerHTML = `
             <span class="map-event">${map.event}</span>
             <span class="map-name">${map.name}</span>
             <span class="map-tagline">${map.tagline}</span>
+            <span class="show-meta">${isUnlocked ? 'Unlocked' : 'Locked — finish previous city'}</span>
         `;
+        if (!isUnlocked) el.classList.add('locked');
         el.addEventListener('click', () => {
+            if (!isUnlocked) return;
             document.querySelectorAll('.map-card').forEach((c) => c.classList.remove('selected'));
             el.classList.add('selected');
             selectedMap = map;
@@ -71,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const parsed = JSON.parse(saved);
             const match = mapList.querySelector(`[data-map-id="${parsed.id}"]`);
-            if (match) {
+            if (match && !match.disabled) {
                 match.classList.add('selected');
                 selectedMap = maps.find((m) => m.id === parsed.id) || parsed;
             }
@@ -85,6 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         localStorage.setItem('selectedMap', JSON.stringify(selectedMap));
-        window.location.href = 'gameplay.html';
+        window.location.href = 'show-select.html';
     });
 });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Runway Rascals - Fashion Week Maps</title>
+    <title>Runway Rascals - Pick Your Show</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 </head>
@@ -11,25 +11,23 @@
     <div class="phone-frame">
         <div class="app-container map-select-bg">
             <div class="game-header">
-                <h1 class="game-title">Fashion Week</h1>
-                <p class="map-subtitle">Pick your runway</p>
+                <h1 class="game-title">Walk For</h1>
+                <p class="map-subtitle" id="citySubtitle">Choose the designer show</p>
             </div>
-            <div class="map-selection" id="mapList">
-                <!-- Maps injected by map-select.js -->
-            </div>
+            <div class="map-selection" id="showList"></div>
             <div class="game-footer">
-                <a href="wardrobe-select.html" class="game-btn back-btn">
-                    <span class="btn-text">Back</span>
+                <a href="map-select.html" class="game-btn back-btn">
+                    <span class="btn-text">City</span>
                     <span class="btn-shine"></span>
                 </a>
-                <a href="#" id="confirmMapBtn" class="game-btn confirm-btn">
-                    <span class="btn-text">Hit the Runway</span>
+                <a href="#" id="confirmShowBtn" class="game-btn confirm-btn">
+                    <span class="btn-text">Start Walk</span>
                     <span class="btn-shine"></span>
                 </a>
             </div>
         </div>
     </div>
-    <script src="auth-client.js"></script>
-    <script src="map-select.js"></script>
+    <script src="shows-data.js"></script>
+    <script src="show-select.js"></script>
 </body>
 </html>

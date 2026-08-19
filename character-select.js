@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const characterOptions = document.querySelectorAll('.character-option');
     const confirmButton = document.getElementById('confirmCharacterBtn');
+    const subtitle = document.getElementById('charSubtitle');
 
     const defaultImages = {
         male: 'chibibrodoll.png',
@@ -8,6 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
         fashion: 'chibidollfashion.png',
         evening: 'chibidoll3.png'
     };
+
+    const user = (window.RunwayAuth && RunwayAuth.getCachedUser()) || {};
+    const name = localStorage.getItem('characterName') || user.characterName || user.displayName;
+    const tag = localStorage.getItem('gamerTag') || user.gamerTag;
+    if (subtitle && (name || tag)) {
+        subtitle.textContent = `${name || 'Model'}${tag ? ' · @' + String(tag).replace(/^@/, '') : ''} · pick a base look`;
+    }
 
     characterOptions.forEach(option => {
         option.addEventListener('click', () => {

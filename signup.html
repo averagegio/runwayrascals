@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Runway Rascals — Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="phone-frame">
+        <div class="app-container map-select-bg auth-screen">
+            <div class="game-header">
+                <h1 class="game-title">Join the Runway</h1>
+                <p class="map-subtitle">Create account · pick your @tag</p>
+            </div>
+            <form id="signupForm" class="auth-form">
+                <label>Display / Character Name<input type="text" id="displayName" required maxlength="32" placeholder="Model name"></label>
+                <label>Gamer Tag<input type="text" id="gamerTag" required maxlength="20" placeholder="@yourtag"></label>
+                <label>Email<input type="email" id="email" required autocomplete="email" placeholder="you@email.com"></label>
+                <label>Password<input type="password" id="password" required minlength="6" autocomplete="new-password" placeholder="min 6 characters"></label>
+                <p id="authError" class="auth-error" hidden></p>
+                <button type="submit" class="game-btn confirm-btn auth-submit"><span class="btn-text">Sign Up</span></button>
+            </form>
+            <div class="game-footer auth-footer">
+                <a href="login.html" class="game-btn"><span class="btn-text">Log In</span></a>
+            </div>
+        </div>
+    </div>
+    <script src="auth-client.js"></script>
+    <script>
+        const tagInput = document.getElementById('gamerTag');
+        tagInput.addEventListener('input', () => {
+            let v = tagInput.value.replace(/^@+/, '').replace(/[^a-zA-Z0-9_]/g, '');
+            tagInput.value = v ? `@${v}` : '';
+        });
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const err = document.getElementById('authError');
+            err.hidden = true;
+            try {
+                await RunwayAuth.signup({
+                    displayName: document.getElementById('displayName').value,
+                    gamerTag: document.getElementById('gamerTag').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                });
+                window.location.href = 'profile-setup.html';
+            } catch (ex) {
+                err.textContent = ex.message;
+                err.hidden = false;
+            }
+        });
+    </script>
+</body>
+</html>
