@@ -1947,11 +1947,11 @@
 
         if (isJumping) {
             ctx.fillStyle = theme.accent;
-            ctx.fillText('JUMP', x, y - ph - 48);
+            ctx.fillText('JUMP', x, footY - ph - 48);
         }
         if (isSliding) {
             ctx.fillStyle = theme.accent;
-            ctx.fillText('SLIDE', x, y + 14);
+            ctx.fillText('SLIDE', x, footY + 14);
         }
         ctx.restore();
     }
