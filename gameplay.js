@@ -375,7 +375,10 @@
             if (dressAnimPiece && dressAnimPiece.slot === piece.slot && dressAnimT > 0) chip.classList.add('flash');
             if (piece.rare) chip.classList.add('rare');
             chip.style.setProperty('--chip-color', piece.color);
-            chip.textContent = piece.rare ? '★' : (idx);
+            chip.textContent = piece.rare ? '★' : String(idx);
+            // clearer 1..N after skipping base
+            const visibleIndex = show.pieces.filter((p) => p.slot !== 'base').indexOf(piece) + 1;
+            chip.textContent = piece.rare ? '★' : String(visibleIndex);
             chip.title = piece.name;
             track.appendChild(chip);
         });
