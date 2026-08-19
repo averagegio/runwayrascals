@@ -720,9 +720,9 @@
 
         if (isJumping) {
             jumpT += dt;
-            const dur = 0.55;
+            const dur = 0.65;
             const p = Math.min(1, jumpT / dur);
-            playerYOffset = Math.sin(p * Math.PI) * Math.min(48, height * 0.06) * jumpMult;
+            playerYOffset = Math.sin(p * Math.PI) * Math.min(72, height * 0.09) * jumpMult;
             if (p >= 1) {
                 isJumping = false;
                 playerYOffset = 0;
@@ -1251,7 +1251,7 @@
     }
 
     function drawGuest(x, y, scale, side, seed) {
-        const s = Math.max(26, scale * height * 0.11);
+        const s = Math.max(24, scale * height * 0.1);
         const skins = ['#f0c8a8', '#d4a07a', '#ffdbac', '#a0673a', '#ffc8a0', '#c68642'];
         const dresses = ['#111', '#fff0e8', '#9f1239', '#1e3a8a', '#f59e0b', '#7c3aed', theme.accent || '#c9a56a', '#ec4899'];
         const skin = skins[seed % skins.length];
@@ -1318,37 +1318,36 @@
     }
 
     function drawAudienceBanks() {
-        // Continuous scrolling seats + guests (same modular world as the runway)
-        const seatSpacing = 36;
-        const rows = 7;
-        const ahead = 36;
+        // Seated chair banks — fuller crowd, but spaced so chairs stay readable
+        const seatSpacing = 58;
+        const rows = 4;
+        const ahead = 24;
         const startSlot = Math.floor(distance / seatSpacing) - 2;
         const scroll = distance % seatSpacing;
 
-        // Per-slot seat banks so chairs and people scroll together
         for (let slot = startSlot; slot < startSlot + ahead; slot++) {
             const worldZ = slot * seatSpacing - scroll;
-            if (worldZ < -50 || worldZ > 540) continue;
+            if (worldZ < -40 || worldZ > 420) continue;
             for (let row = 0; row < rows; row++) {
                 for (let side = -1; side <= 1; side += 2) {
-                    const stagger = ((slot + row * 2) % 3) * 5;
-                    const p = project(Math.max(0, worldZ + row * 3.5 + stagger), side < 0 ? 0 : 2);
-                    const lateral = (54 + row * 15) * (0.62 + 0.38 * p.t);
+                    const stagger = ((slot + row * 2) % 3) * 8;
+                    const p = project(Math.max(0, worldZ + row * 6 + stagger), side < 0 ? 0 : 2);
+                    const lateral = (72 + row * 22) * (0.68 + 0.32 * p.t);
                     const x = p.x + side * lateral;
-                    const y = p.y + 2 + row * 1.2;
-                    if (y < height * 0.38 || y > height * 0.98) continue;
+                    const y = p.y + 4 + row * 2;
+                    if (y < height * 0.4 || y > height * 0.98) continue;
 
-                    // Continuous seat strip segment under each guest
-                    const sw = Math.max(10, p.scale * height * 0.055);
+                    // Seat strip under each chair row
+                    const sw = Math.max(10, p.scale * height * 0.05);
                     ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
-                    ctx.globalAlpha = 0.55;
-                    ctx.fillRect(x - sw * 0.7, y + sw * 0.15, sw * 1.4, sw * 0.35);
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillRect(x - sw * 0.7, y + sw * 0.18, sw * 1.4, sw * 0.32);
                     ctx.globalAlpha = 1;
 
                     const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
-                    // Rare gaps only in far rows — keep near edge continuous
-                    if (row > 4 && seed % 9 === 0) continue;
-                    drawGuest(x, y, p.scale * (1.12 - row * 0.03), side, seed);
+                    // Occasional empty chair — denser gaps in back rows
+                    if (seed % (row < 2 ? 8 : 5) === 0) continue;
+                    drawGuest(x, y, p.scale * (1.05 - row * 0.04), side, seed);
                 }
             }
         }
@@ -1846,6 +1845,7 @@
                 }
                 avatar3d.avatar.update(lastFrameDt, {
                     jumping: isJumping && !dying,
+                    jumpProgress: isJumping ? Math.min(1, jumpT / 0.65) : 0,
                     sliding: isSliding && !dying,
                     dressing: dressAnimT,
                     dressSlot: dressAnimPiece && dressAnimPiece.slot,
@@ -1952,11 +1952,11 @@
 
         if (isJumping) {
             ctx.fillStyle = theme.accent;
-            ctx.fillText('JUMP', x, y - ph - 48);
+            ctx.fillText('JUMP', x, footY - ph - 48);
         }
         if (isSliding) {
             ctx.fillStyle = theme.accent;
-            ctx.fillText('SLIDE', x, y + 14);
+            ctx.fillText('SLIDE', x, footY + 14);
         }
         ctx.restore();
     }
