@@ -1,20 +1,45 @@
 /**
- * Low-poly Three.js runway avatar with character-library textures
- * and fabric materials that update as outfit pieces unlock.
+ * Low-poly Three.js runway avatar — jointed limbs, per-character flair,
+ * fabric materials, and fashion gait cycles.
  */
 (function (global) {
     const CHARACTER_LIBRARY = {
-        male: { src: 'chibibrodoll.png', hair: 0x1a1a1a, skin: 0xe8b896, label: 'Devil Boy' },
-        female: { src: 'chibidoll2.png', hair: 0x2d1b14, skin: 0xffdbac, label: 'Mouse Girl' },
-        fashion: { src: 'chibidollfashion.png', hair: 0x111111, skin: 0xf5d0b0, label: 'Fashion Doll' },
-        evening: { src: 'chibidoll3.png', hair: 0x3b2118, skin: 0xffdbac, label: 'Evening Doll' }
+        male: {
+            src: 'chibibrodoll.png', hair: 0x1a1a1a, skin: 0xe8b896, label: 'Devil Boy',
+            trait: 'horns', lip: 0xc45c5c, eyeScale: 1.05
+        },
+        female: {
+            src: 'chibidoll2.png', hair: 0x2d1b14, skin: 0xffdbac, label: 'Mouse Girl',
+            trait: 'ears', lip: 0xe06b7a, eyeScale: 1.15
+        },
+        fashion: {
+            src: 'chibidollfashion.png', hair: 0x111111, skin: 0xf5d0b0, label: 'Fashion Doll',
+            trait: 'bob', lip: 0xd4546a, eyeScale: 1.1
+        },
+        evening: {
+            src: 'chibidoll3.png', hair: 0x3b2118, skin: 0xffdbac, label: 'Evening Doll',
+            trait: 'updo', lip: 0xb91c1c, eyeScale: 1.08
+        }
     };
 
+    // Fashion gait presets — richer params for runway personality
     const GAIT_PRESETS = {
-        strut: { label: 'Strut', speed: 8, amp: 0.35, arm: 0.7, bounce: 0.02, hip: 0.04 },
-        model: { label: 'Model Walk', speed: 5.5, amp: 0.22, arm: 0.45, bounce: 0.045, hip: 0.09 },
-        power: { label: 'Power Walk', speed: 10, amp: 0.42, arm: 0.85, bounce: 0.015, hip: 0.025 },
-        sashay: { label: 'Sashay', speed: 6.5, amp: 0.28, arm: 0.55, bounce: 0.06, hip: 0.12 }
+        strut: {
+            label: 'Strut', speed: 7.2, amp: 0.42, knee: 0.55, arm: 0.75,
+            bounce: 0.035, hip: 0.06, torso: 0.05, shoulder: 0.08, head: 0.03, lean: 0.04
+        },
+        model: {
+            label: 'Model Walk', speed: 4.8, amp: 0.28, knee: 0.35, arm: 0.38,
+            bounce: 0.055, hip: 0.14, torso: 0.09, shoulder: 0.12, head: 0.045, lean: 0.02
+        },
+        power: {
+            label: 'Power Walk', speed: 9.4, amp: 0.5, knee: 0.65, arm: 0.95,
+            bounce: 0.02, hip: 0.035, torso: 0.04, shoulder: 0.06, head: 0.02, lean: 0.07
+        },
+        sashay: {
+            label: 'Sashay', speed: 5.8, amp: 0.34, knee: 0.4, arm: 0.6,
+            bounce: 0.08, hip: 0.18, torso: 0.12, shoulder: 0.14, head: 0.06, lean: 0.03
+        }
     };
 
     function makeFabricTexture(THREE, baseHex, pattern) {
@@ -26,7 +51,6 @@
         g.fillStyle = `#${col.getHexString()}`;
         g.fillRect(0, 0, 128, 128);
 
-        // Weave / couture grain
         g.globalAlpha = 0.18;
         for (let y = 0; y < 128; y += 3) {
             g.fillStyle = y % 6 === 0 ? '#fff' : '#000';
@@ -117,185 +141,250 @@
             return m;
         }
 
-        // Subway Surfers–inspired chibi proportions: big head, short body, chunky shoes
-        const hips = mesh(new THREE.BoxGeometry(0.62, 0.18, 0.34), mats.street);
+        // —— Body with joint pivots so limbs swing from hips/shoulders ——
+        const hips = new THREE.Group();
         hips.position.y = 0.72;
         root.add(hips);
 
+        const hipPad = mesh(new THREE.BoxGeometry(0.62, 0.18, 0.34), mats.street);
+        hips.add(hipPad);
+
+        const torsoGroup = new THREE.Group();
+        torsoGroup.position.y = 0.3;
+        hips.add(torsoGroup);
+
         const torso = mesh(new THREE.BoxGeometry(0.62, 0.48, 0.36), mats.top);
-        torso.position.y = 1.02;
+        torso.position.y = 0;
         torso.name = 'top';
-        root.add(torso);
+        torsoGroup.add(torso);
 
         const sleeveL = mesh(new THREE.BoxGeometry(0.2, 0.36, 0.2), mats.top);
-        sleeveL.position.set(-0.44, 1.02, 0);
-        root.add(sleeveL);
+        sleeveL.position.set(-0.44, 0, 0);
+        torsoGroup.add(sleeveL);
         const sleeveR = mesh(new THREE.BoxGeometry(0.2, 0.36, 0.2), mats.top);
-        sleeveR.position.set(0.44, 1.02, 0);
-        root.add(sleeveR);
+        sleeveR.position.set(0.44, 0, 0);
+        torsoGroup.add(sleeveR);
 
         const outer = mesh(new THREE.BoxGeometry(0.82, 0.58, 0.46), mats.outer);
-        outer.position.y = 1.0;
+        outer.position.y = -0.02;
         outer.visible = false;
         outer.name = 'outer';
-        root.add(outer);
+        torsoGroup.add(outer);
 
         const collar = mesh(new THREE.BoxGeometry(0.52, 0.1, 0.4), mats.outer);
-        collar.position.set(0, 1.28, 0.02);
+        collar.position.set(0, 0.26, 0.02);
         collar.visible = false;
-        root.add(collar);
+        torsoGroup.add(collar);
 
-        // Oversized expressive head
+        // Shoulder pivots
+        const armL = new THREE.Group();
+        armL.position.set(-0.44, 0.12, 0);
+        torsoGroup.add(armL);
+        const armLMesh = mesh(new THREE.BoxGeometry(0.16, 0.42, 0.16), mats.skin);
+        armLMesh.position.y = -0.2;
+        armL.add(armLMesh);
+        const handL = mesh(new THREE.SphereGeometry(0.08, 8, 8), mats.skin);
+        handL.position.y = -0.42;
+        armL.add(handL);
+
+        const armR = new THREE.Group();
+        armR.position.set(0.44, 0.12, 0);
+        torsoGroup.add(armR);
+        const armRMesh = mesh(new THREE.BoxGeometry(0.16, 0.42, 0.16), mats.skin);
+        armRMesh.position.y = -0.2;
+        armR.add(armRMesh);
+        const handR = mesh(new THREE.SphereGeometry(0.08, 8, 8), mats.skin);
+        handR.position.y = -0.42;
+        armR.add(handR);
+
+        // Head group (bobs with gait)
+        const headGroup = new THREE.Group();
+        headGroup.position.y = 0.56;
+        torsoGroup.add(headGroup);
+
         const head = mesh(new THREE.SphereGeometry(0.42, 22, 18), mats.skin);
-        head.position.y = 1.58;
-        root.add(head);
+        headGroup.add(head);
 
         const hair = mesh(new THREE.SphereGeometry(0.46, 16, 14), mats.hair);
         hair.scale.set(1.1, 0.78, 1.12);
-        hair.position.set(0, 1.78, -0.04);
-        root.add(hair);
+        hair.position.set(0, 0.2, -0.04);
+        headGroup.add(hair);
 
         const bangL = mesh(new THREE.SphereGeometry(0.14, 10, 8), mats.hair);
-        bangL.position.set(-0.28, 1.64, 0.18);
+        bangL.position.set(-0.28, 0.06, 0.18);
         bangL.scale.set(0.75, 1.15, 0.7);
-        root.add(bangL);
+        headGroup.add(bangL);
         const bangR = mesh(new THREE.SphereGeometry(0.14, 10, 8), mats.hair);
-        bangR.position.set(0.28, 1.64, 0.18);
+        bangR.position.set(0.28, 0.06, 0.18);
         bangR.scale.set(0.75, 1.15, 0.7);
-        root.add(bangR);
+        headGroup.add(bangR);
 
-        // Big expressive eyes (SS-style readability)
+        // Expressive face
         const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.35 });
         const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
-        const lipMat = new THREE.MeshStandardMaterial({ color: 0xe06b7a, roughness: 0.4 });
+        const lipMat = new THREE.MeshStandardMaterial({ color: profile.lip || 0xe06b7a, roughness: 0.4 });
         const browMat = new THREE.MeshStandardMaterial({ color: profile.hair, roughness: 0.9 });
+        const es = profile.eyeScale || 1;
 
-        [[-0.14, 1.6, 0.36], [0.14, 1.6, 0.36]].forEach((pos) => {
-            const white = mesh(new THREE.SphereGeometry(0.09, 12, 10), whiteMat);
-            white.position.set(pos[0], pos[1], pos[2]);
+        const eyeL = new THREE.Group();
+        eyeL.position.set(-0.14, 0.02, 0.36);
+        headGroup.add(eyeL);
+        const eyeR = new THREE.Group();
+        eyeR.position.set(0.14, 0.02, 0.36);
+        headGroup.add(eyeR);
+
+        [eyeL, eyeR].forEach((eye) => {
+            const white = mesh(new THREE.SphereGeometry(0.09 * es, 12, 10), whiteMat);
             white.scale.set(1.15, 1.2, 0.55);
-            root.add(white);
-            const pupil = mesh(new THREE.SphereGeometry(0.045, 10, 8), eyeMat);
-            pupil.position.set(pos[0], pos[1], pos[2] + 0.04);
-            root.add(pupil);
-            const shine = mesh(new THREE.SphereGeometry(0.018, 6, 6), whiteMat);
-            shine.position.set(pos[0] - 0.02, pos[1] + 0.025, pos[2] + 0.07);
-            root.add(shine);
+            eye.add(white);
+            const pupil = mesh(new THREE.SphereGeometry(0.045 * es, 10, 8), eyeMat);
+            pupil.position.z = 0.04;
+            eye.add(pupil);
+            const shine = mesh(new THREE.SphereGeometry(0.018 * es, 6, 6), whiteMat);
+            shine.position.set(-0.02, 0.025, 0.07);
+            eye.add(shine);
+            eye.userData.lid = white;
         });
 
         const browL = mesh(new THREE.BoxGeometry(0.14, 0.025, 0.03), browMat);
-        browL.position.set(-0.14, 1.72, 0.38);
+        browL.position.set(-0.14, 0.14, 0.38);
         browL.rotation.z = 0.15;
-        root.add(browL);
+        headGroup.add(browL);
         const browR = mesh(new THREE.BoxGeometry(0.14, 0.025, 0.03), browMat);
-        browR.position.set(0.14, 1.72, 0.38);
+        browR.position.set(0.14, 0.14, 0.38);
         browR.rotation.z = -0.15;
-        root.add(browR);
+        headGroup.add(browR);
 
         const nose = mesh(new THREE.SphereGeometry(0.035, 8, 8), mats.skin);
-        nose.position.set(0, 1.52, 0.4);
+        nose.position.set(0, -0.06, 0.4);
         nose.scale.set(0.7, 0.85, 0.75);
-        root.add(nose);
+        headGroup.add(nose);
 
         const mouth = mesh(new THREE.BoxGeometry(0.12, 0.03, 0.025), lipMat);
-        mouth.position.set(0, 1.42, 0.38);
+        mouth.position.set(0, -0.16, 0.38);
         mouth.scale.set(1, 0.75, 1);
-        root.add(mouth);
+        headGroup.add(mouth);
 
-        // Face cards kept but hidden — front cam uses sculpted features, not the library PNG
+        // Character-specific flair — bring each cast member to life
+        if (profile.trait === 'horns') {
+            const hornMat = new THREE.MeshStandardMaterial({ color: 0x2a1810, roughness: 0.7 });
+            const hornL = mesh(new THREE.ConeGeometry(0.08, 0.28, 8), hornMat);
+            hornL.position.set(-0.22, 0.38, -0.05);
+            hornL.rotation.z = 0.35;
+            headGroup.add(hornL);
+            const hornR = mesh(new THREE.ConeGeometry(0.08, 0.28, 8), hornMat);
+            hornR.position.set(0.22, 0.38, -0.05);
+            hornR.rotation.z = -0.35;
+            headGroup.add(hornR);
+        } else if (profile.trait === 'ears') {
+            const earL = mesh(new THREE.SphereGeometry(0.16, 10, 8), mats.skin);
+            earL.position.set(-0.38, 0.22, 0);
+            earL.scale.set(0.7, 1.1, 0.55);
+            headGroup.add(earL);
+            const earR = mesh(new THREE.SphereGeometry(0.16, 10, 8), mats.skin);
+            earR.position.set(0.38, 0.22, 0);
+            earR.scale.set(0.7, 1.1, 0.55);
+            headGroup.add(earR);
+            const innerL = mesh(new THREE.SphereGeometry(0.08, 8, 6), lipMat);
+            innerL.position.set(-0.38, 0.2, 0.04);
+            innerL.scale.set(0.5, 0.7, 0.3);
+            headGroup.add(innerL);
+            const innerR = mesh(new THREE.SphereGeometry(0.08, 8, 6), lipMat);
+            innerR.position.set(0.38, 0.2, 0.04);
+            innerR.scale.set(0.5, 0.7, 0.3);
+            headGroup.add(innerR);
+        } else if (profile.trait === 'bob') {
+            hair.scale.set(1.25, 0.95, 1.2);
+            hair.position.y = 0.12;
+            bangL.scale.set(0.95, 1.35, 0.85);
+            bangR.scale.set(0.95, 1.35, 0.85);
+        } else if (profile.trait === 'updo') {
+            const bun = mesh(new THREE.SphereGeometry(0.22, 12, 10), mats.hair);
+            bun.position.set(0, 0.42, -0.08);
+            headGroup.add(bun);
+            const earringL = mesh(new THREE.SphereGeometry(0.04, 8, 8), mats.accent);
+            earringL.position.set(-0.4, -0.08, 0.05);
+            headGroup.add(earringL);
+            const earringR = mesh(new THREE.SphereGeometry(0.04, 8, 8), mats.accent);
+            earringR.position.set(0.4, -0.08, 0.05);
+            headGroup.add(earringR);
+        }
+
+        // Hidden face cards (palette only)
         const faceGeo = new THREE.PlaneGeometry(0.72, 0.78);
         const faceMat = new THREE.MeshBasicMaterial({
-            transparent: true,
-            opacity: 0,
-            depthWrite: false,
-            side: THREE.DoubleSide,
-            visible: false
+            transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, visible: false
         });
         const faceFront = new THREE.Mesh(faceGeo, faceMat);
-        faceFront.position.set(0, 1.58, 0.42);
-        faceFront.name = 'faceFront';
         faceFront.visible = false;
-        root.add(faceFront);
+        headGroup.add(faceFront);
         const faceBack = new THREE.Mesh(faceGeo.clone(), faceMat.clone());
-        faceBack.position.set(0, 1.58, -0.42);
-        faceBack.rotation.y = Math.PI;
-        faceBack.name = 'faceBack';
         faceBack.visible = false;
-        root.add(faceBack);
+        headGroup.add(faceBack);
 
         const loader = new THREE.TextureLoader();
         loader.load(profile.src, () => {
-            // Pull palette from character art without pasting the full pic onto the head
             mats.hair.color.setHex(profile.hair);
             mats.skin.color.setHex(profile.skin);
             browMat.color.setHex(profile.hair);
-            faceFront.visible = false;
-            faceBack.visible = false;
-        }, undefined, () => {
-            faceFront.visible = false;
-            faceBack.visible = false;
-        });
+        }, undefined, () => { /* keep defaults */ });
 
-        // Extra garment volume that “snaps on” when collected
         const skirt = mesh(new THREE.CylinderGeometry(0.2, 0.48, 0.4, 10, 1, true), mats.bottoms.clone());
-        skirt.position.y = 0.62;
+        skirt.position.y = -0.1;
         skirt.visible = false;
         skirt.name = 'skirt';
-        root.add(skirt);
+        hips.add(skirt);
 
         const bagProp = mesh(new THREE.BoxGeometry(0.2, 0.26, 0.08), mats.accent);
-        bagProp.position.set(0.46, 0.92, 0.12);
+        bagProp.position.set(0.46, -0.1, 0.12);
         bagProp.visible = false;
         bagProp.name = 'bagProp';
-        root.add(bagProp);
+        torsoGroup.add(bagProp);
 
-        const armL = mesh(new THREE.BoxGeometry(0.16, 0.42, 0.16), mats.skin);
-        armL.position.set(-0.44, 0.78, 0);
-        root.add(armL);
-        const armR = mesh(new THREE.BoxGeometry(0.16, 0.42, 0.16), mats.skin);
-        armR.position.set(0.44, 0.78, 0);
-        root.add(armR);
-
-        const legL = mesh(new THREE.BoxGeometry(0.24, 0.52, 0.26), mats.bottoms);
-        legL.position.set(-0.17, 0.38, 0);
-        legL.name = 'bottomsL';
-        root.add(legL);
-        const legR = mesh(new THREE.BoxGeometry(0.24, 0.52, 0.26), mats.bottoms);
-        legR.position.set(0.17, 0.38, 0);
-        legR.name = 'bottomsR';
-        root.add(legR);
-
-        // Chunky SS-style sneakers
+        // Leg pivots at hips — shoes ride with legs
+        const legL = new THREE.Group();
+        legL.position.set(-0.17, 0, 0);
+        hips.add(legL);
+        const legLMesh = mesh(new THREE.BoxGeometry(0.24, 0.52, 0.26), mats.bottoms);
+        legLMesh.position.y = -0.34;
+        legLMesh.name = 'bottomsL';
+        legL.add(legLMesh);
         const shoeL = mesh(new THREE.BoxGeometry(0.3, 0.2, 0.44), mats.shoes);
-        shoeL.position.set(-0.17, 0.1, 0.06);
+        shoeL.position.set(0, -0.62, 0.06);
         shoeL.name = 'shoesL';
-        root.add(shoeL);
-        const shoeR = mesh(new THREE.BoxGeometry(0.3, 0.2, 0.44), mats.shoes);
-        shoeR.position.set(0.17, 0.1, 0.06);
-        shoeR.name = 'shoesR';
-        root.add(shoeR);
-
+        legL.add(shoeL);
         const heelL = mesh(new THREE.BoxGeometry(0.08, 0.18, 0.08), mats.shoes);
-        heelL.position.set(-0.17, 0.02, -0.12);
+        heelL.position.set(0, -0.7, -0.12);
         heelL.visible = false;
-        root.add(heelL);
+        legL.add(heelL);
+
+        const legR = new THREE.Group();
+        legR.position.set(0.17, 0, 0);
+        hips.add(legR);
+        const legRMesh = mesh(new THREE.BoxGeometry(0.24, 0.52, 0.26), mats.bottoms);
+        legRMesh.position.y = -0.34;
+        legRMesh.name = 'bottomsR';
+        legR.add(legRMesh);
+        const shoeR = mesh(new THREE.BoxGeometry(0.3, 0.2, 0.44), mats.shoes);
+        shoeR.position.set(0, -0.62, 0.06);
+        shoeR.name = 'shoesR';
+        legR.add(shoeR);
         const heelR = mesh(new THREE.BoxGeometry(0.08, 0.18, 0.08), mats.shoes);
-        heelR.position.set(0.17, 0.02, -0.12);
+        heelR.position.set(0, -0.7, -0.12);
         heelR.visible = false;
-        root.add(heelR);
+        legR.add(heelR);
 
         const finale = mesh(new THREE.BoxGeometry(0.4, 0.1, 0.14), mats.accent);
-        finale.position.set(0, 1.22, 0.28);
+        finale.position.set(0, 0.2, 0.28);
         finale.visible = false;
         finale.name = 'finale';
-        root.add(finale);
+        torsoGroup.add(finale);
 
         function dressMaterial(matKey, hex, pattern) {
             const mat = mats[matKey];
             if (!mat) return;
             const color = new THREE.Color(hex);
             const nextHex = color.getHex();
-            // Skip rebuild if already dressed this color/pattern (avoids per-frame GC / WebGL crash)
             if (mat.userData.dressed === nextHex && mat.userData.pattern === pattern && mat.map) {
                 mat.color.copy(color);
                 return;
@@ -381,13 +470,14 @@
             setOwnedSlots(ownedSlots);
         }
 
-        function setCameraFacing(mode) {
-            // Always use sculpted 3D face — never the library PNG billboard
+        function setCameraFacing() {
             faceFront.visible = false;
             faceBack.visible = false;
         }
 
         let walkT = 0;
+        let lifeT = 0;
+        let blinkT = 2.2 + Math.random();
         const BASE_SCALE = 1.0;
         let begT = 0;
         let begDur = 0;
@@ -409,11 +499,24 @@
             dressSnapT = 0.9;
         }
 
+        function updateBlink(dt) {
+            blinkT -= dt;
+            if (blinkT <= 0) {
+                blinkT = 2.4 + Math.random() * 2.8;
+            }
+            const blinking = blinkT < 0.12;
+            const lid = blinking ? 0.15 : 1;
+            eyeL.scale.y = lid;
+            eyeR.scale.y = lid;
+        }
+
         function update(dt, state) {
             state = state || {};
             const { jumping, sliding, dressing, dying, deathT, dressSlot } = state;
             if (state.gait && GAIT_PRESETS[state.gait]) gaitId = state.gait;
             const gait = GAIT_PRESETS[gaitId] || GAIT_PRESETS.strut;
+            lifeT += dt;
+            updateBlink(dt);
 
             if (dying) {
                 const t = Math.min(1, (deathT || 0) / 1.15);
@@ -430,16 +533,18 @@
                 begT = Math.max(0, begT - dt);
                 const u = 1 - begT / begDur;
                 const bow = Math.sin(Math.min(1, u * 1.4) * Math.PI) * 0.55;
-                root.rotation.x = bow;
+                root.rotation.x = 0;
                 root.rotation.z = 0;
                 root.position.y = 0;
                 root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
-                armL.rotation.x = -0.4 - bow * 0.4;
-                armR.rotation.x = -0.4 - bow * 0.4;
+                torsoGroup.rotation.x = bow;
+                armL.rotation.x = -0.4 - bow * 0.5;
+                armR.rotation.x = -0.4 - bow * 0.5;
+                headGroup.rotation.x = -bow * 0.35;
                 return;
             }
 
-            // Getting dressed — arms lift, garment snaps onto body
+            // Getting dressed
             if ((dressing && dressing > 0) || dressSnapT > 0) {
                 if (dressSnapT > 0) dressSnapT = Math.max(0, dressSnapT - dt);
                 const slot = dressSlot || dressSnapSlot || 'top';
@@ -448,23 +553,22 @@
                 const reach = Math.sin(Math.min(1, u) * Math.PI);
 
                 root.rotation.z = 0;
-                root.rotation.x = -0.08 * reach;
+                root.rotation.x = 0;
                 root.position.x = 0;
                 root.position.y = 0.04 * reach;
                 root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
+                hips.rotation.y = 0;
+                torsoGroup.rotation.set(-0.08 * reach, 0, 0);
+                headGroup.rotation.set(0.1 * reach, 0, 0);
 
                 if (slot === 'shoes') {
-                    armL.rotation.x = -0.2;
-                    armR.rotation.x = -0.2;
-                    armL.rotation.z = 0;
-                    armR.rotation.z = 0;
-                    legL.rotation.x = 0.35 * reach;
-                    legR.rotation.x = -0.15;
+                    armL.rotation.set(-0.2, 0, 0);
+                    armR.rotation.set(-0.2, 0, 0);
+                    legL.rotation.x = 0.4 * reach;
+                    legR.rotation.x = -0.12;
                 } else if (slot === 'bottoms') {
-                    armL.rotation.x = -0.55 * reach;
-                    armR.rotation.x = -0.55 * reach;
-                    armL.rotation.z = 0;
-                    armR.rotation.z = 0;
+                    armL.rotation.set(-0.55 * reach, 0, 0);
+                    armR.rotation.set(-0.55 * reach, 0, 0);
                     legL.rotation.x = 0.12;
                     legR.rotation.x = -0.12;
                     if (skirt.visible) {
@@ -472,10 +576,8 @@
                         skirt.scale.set(s, s, s);
                     }
                 } else if (slot === 'outer') {
-                    armL.rotation.x = -1.1 * reach;
-                    armR.rotation.x = -1.1 * reach;
-                    armL.rotation.z = 0.35 * reach;
-                    armR.rotation.z = -0.35 * reach;
+                    armL.rotation.set(-1.1 * reach, 0, 0.35 * reach);
+                    armR.rotation.set(-1.1 * reach, 0, -0.35 * reach);
                     legL.rotation.x = 0;
                     legR.rotation.x = 0;
                     if (outer.visible) {
@@ -483,15 +585,13 @@
                         outer.scale.set(s, 0.5 + ease * 0.5, s);
                     }
                 } else {
-                    armL.rotation.x = -1.35 * reach;
-                    armR.rotation.x = -1.35 * reach;
-                    armL.rotation.z = 0.25 * reach;
-                    armR.rotation.z = -0.25 * reach;
+                    armL.rotation.set(-1.35 * reach, 0, 0.25 * reach);
+                    armR.rotation.set(-1.35 * reach, 0, -0.25 * reach);
                     legL.rotation.x = 0;
                     legR.rotation.x = 0;
                 }
-                sleeveL.rotation.x = armL.rotation.x * 0.5;
-                sleeveR.rotation.x = armR.rotation.x * 0.5;
+                sleeveL.rotation.x = armL.rotation.x * 0.35;
+                sleeveR.rotation.x = armR.rotation.x * 0.35;
 
                 if ((!dressing || dressing <= 0.05) && dressSnapT <= 0) {
                     armL.rotation.z = 0;
@@ -502,38 +602,71 @@
                 return;
             }
 
-            armL.rotation.z = 0;
-            armR.rotation.z = 0;
             if (skirt.visible) skirt.scale.set(1, 1, 1);
             if (outer.visible) outer.scale.set(1, 1, 1);
 
-            root.rotation.z = 0;
-            root.rotation.x = 0;
-            root.position.x = 0;
-            const speed = sliding ? gait.speed * 0.25 : gait.speed;
+            // —— Fashion gait cycle ——
+            const speed = sliding ? gait.speed * 0.28 : gait.speed;
             walkT += dt * speed;
-            const swing = jumping ? 0 : Math.sin(walkT) * (sliding ? gait.amp * 0.4 : gait.amp);
-            legL.rotation.x = swing;
-            legR.rotation.x = -swing;
+            const phase = walkT;
+            const swing = jumping ? 0 : Math.sin(phase);
+            const swing2 = jumping ? 0 : Math.sin(phase * 2);
+            const amp = sliding ? gait.amp * 0.35 : gait.amp;
+
+            // Legs with knee-ish secondary bend via shoe pitch
+            legL.rotation.x = swing * amp;
+            legR.rotation.x = -swing * amp;
+            shoeL.rotation.x = jumping ? 0 : Math.max(0, -swing) * gait.knee * 0.35;
+            shoeR.rotation.x = jumping ? 0 : Math.max(0, swing) * gait.knee * 0.35;
+
+            // Opposite arm swing + slight shoulder open
             armL.rotation.x = -swing * gait.arm;
             armR.rotation.x = swing * gait.arm;
-            sleeveL.rotation.x = armL.rotation.x * 0.5;
-            sleeveR.rotation.x = armR.rotation.x * 0.5;
-            hips.rotation.y = jumping || sliding ? 0 : Math.sin(walkT) * gait.hip;
+            armL.rotation.z = jumping ? 0 : 0.12 + Math.abs(swing) * gait.shoulder * 0.4;
+            armR.rotation.z = jumping ? 0 : -(0.12 + Math.abs(swing) * gait.shoulder * 0.4);
+            sleeveL.rotation.x = armL.rotation.x * 0.4;
+            sleeveR.rotation.x = armR.rotation.x * 0.4;
+
+            // Hip sway + torso counter-rotate + lean
+            hips.rotation.y = jumping || sliding ? 0 : swing * gait.hip;
+            hips.rotation.z = jumping || sliding ? 0 : -swing * gait.hip * 0.35;
+            torsoGroup.rotation.y = jumping || sliding ? 0 : -swing * gait.torso;
+            torsoGroup.rotation.z = jumping || sliding ? 0 : swing * gait.shoulder * 0.5;
+            torsoGroup.rotation.x = jumping ? -0.08 : -gait.lean + swing2 * 0.02;
+
+            // Head follows the walk with a soft bob / look
+            headGroup.rotation.y = jumping || sliding ? 0 : -swing * gait.head * 1.2;
+            headGroup.rotation.x = jumping ? 0.05 : gait.head * 0.4 + Math.sin(lifeT * 1.7) * 0.015;
+            headGroup.rotation.z = jumping || sliding ? 0 : swing * gait.head * 0.5;
+            mouth.scale.y = 0.65 + Math.abs(Math.sin(lifeT * 2.1)) * 0.15;
+
+            // Skirt swish
+            if (skirt.visible && !jumping && !sliding) {
+                skirt.rotation.y = swing * gait.hip * 0.8;
+                skirt.rotation.z = -swing * gait.hip * 0.25;
+            } else {
+                skirt.rotation.set(0, 0, 0);
+            }
 
             if (sliding) {
                 root.scale.set(BASE_SCALE * 1.15, BASE_SCALE * 0.55, BASE_SCALE * 1.1);
                 root.position.y = 0;
+                legL.rotation.x = 0.15;
+                legR.rotation.x = 0.15;
+                armL.rotation.x = 0.4;
+                armR.rotation.x = 0.4;
             } else if (jumping) {
                 root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
                 root.position.y = 0.18;
             } else {
                 root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
-                root.position.y = Math.abs(Math.sin(walkT)) * gait.bounce;
+                root.position.y = Math.abs(swing) * gait.bounce;
             }
+            root.position.x = jumping || sliding ? 0 : swing * gait.hip * 0.04;
+            root.rotation.z = 0;
+            root.rotation.x = 0;
         }
 
-        // Street default fabrics
         dressMaterial('top', 0x9ca3af, 'knit');
         dressMaterial('bottoms', 0x9ca3af, 'denim');
         dressMaterial('shoes', 0x6b7280, 'leather');
@@ -597,15 +730,12 @@
 
         function setCameraMode(mode) {
             avatar.setCameraFacing(mode);
-            // Same distance/fov for both cams so on-screen blit size stays consistent
             camera.fov = 36;
             camera.position.set(0, 1.05, 2.75);
             camera.lookAt(0, 1.0, 0);
             if (mode === 'front') {
-                // Face toward camera (+Z)
                 avatar.root.rotation.y = 0;
             } else {
-                // Run into the runway — camera sees the back
                 avatar.root.rotation.y = Math.PI;
             }
             camera.updateProjectionMatrix();
