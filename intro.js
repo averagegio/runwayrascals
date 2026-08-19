@@ -1,5 +1,5 @@
 /**
- * Intro: single camera flash → Vogue-style RR written out → brand → swipe up.
+ * Intro: dark hold → Vogue RR write-out → delayed single flash (Disney+-style) → brand → swipe up.
  */
 (function () {
     const splash = document.getElementById('introSplash');
@@ -41,14 +41,21 @@
     const lenL = preparePath(pathL);
     const lenR = preparePath(pathR);
 
-    // One opening flash, then write left R → right R → swipe
-    const FLASH_AT_MS = 80;
-    const FLASH_HOLD_MS = 90;
-    const WRITE_START = 420;
-    const WRITE_L_MS = 1400;
-    const GAP_MS = 140;
-    const WRITE_R_MS = 1400;
-    const HOLD_MS = 260;
+    // Disney+-style: long dark void → draw RR → beat → one delayed flash → title
+    const VOID_MS = 1700;
+    const WRITE_L_MS = 1500;
+    const GAP_MS = 160;
+    const WRITE_R_MS = 1500;
+    const POST_WRITE_BEAT_MS = 620;
+    const FLASH_HOLD_MS = 100;
+    const POST_FLASH_MS = 380;
+
+    const WRITE_START = VOID_MS;
+    const WRITE_L_END = WRITE_START + WRITE_L_MS;
+    const WRITE_R_START = WRITE_L_END + GAP_MS;
+    const WRITE_R_END = WRITE_R_START + WRITE_R_MS;
+    const FLASH_AT_MS = WRITE_R_END + POST_WRITE_BEAT_MS;
+    const REVEAL_AT_MS = FLASH_AT_MS + FLASH_HOLD_MS + POST_FLASH_MS;
 
     let readyToSwipe = false;
     let dismissing = false;
@@ -82,7 +89,7 @@
             }
             return;
         }
-        flashLevel *= Math.pow(0.5, dtMs / 50);
+        flashLevel *= Math.pow(0.5, dtMs / 55);
         if (flashEl) flashEl.style.opacity = String(flashLevel);
     }
 
@@ -121,23 +128,20 @@
         const dt = Math.min(50, now - lastTick);
         lastTick = now;
 
+        // Delayed single sting — after void + full RR write + beat
         if (!flashFired && elapsed >= FLASH_AT_MS) {
             flashFired = true;
-            triggerFlash(0.92, FLASH_HOLD_MS);
+            triggerFlash(0.9, FLASH_HOLD_MS);
         }
         decayFlash(dt);
 
-        const writeLEnd = WRITE_START + WRITE_L_MS;
-        const writeRStart = writeLEnd + GAP_MS;
-        const writeREnd = writeRStart + WRITE_R_MS;
-        const doneAt = writeREnd + HOLD_MS;
-
         if (elapsed < WRITE_START) {
+            // Dark void — nothing drawn yet
             requestAnimationFrame(frame);
             return;
         }
 
-        if (elapsed < writeLEnd) {
+        if (elapsed < WRITE_L_END) {
             const t = easeOutCubic((elapsed - WRITE_START) / WRITE_L_MS);
             if (pathL) pathL.style.strokeDashoffset = String(lenL * (1 - t));
             requestAnimationFrame(frame);
@@ -146,13 +150,13 @@
 
         if (pathL) pathL.style.strokeDashoffset = '0';
 
-        if (elapsed < writeRStart) {
+        if (elapsed < WRITE_R_START) {
             requestAnimationFrame(frame);
             return;
         }
 
-        if (elapsed < writeREnd) {
-            const t = easeOutCubic((elapsed - writeRStart) / WRITE_R_MS);
+        if (elapsed < WRITE_R_END) {
+            const t = easeOutCubic((elapsed - WRITE_R_START) / WRITE_R_MS);
             if (pathR) pathR.style.strokeDashoffset = String(lenR * (1 - t));
             requestAnimationFrame(frame);
             return;
@@ -160,7 +164,8 @@
 
         if (pathR) pathR.style.strokeDashoffset = '0';
 
-        if (elapsed < doneAt) {
+        if (elapsed < REVEAL_AT_MS) {
+            // Post-write beat + flash + settle
             requestAnimationFrame(frame);
             return;
         }
