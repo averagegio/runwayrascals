@@ -66,33 +66,46 @@
         pen.classList.add('is-writing');
     }
 
-    // Timing: flashes open → write left R → write right R → hold → swipe
-    const FLASH_INTRO_MS = 900;
-    const WRITE_L_MS = 1600;
-    const GAP_MS = 180;
-    const WRITE_R_MS = 1600;
-    const HOLD_MS = 320;
+    // Timing: longer opening flash run → write left R → write right R → hold → swipe
+    const FLASH_INTRO_MS = 1400;
+    const WRITE_L_MS = 1500;
+    const GAP_MS = 160;
+    const WRITE_R_MS = 1500;
+    const HOLD_MS = 280;
 
     let readyToSwipe = false;
     let dismissing = false;
     let flashLevel = 0;
-    let flashHold = 0;
-    // Timed paparazzi pops (ms from start) — dense opening burst
-    const FLASH_BEATS = [0, 70, 140, 240, 360, 480, 620, 780, 1100, 1600, 2400, 3200, 4200];
+    let flashHoldMs = 0;
+    let lastTick = 0;
+    // Dense opening paparazzi — long enough holds to read on camera
+    const FLASH_BEATS = [
+        { at: 40, strength: 1, hold: 140 },
+        { at: 220, strength: 0.95, hold: 110 },
+        { at: 400, strength: 1, hold: 130 },
+        { at: 580, strength: 0.9, hold: 100 },
+        { at: 760, strength: 1, hold: 120 },
+        { at: 980, strength: 0.85, hold: 90 },
+        { at: 1200, strength: 0.95, hold: 100 },
+        { at: 2000, strength: 0.7, hold: 80 },
+        { at: 2800, strength: 0.65, hold: 70 },
+        { at: 3600, strength: 0.7, hold: 80 },
+        { at: 4500, strength: 0.85, hold: 100 }
+    ];
     let flashBeatIdx = 0;
 
-    function triggerFlash(strength, holdFrames) {
+    function triggerFlash(strength, holdMs) {
         flashLevel = Math.max(flashLevel, strength);
-        flashHold = Math.max(flashHold, holdFrames || 2);
+        flashHoldMs = Math.max(flashHoldMs, holdMs || 80);
         if (flashEl) {
             flashEl.style.opacity = String(flashLevel);
             flashEl.classList.add('is-on');
         }
     }
 
-    function decayFlash() {
-        if (flashHold > 0) {
-            flashHold -= 1;
+    function decayFlash(dtMs) {
+        if (flashHoldMs > 0) {
+            flashHoldMs -= dtMs;
             if (flashEl) flashEl.style.opacity = String(flashLevel);
             return;
         }
@@ -104,14 +117,15 @@
             }
             return;
         }
-        flashLevel *= 0.62;
+        // ~12ms half-life feel
+        flashLevel *= Math.pow(0.5, dtMs / 45);
         if (flashEl) flashEl.style.opacity = String(flashLevel);
     }
 
     function scheduleBursts(elapsed) {
-        while (flashBeatIdx < FLASH_BEATS.length && elapsed >= FLASH_BEATS[flashBeatIdx]) {
-            const early = FLASH_BEATS[flashBeatIdx] < 900;
-            triggerFlash(early ? 0.95 : 0.55 + Math.random() * 0.3, early ? 3 : 2);
+        while (flashBeatIdx < FLASH_BEATS.length && elapsed >= FLASH_BEATS[flashBeatIdx].at) {
+            const beat = FLASH_BEATS[flashBeatIdx];
+            triggerFlash(beat.strength, beat.hold);
             flashBeatIdx += 1;
         }
     }
@@ -123,7 +137,7 @@
             pen.classList.remove('is-writing');
             pen.classList.add('is-done');
         }
-        triggerFlash(0.7);
+        triggerFlash(0.9, 120);
         if (brand) brand.classList.add('is-in');
         if (sub) sub.classList.add('is-in');
         if (rule) rule.classList.add('is-in');
@@ -149,11 +163,14 @@
     }
 
     const t0 = performance.now();
+    lastTick = t0;
 
     function frame(now) {
         const elapsed = now - t0;
+        const dt = Math.min(50, now - lastTick);
+        lastTick = now;
         scheduleBursts(elapsed);
-        decayFlash();
+        decayFlash(dt);
 
         const writeStart = FLASH_INTRO_MS;
         const writeLEnd = writeStart + WRITE_L_MS;
@@ -203,7 +220,7 @@
 
         if (!readyToSwipe) finishWrite();
         // Keep decaying residual flashes a bit after ready
-        if (flashLevel > 0 && !dismissing) requestAnimationFrame(frame);
+        if ((flashLevel > 0 || flashHoldMs > 0) && !dismissing) requestAnimationFrame(frame);
     }
 
     let touchY0 = null;
