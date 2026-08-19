@@ -1,42 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Runway Rascals</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Runway Rascals" />
+  <meta name="theme-color" content="#070708" />
+  <title>Runway Rascals</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600;6..96,700&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="phone-frame">
-        <div class="app-container">
-            <div class="game-header">
-                <h1 class="game-title">Runway Rascals</h1>
-                <p class="map-subtitle" id="homeTagline">3D runway · Fashion Week cities</p>
-            </div>
-            <div class="home-profile" id="homeProfile" hidden>
-                <div id="homeName" class="home-name">Model</div>
-                <div id="homeTag" class="home-tag">@tag</div>
-            </div>
-            <div id="gameContainer" class="home-hero-spacer"></div>
-            <div class="game-footer home-actions">
-                <a href="login.html" id="loginLink" class="game-btn"><span class="btn-text">Log In</span></a>
-                <a href="signup.html" id="signupLink" class="game-btn"><span class="btn-text">Sign Up</span></a>
-                <a href="profile-setup.html" id="profileLink" class="game-btn" hidden><span class="btn-text">Name / @Tag</span></a>
-                <a href="store.html" id="storeLink" class="game-btn" hidden><span class="btn-text">Boutique</span></a>
-                <a href="character-select.html" id="customizeLink" class="game-btn customize-btn" hidden>
-                    <span class="btn-text">Customize</span>
-                    <span class="btn-shine"></span>
-                </a>
-                <button id="enterGameBtn" class="game-btn enter-game-btn hexagon-btn" hidden>
-                    <span class="btn-text">Enter Game</span>
-                    <span class="btn-shine"></span>
-                </button>
-                <button id="logoutBtn" class="game-btn" hidden type="button"><span class="btn-text">Log Out</span></button>
-            </div>
-        </div>
+  <div class="intro-splash" id="introSplash" aria-hidden="false">
+    <div class="intro-mark">
+      <p class="brand">Runway<br />Rascals</p>
+      <p class="sub">Fashion endless runner</p>
     </div>
-    <script src="auth-client.js"></script>
-    <script src="script.js"></script>
+  </div>
+
+  <div class="phone-frame">
+    <div class="app-container home-shell" id="home-screen">
+      <div class="page-nav">
+        <span class="page-nav-spacer" aria-hidden="true"></span>
+        <a class="game-btn" id="loginLink" href="login.html"><span class="btn-text">Account</span></a>
+        <button type="button" class="game-btn" id="logoutBtn" hidden><span class="btn-text">Sign out</span></button>
+      </div>
+
+      <div class="game-header">
+        <h1 class="game-title">Runway<br />Rascals</h1>
+        <p class="map-subtitle" id="homeTagline">Race the runway. Dodge paparazzi. Dress the look.</p>
+        <div class="home-profile" id="homeProfile" hidden>
+          <p class="home-name" id="homeName"></p>
+          <p class="home-tag" id="homeTag"></p>
+        </div>
+        <div class="home-cta-row">
+          <a class="game-btn confirm-btn enter-game-btn" id="enterGameBtn" href="character-select.html"><span class="btn-text">Play</span></a>
+          <a class="game-btn" id="signupLink" href="signup.html"><span class="btn-text">Sign up</span></a>
+          <a class="game-btn" id="storeLink" href="store.html" hidden><span class="btn-text">Boutique</span></a>
+          <a class="game-btn" id="profileLink" href="profile-setup.html" hidden><span class="btn-text">Profile</span></a>
+          <a class="game-btn" id="customizeLink" href="wardrobe-select.html" hidden><span class="btn-text">Wardrobe</span></a>
+        </div>
+      </div>
+
+      <div class="home-hero-spacer" aria-hidden="true"></div>
+
+      <div class="game-footer home-actions">
+        <a class="game-btn" href="map-select.html"><span class="btn-text">Fashion Week</span></a>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth-client.js"></script>
+  <script src="script.js"></script>
+  <script>
+    (function () {
+      var splash = document.getElementById("introSplash");
+      if (!splash) return;
+      var seen = false;
+      try {
+        seen = sessionStorage.getItem("rr_intro_seen") === "1";
+      } catch (e) {}
+      if (seen) {
+        splash.classList.add("is-done");
+        splash.setAttribute("aria-hidden", "true");
+        return;
+      }
+      window.setTimeout(function () {
+        splash.classList.add("is-leaving");
+        window.setTimeout(function () {
+          splash.classList.add("is-done");
+          splash.setAttribute("aria-hidden", "true");
+          try {
+            sessionStorage.setItem("rr_intro_seen", "1");
+          } catch (e) {}
+        }, 900);
+      }, 2200);
+    })();
+  </script>
 </body>
 </html>

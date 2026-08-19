@@ -1,485 +1,638 @@
+:root {
+    --ink: #070708;
+    --ink-soft: #121214;
+    --ivory: #f4efe6;
+    --ivory-dim: rgba(244, 239, 230, 0.72);
+    --champagne: #c9a56a;
+    --champagne-soft: rgba(201, 165, 106, 0.35);
+    --glass: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-hover: rgba(255, 255, 255, 0.12);
+    --danger: #e85d4c;
+    --ok: #6fbf8a;
+    --font-display: "Bodoni Moda", "Playfair Display", Georgia, serif;
+    --font-ui: "Syne", "Avenir Next", system-ui, sans-serif;
+    --radius: 999px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body, html {
-    height: 100%;
+html, body {
     width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f0f0f0;
-    font-family: 'Fredoka One', cursive;
+    min-height: 100%;
+    min-height: 100dvh;
+    background: var(--ink);
+    color: var(--ivory);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
 }
 
-.phone-frame {
-    width: 360px;
-    height: 720px;
-    background-color: #000;
-    border-radius: 40px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 0 50px rgba(0,0,0,0.3);
-}
-
-.app-container {
-    height: 100%;
-    width: 100%;
-    background-image: url('George_Igwe_fashion_runway_in_the_stars_on_rainbow_road_with_a_37414911-5bfc-44a6-a654-b6524844b3c0.png');
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 10px;
-    overflow-y: auto;
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
-
-.app-container::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari and Opera */
-}
-
-.game-header {
-    width: 100%;
-    padding: 10px;
-    margin-top: 25px;
-}
-
-.game-title {
-    font-size: 32px;
-    color: #FF1493;
-    text-align: center;
-    text-shadow: 
-        2px 2px 0 #FFF,
-        -2px -2px 0 #FFF,
-        2px -2px 0 #FFF,
-        -2px 2px 0 #FFF,
-        0 0 10px #FF69B4,
-        0 0 20px #FF69B4;
-}
-
-.character-container {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    min-height: 300px;
-}
-
-.game-footer {
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    align-items: center; /* Ensure vertical alignment */
-    margin-bottom: 20px;
-    padding: 0 10px; /* Add some horizontal padding */
-}
-
-.game-btn {
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    color: #000;
-    text-decoration: none;
-    border: none;
-    padding: 8px 15px; /* Reduced padding */
-    font-size: 14px; /* Slightly smaller font size */
-    font-weight: bold;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-    display: inline-block;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0 5px; /* Add some margin between buttons */
-}
-
-.game-btn .btn-text {
-    position: relative;
-    z-index: 2;
-}
-
-.game-btn .btn-shine {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.1) 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0.1) 100%
-    );
-    transform: rotate(45deg);
-    transition: all 0.3s ease;
-}
-
-.game-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-    background: linear-gradient(45deg, #FFA500, #FFD700);
-}
-
-.game-btn:hover .btn-shine {
-    top: -100%;
-    left: -100%;
-}
-
-.game-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.4);
-    transform: scale(0);
-    animation: ripple 0.6s linear;
-}
-
-@keyframes ripple {
-    to {
-        transform: scale(4);
-        opacity: 0;
-    }
-}
-
-.character-select-bg {
-    background-image: url('George_Igwe_paris_atelier_on_a_cobblestone_street_with_cyber_p_41d7b4d2-2702-43db-b235-ab626159b635.png'); /* Replace with your Eiffel Tower image */
-    background-size: cover;
-    background-position: center;
-}
-
-.character-selection {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    width: 100%;
-    overflow-y: auto;
-    padding: 20px 0;
-}
-
-.character-options {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-.character-option {
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    text-align: center;
-    margin-bottom: 20px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 15px;
-    padding: 10px;
-    width: 90%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.character-option:hover {
-    transform: scale(1.05);
-}
-
-.character-option.selected {
-    border: 3px solid #FFD700;
-}
-
-.character-option img {
-    width: 90px;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-bottom: 10px;
-}
-
-.character-option p {
-    color: #000;
-    margin-top: 5px;
-    font-weight: bold;
-}
-
-.character-option {
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    text-align: center;
-}
-
-.character-option:hover {
-    transform: scale(1.1);
-}
-
-.character-option.selected {
-    border: 3px solid #FFD700;
-}
-
-.character-option img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-.character-option p {
-    color: #FFF;
-    margin-top: 5px;
-}
-
-/* Add these new styles to your existing style.css file */
-
-.wardrobe-tabs {
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
-    margin-bottom: 10px;
-}
-
-.tab-btn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.tab-btn.active {
-    color: #FFD700;
-    border-bottom: 2px solid #FFD700;
-}
-
-.tab-content {
-    display: none;
-    width: 100%;
-    height: 30%;
-}
-
-.tab-content.active {
+body {
     display: block;
 }
 
-.designer-options {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-around;
-    overflow-y: auto;
-    height: 100%;
-    padding: 10px;
-}
-
-.designer-option {
-    width: 45%;
-    margin-bottom: 10px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 10px;
-    padding: 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-}
-
-.designer-option:hover {
-    transform: scale(1.05);
-}
-
-.designer-option img {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-bottom: 5px;
-}
-
-.designer-option p {
-    color: #000;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-/* Adjust the existing wardrobe-selection styles */
-.wardrobe-selection {
-    width: 100%;
-    height: 50%;
-    overflow-y: auto;
-    padding: 10px;
-}
-
-.outfit-options {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.outfit-option {
-    width: 90%;
-    height: 100px;
-    margin-bottom: 15px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    display: flex;
-    align-items: center;
-    padding: 5px;
-}
-
-.outfit-option:hover {
-    transform: scale(1.05);
-}
-
-.outfit-option.selected {
-    border: 3px solid #FFD700;
-}
-
-.outfit-option img {
-    width: 90px;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 5px;
-    margin-right: 10px;
-}
-
-.outfit-info {
-    flex-grow: 1;
-}
-
-.outfit-info h3 {
-    font-size: 16px;
-    margin-bottom: 5px;
-}
-
-.outfit-info p {
-    font-size: 12px;
-    color: #666;
-}
-
-.character-display {
-    height: 30%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.character-display img {
-    max-height: 100%;
+img {
     max-width: 100%;
-    object-fit: contain;
+    display: block;
 }
 
-/* Add or modify these styles in your style.css file */
-
-.wardrobe-select-bg {
-    background-image: url('George_Igwe_fashion_closet_with_a_karl_lagerfeld_looking_styli_9aa286db-e7d1-4ea7-8541-693355563c61.png');
-    background-size: cover;
-    background-position: center;
+a {
+    color: inherit;
 }
 
-/* Fashion Week map select */
-.map-select-bg {
-    background-image: url('George_Igwe_fashion_runway_in_the_stars_on_rainbow_road_with_a_37414911-5bfc-44a6-a654-b6524844b3c0.png');
-    background-size: cover;
-    background-position: center;
-}
-
-.map-subtitle {
-    text-align: center;
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-    margin-top: 4px;
-    font-size: 14px;
-    letter-spacing: 0.04em;
-}
-
-.map-selection {
-    flex: 1;
+/* —— Full-bleed app shell (no phone chrome) —— */
+.phone-frame {
     width: 100%;
-    overflow-y: auto;
-    padding: 8px 6px 16px;
+    min-height: 100dvh;
+    height: auto;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    overflow: visible;
+    position: relative;
+}
+
+.app-container {
+    width: 100%;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    justify-content: space-between;
+    align-items: stretch;
+    padding: calc(24px + var(--safe-top)) clamp(20px, 4vw, 48px) calc(28px + var(--safe-bottom));
+    overflow-y: auto;
+    background-color: var(--ink);
+    background-image:
+        linear-gradient(180deg, rgba(7, 7, 8, 0.55) 0%, rgba(7, 7, 8, 0.35) 40%, rgba(7, 7, 8, 0.82) 100%),
+        url('George_Igwe_fashion_runway_in_the_stars_on_rainbow_road_with_a_37414911-5bfc-44a6-a654-b6524844b3c0.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
 
-.map-selection::-webkit-scrollbar {
+.app-container::-webkit-scrollbar {
     display: none;
 }
 
-.map-card {
-    border: 2px solid transparent;
-    border-radius: 18px;
-    padding: 16px 18px;
+.character-select-bg,
+.wardrobe-select-bg,
+.map-select-bg,
+.auth-screen,
+.gameplay-bg {
+    background-attachment: fixed;
+}
+
+.character-select-bg {
+    background-image:
+        linear-gradient(180deg, rgba(7, 7, 8, 0.6), rgba(7, 7, 8, 0.78)),
+        url('George_Igwe_paris_atelier_on_a_cobblestone_street_with_cyber_p_41d7b4d2-2702-43db-b235-ab626159b635.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.wardrobe-select-bg {
+    background-image:
+        linear-gradient(180deg, rgba(7, 7, 8, 0.65), rgba(7, 7, 8, 0.85)),
+        url('George_Igwe_fashion_closet_with_a_karl_lagerfeld_looking_styli_9aa286db-e7d1-4ea7-8541-693355563c61.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.map-select-bg {
+    background-image:
+        linear-gradient(165deg, rgba(7, 7, 8, 0.7) 0%, rgba(20, 16, 12, 0.55) 50%, rgba(7, 7, 8, 0.88) 100%),
+        url('George_Igwe_fashion_runway_in_the_stars_on_rainbow_road_with_a_37414911-5bfc-44a6-a654-b6524844b3c0.png');
+    background-size: cover;
+    background-position: center;
+}
+
+/* —— Intro splash —— */
+.intro-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(145deg, #1a1410 0%, #0a0a0b 42%, #2a2118 100%);
+    transition: opacity 0.9s var(--ease), visibility 0.9s;
+}
+
+.intro-splash::before {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(201, 165, 106, 0.28), transparent 42%),
+        radial-gradient(circle at 80% 70%, rgba(201, 165, 106, 0.12), transparent 35%);
+    animation: introDrift 8s ease-in-out infinite alternate;
+}
+
+.intro-splash.is-leaving {
+    opacity: 0;
+}
+
+.intro-splash.is-done {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.intro-mark {
+    position: relative;
+    text-align: center;
+    animation: introRise 1.1s var(--ease) both;
+    padding: 0 1.5rem;
+}
+
+.intro-mark .brand {
+    font-family: var(--font-display);
+    font-size: clamp(2.8rem, 8vw, 5.5rem);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.02;
+    color: var(--ivory);
+}
+
+.intro-mark .sub {
+    margin-top: 0.75rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--champagne);
+}
+
+.page-nav-spacer {
+    flex: 1;
+}
+
+@keyframes introDrift {
+    from { transform: translate3d(-2%, -1%, 0) scale(1); }
+    to { transform: translate3d(3%, 2%, 0) scale(1.05); }
+}
+
+@keyframes introRise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* —— Typography —— */
+.game-header {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+    position: relative;
+}
+
+.game-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 600;
+    color: var(--ivory);
     text-align: left;
-    color: #fff;
+    text-shadow: none;
+    line-height: 1.05;
+    letter-spacing: 0.01em;
+}
+
+.map-subtitle,
+.auth-hint {
+    margin-top: 0.6rem;
+    color: var(--ivory-dim);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-shadow: none;
+}
+
+.home-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    color: var(--ivory);
+}
+
+.home-tag {
+    color: var(--champagne);
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+}
+
+.home-profile {
+    text-align: left;
+    text-shadow: none;
+    margin: 1rem 0 0;
+    max-width: 1100px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* —— Buttons: glass / subtle —— */
+.game-btn,
+.tab-btn,
+.control-btn,
+.difficulty-btn,
+.auth-submit {
+    appearance: none;
+    font-family: var(--font-ui);
+    background: var(--glass);
+    color: var(--ivory);
+    text-decoration: none;
+    border: 1px solid var(--glass-border);
+    padding: 0.85rem 1.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: var(--radius);
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: background 0.35s var(--ease), border-color 0.35s var(--ease),
+        transform 0.35s var(--ease), box-shadow 0.35s var(--ease), color 0.35s var(--ease);
+    box-shadow: none;
     position: relative;
     overflow: hidden;
-}
-
-.map-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%);
-    transform: translateX(-120%);
-    transition: transform 0.6s ease;
-}
-
-.map-card:hover {
-    transform: translateY(-2px) scale(1.01);
-}
-
-.map-card:hover::after {
-    transform: translateX(120%);
-}
-
-.map-card.selected {
-    border-color: var(--map-accent, #FFD700);
-    box-shadow: 0 0 0 2px var(--map-accent, #FFD700), 0 10px 28px rgba(0,0,0,0.45);
-}
-
-.map-event {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 0.12em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
     text-transform: uppercase;
-    opacity: 0.85;
-    margin-bottom: 4px;
+    letter-spacing: 0.14em;
+    margin: 0;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.game-btn .btn-text,
+.game-btn .btn-shine {
+    position: relative;
+    z-index: 1;
+}
+
+.game-btn .btn-shine {
+    display: none;
+}
+
+.game-btn:hover,
+.difficulty-btn:hover,
+.control-btn:hover {
+    background: var(--glass-hover);
+    border-color: rgba(201, 165, 106, 0.55);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    color: var(--ivory);
+}
+
+.game-btn:active,
+.difficulty-btn:active {
+    transform: translateY(0);
+}
+
+.game-btn.confirm-btn,
+.restart-btn,
+.enter-game-btn {
+    background: rgba(201, 165, 106, 0.16);
+    border-color: rgba(201, 165, 106, 0.55);
+    color: var(--ivory);
+}
+
+.game-btn.confirm-btn:hover,
+.restart-btn:hover,
+.enter-game-btn:hover {
+    background: rgba(201, 165, 106, 0.28);
+}
+
+.exit-btn,
+.back-btn,
+.hud-back,
+#exitGameBtn {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.hexagon-btn {
+    width: auto;
+    height: auto;
+    clip-path: none;
+    min-width: 10rem;
+}
+
+.hexagon-btn .btn-text {
+    color: var(--ivory);
+}
+
+/* Back button */
+.back-btn,
+.hud-back,
+#exitGameBtn {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    z-index: 5;
+}
+
+.back-btn::before,
+.hud-back::before,
+#exitGameBtn.back-style::before {
+    content: "←";
+    margin-right: 0.35rem;
+    opacity: 0.8;
+}
+
+.page-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.game-footer,
+.home-actions,
+.auth-footer {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0;
+}
+
+.home-hero-spacer {
+    flex: 1;
+    min-height: clamp(180px, 28vh, 360px);
+}
+
+/* Home composition */
+.home-shell .game-header {
+    margin-top: clamp(8vh, 12vh, 18vh);
+}
+
+.home-shell .game-title {
+    max-width: 12ch;
+}
+
+.home-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+}
+
+/* —— Cards / lists —— */
+.map-selection,
+.character-selection,
+.wardrobe-selection,
+.outfit-options,
+.designer-options {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.map-card,
+.show-card,
+.store-card,
+.character-option,
+.outfit-option,
+.designer-option {
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    background: rgba(10, 10, 12, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--ivory);
+    box-shadow: none;
+    transition: transform 0.35s var(--ease), border-color 0.35s var(--ease), background 0.35s var(--ease);
+}
+
+.map-card:hover,
+.character-option:hover,
+.outfit-option:hover {
+    transform: translateY(-3px);
+    border-color: rgba(201, 165, 106, 0.5);
+}
+
+.map-card.selected,
+.character-option.selected,
+.outfit-option.selected,
+.difficulty-btn.selected {
+    border-color: var(--champagne);
+    box-shadow: 0 0 0 1px var(--champagne-soft);
 }
 
 .map-name {
-    display: block;
-    font-family: 'Playfair Display', 'Fredoka One', serif;
-    font-size: 26px;
-    line-height: 1.1;
-    margin-bottom: 4px;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
 }
 
-.map-tagline {
-    display: block;
-    font-size: 13px;
-    opacity: 0.9;
+.map-event,
+.map-tagline,
+.show-meta {
+    color: var(--ivory-dim);
 }
 
-/* Runway HUD */
+.show-meta.rare {
+    color: var(--champagne);
+}
+
+/* Auth */
+.auth-form {
+    width: min(420px, 100%);
+    margin: 1.5rem auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.auth-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    color: var(--ivory-dim);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-shadow: none;
+}
+
+.auth-form input {
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 0.95rem 1rem;
+    font-size: 1rem;
+    font-family: var(--font-ui);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--ivory);
+    outline: none;
+    transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.auth-form input:focus {
+    border-color: rgba(201, 165, 106, 0.65);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.auth-error {
+    background: rgba(232, 93, 76, 0.18);
+    border: 1px solid rgba(232, 93, 76, 0.4);
+    color: #ffd0c8;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+}
+
+.auth-submit {
+    width: 100%;
+}
+
+/* Difficulty */
+.difficulty-panel {
+    width: min(900px, 100%);
+    margin: 0.5rem auto 1rem;
+    padding: 1rem 1.1rem;
+    border-radius: 18px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--glass-border);
+    text-align: left;
+}
+
+.difficulty-label {
+    color: var(--ivory-dim);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 0.7rem;
+}
+
+.difficulty-options {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.difficulty-btn {
+    padding: 0.7rem 0.4rem;
+    font-size: 0.68rem;
+}
+
+.difficulty-hint {
+    margin-top: 0.75rem;
+    color: var(--champagne);
+    font-size: 0.85rem;
+}
+
+/* Character / wardrobe */
+.character-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    width: 100%;
+}
+
+.character-option {
+    text-align: center;
+    padding: 1rem;
+    width: 100%;
+    margin: 0;
+}
+
+.character-option img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 14px;
+    margin-bottom: 0.75rem;
+}
+
+.character-option p {
+    color: var(--ivory);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+.outfit-option {
+    width: 100%;
+    height: auto;
+    min-height: 110px;
+    margin: 0 0 0.85rem;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+}
+
+.outfit-option img {
+    width: 88px;
+    height: 88px;
+    border-radius: 12px;
+    object-fit: cover;
+    margin-right: 1rem;
+}
+
+.outfit-info h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+}
+
+.outfit-info p {
+    color: var(--ivory-dim);
+    font-size: 0.85rem;
+}
+
+.wardrobe-tabs {
+    display: flex;
+    gap: 0.5rem;
+    width: min(900px, 100%);
+    margin: 0 auto 1rem;
+}
+
+.tab-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0;
+    color: var(--ivory-dim);
+    backdrop-filter: none;
+}
+
+.tab-btn.active {
+    color: var(--champagne);
+    border-bottom-color: var(--champagne);
+}
+
+.character-display {
+    height: auto;
+    min-height: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0.5rem 0 1rem;
+}
+
+.character-display img {
+    max-height: 220px;
+    object-fit: contain;
+}
+
+/* Gameplay full bleed */
+.gameplay-bg {
+    background: #050505;
+    padding: 0 !important;
+    position: relative;
+    overflow: hidden;
+    min-height: 100dvh;
+}
+
 .runway-hud {
     position: absolute;
     top: 0;
@@ -489,7 +642,8 @@ body, html {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    padding: 14px 10px 0;
+    gap: 0.75rem;
+    padding: calc(14px + var(--safe-top)) 14px 0;
     pointer-events: none;
 }
 
@@ -498,107 +652,42 @@ body, html {
     pointer-events: auto;
 }
 
-.hud-back {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-}
-
 .hud-center {
     text-align: center;
-    color: #fff;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    color: var(--ivory);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65);
 }
 
-.hud-map-label {
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    opacity: 0.95;
+.hud-map-label,
+.hud-show-label,
+.hud-player-tag,
+.hud-difficulty,
+.hud-collect,
+.hud-goal,
+.hud-boost,
+.hud-outfit {
+    font-family: var(--font-ui);
 }
 
 .hud-score {
-    font-size: 28px;
-    font-weight: bold;
-    line-height: 1.1;
+    font-family: var(--font-display);
+    font-size: 2rem;
 }
 
-.hud-collect {
-    font-size: 12px;
-    opacity: 0.95;
+.hud-goal,
+.hud-difficulty[data-level="impossible"] {
+    color: #f0b4a8;
 }
 
-.camera-toggle-btn {
-    padding: 6px 10px !important;
-    font-size: 11px !important;
-    border-radius: 16px !important;
-    max-width: 88px;
-}
-
-.swipe-hint {
-    position: absolute;
-    left: 50%;
-    bottom: 18%;
-    transform: translateX(-50%);
-    z-index: 15;
-    background: rgba(0,0,0,0.55);
-    color: #fff;
-    font-size: 11px;
-    padding: 8px 12px;
-    border-radius: 999px;
-    white-space: nowrap;
-    pointer-events: none;
-    transition: opacity 0.4s ease;
-}
-
-.swipe-hint.hidden {
-    opacity: 0;
-}
-
-.game-over-meta {
-    font-size: 16px !important;
-    margin-bottom: 16px !important;
-    opacity: 0.9;
-}
-
-.show-meta {
-    display: block;
-    margin-top: 8px;
-    font-size: 11px;
-    opacity: 0.92;
-    letter-spacing: 0.02em;
-}
-
-.show-meta.rare {
-    color: #fbbf24;
-    font-weight: bold;
-}
-
-.hud-show-label {
-    font-size: 11px;
-    color: #ffe08a;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-    margin-bottom: 2px;
-}
-
-.hud-goal {
-    font-size: 12px;
-    color: #fbbf24;
-    font-weight: bold;
-    letter-spacing: 0.04em;
-}
-
-.hud-goal.goal-done {
-    color: #86efac;
-}
+.hud-difficulty[data-level="easy"] { color: var(--ok); }
+.hud-difficulty[data-level="medium"] { color: var(--champagne); }
+.hud-difficulty[data-level="hard"] { color: #e0a070; }
 
 .outfit-hud {
     position: absolute;
-    top: 78px;
-    left: 8px;
-    right: 8px;
+    top: calc(88px + var(--safe-top));
+    left: 12px;
+    right: 12px;
     z-index: 21;
     display: flex;
     flex-direction: column;
@@ -607,419 +696,42 @@ body, html {
     pointer-events: none;
 }
 
-.hud-boost {
-    font-size: 10px;
-    color: #fff;
-    background: rgba(0,0,0,0.45);
-    padding: 3px 10px;
-    border-radius: 999px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.hud-outfit {
-    font-size: 12px;
-    color: #fff;
-    text-shadow: 0 2px 6px rgba(0,0,0,0.75);
-}
-
 .wardrobe-track {
     display: flex;
     gap: 6px;
-    margin-top: 2px;
 }
 
 .wardrobe-chip {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.35);
-    background: rgba(0,0,0,0.35);
-    color: rgba(255,255,255,0.55);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(0, 0, 0, 0.35);
+    color: rgba(255, 255, 255, 0.55);
     font-size: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
 .wardrobe-chip.owned {
-    background: var(--chip-color, #FFD700);
+    background: var(--chip-color, var(--champagne));
     border-color: #fff;
     color: #111;
-    transform: scale(1.05);
-}
-
-.wardrobe-chip.rare {
-    border-color: #fbbf24;
-}
-
-.wardrobe-chip.flash {
-    animation: chipFlash 0.55s ease;
-}
-
-@keyframes chipFlash {
-    0% { transform: scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
-    40% { transform: scale(1.35); box-shadow: 0 0 16px rgba(255,255,255,0.9); }
-    100% { transform: scale(1.05); box-shadow: 0 0 0 rgba(255,255,255,0); }
-}
-
-.wardrobe-tabs {
-    display: flex;
-    justify-content: space-around;
-    width: 100%;
-    margin-bottom: 10px;
-}
-
-.tab-btn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.tab-btn.active {
-    color: #FFD700;
-    border-bottom: 2px solid #FFD700;
-}
-
-.wardrobe-selection {
-    width: 100%;
-    height: 50%;
-    overflow: hidden;
-    position: relative;
-}
-
-.tab-content {
-    display: none;
-    height: 100%;
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.tab-content::-webkit-scrollbar {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-.outfit-options, .designer-options {
-    padding: 10px;
-}
-
-.outfit-option, .designer-option {
-    width: 90%;
-    margin: 0 auto 15px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-}
-
-.outfit-option {
-    height: 120px;
-    display: flex;
-    align-items: center;
-    padding: 10px;
-}
-
-.designer-option {
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    padding: 10px;
-}
-
-.outfit-option:hover, .designer-option:hover {
-    transform: scale(1.05);
-}
-
-.outfit-option.selected, .designer-option.selected {
-    border: 3px solid #FFD700;
-}
-
-.outfit-option img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 5px;
-    margin-right: 10px;
-}
-
-.designer-option img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-bottom: 5px;
-}
-
-.outfit-info {
-    flex-grow: 1;
-}
-
-.outfit-info h3, .designer-option p {
-    font-size: 16px;
-    margin-bottom: 5px;
-}
-
-.outfit-info p {
-    font-size: 12px;
-    color: #666;
-}
-
-.character-display {
-    height: 30%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.character-display img {
-    max-height: 100%;
-    max-width: 100%;
-    object-fit: contain;
-}
-
-/* Add or modify these styles in your style.css file */
-
-#mobileControls {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    z-index: 10;
-}
-
-.control-btn {
-    font-size: 24px;
-    padding: 15px;
-    margin: 0 10px;
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.control-btn::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.1) 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0.1) 100%
-    );
-    transform: rotate(45deg);
-    transition: all 0.3s ease;
-}
-
-.control-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-    background: linear-gradient(45deg, #FFA500, #FFD700);
-}
-
-.control-btn:hover::before {
-    top: -100%;
-    left: -100%;
-}
-
-.control-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.control-btn.active {
-    background: linear-gradient(45deg, #FFA500, #FFD700);
-    transform: scale(1.1);
-}
-
-/* Add this to your existing styles */
-
-.back-btn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 10;
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    border: none;
-    border-radius: 25px;
-    padding: 8px 15px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-}
-
-.back-btn:hover {
-    background: rgba(255, 255, 255, 0.9);
 }
 
 #gameWrapper {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 1;
-}
-
-#gameCanvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-
-#controlsWrapper {
-    padding: 10px;
-}
-
-#mobileControls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.control-btn {
-    font-size: 24px;
-    padding: 10px;
-    margin: 0 10px;
-    background-color: rgba(255, 255, 255, 0.7);
-    border: none;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.control-btn:active {
-    background-color: rgba(255, 255, 255, 0.9);
-    transform: scale(1.1);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-}
-
-#gameWrapper::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 1;
-    width: 100%;
-    height: 10%;
-    background-image: url('cbl.png');
-    background-size: cover;
-    background-position: center;
-    z-index: 0;
-}
-
-.back-btn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 10;
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    border: none;
-    border-radius: 25px;
-    padding: 8px 15px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-}
-
-.back-btn .btn-text {
-    position: relative;
-    z-index: 2;
-    color: #000;
-}
-
-.back-btn .btn-shine {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.1) 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0.1) 100%
-    );
-    transform: rotate(45deg);
-    transition: all 0.3s ease;
-}
-
-.back-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-    background: linear-gradient(45deg, #FFA500, #FFD700);
-}
-
-.back-btn:hover .btn-shine {
-    top: -100%;
-    left: -100%;
-}
-
-.gameplay-bg {
-    background-image: none;
-    background: #0a0a0a;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 0;
-    box-sizing: border-box;
-    position: relative;
-    overflow: hidden;
-}
-
-#gameWrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: calc(100% - 78px);
     z-index: 1;
     margin: 0;
-    display: block;
 }
 
 #gameCanvas {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     border-radius: 0;
@@ -1027,9 +739,18 @@ body, html {
     touch-action: none;
 }
 
+#avatar3d {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    left: -9999px;
+}
+
 #controlsWrapper {
     position: absolute;
-    bottom: 8px;
+    bottom: calc(12px + var(--safe-bottom));
     left: 0;
     right: 0;
     z-index: 20;
@@ -1040,235 +761,171 @@ body, html {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
+    gap: 0.55rem;
     transform: none;
+    position: relative;
     left: auto;
     bottom: auto;
 }
 
 .control-btn {
-    font-size: 20px;
-    padding: 8px;
-    margin: 0 6px;
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    border: none;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    padding: 0;
+    font-size: 1rem;
+    margin: 0;
+    letter-spacing: 0;
 }
 
-.control-btn:active,
-.control-btn.active {
-    transform: scale(1.08);
-    background: linear-gradient(45deg, #FFA500, #FFD700);
+.swipe-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 18%;
+    transform: translateX(-50%);
+    z-index: 15;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--glass-border);
+    color: var(--ivory);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+}
+
+.swipe-hint.hidden {
+    opacity: 0;
+}
+
+.game-over-screen,
+.pause-menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(360px, 88vw);
+    background: rgba(10, 10, 12, 0.78);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    padding: 1.75rem 1.4rem;
+    border-radius: 22px;
+    text-align: center;
+    color: var(--ivory);
+    z-index: 40;
+}
+
+.game-over-screen h2 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.game-over-screen p,
+.game-over-meta {
+    font-size: 0.95rem !important;
+    margin-bottom: 0.55rem !important;
+    color: var(--ivory-dim);
+}
+
+.pause-menu .game-btn {
+    display: flex;
+    width: 100%;
+    margin-top: 0.55rem;
+}
+
+.store-status {
+    width: min(900px, 100%);
+    margin: 0 auto 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    text-align: left;
+    border: 1px solid var(--glass-border);
+}
+
+.store-status.ok {
+    background: rgba(111, 191, 138, 0.15);
+    color: #c8f0d4;
+}
+
+.store-status.err {
+    background: rgba(232, 93, 76, 0.15);
+    color: #ffd0c8;
+}
+
+.map-card.locked {
+    opacity: 0.45;
+    filter: grayscale(0.35);
+    cursor: not-allowed;
 }
 
 #gameWrapper::after {
     display: none;
 }
 
-/* Add this to your existing styles */
-.hexagon-btn {
-    width: 150px;
-    height: 86px;
-    background: linear-gradient(45deg, #FFD700, #FFA500);
-    position: relative;
-    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.3s ease;
+@media (max-width: 720px) {
+    .game-title {
+        text-align: left;
+        font-size: clamp(2.2rem, 11vw, 3rem);
+    }
+
+    .difficulty-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-actions,
+    .game-footer {
+        justify-content: stretch;
+    }
+
+    .game-btn {
+        flex: 1 1 auto;
+    }
 }
 
-.hexagon-btn:hover {
-    transform: scale(1.05);
-    background: linear-gradient(45deg, #FFA500, #FFD700);
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
-.hexagon-btn .btn-text {
-    color: #000;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
 
-.hexagon-btn .btn-shine {
-    display: none;
-}
-
-.game-over-screen {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.85);
-    padding: 28px 24px;
-    border-radius: 20px;
-    text-align: center;
-    color: #fff;
-    z-index: 30;
-    width: 80%;
-}
-
-.game-over-screen h2 {
-    font-size: 28px;
-    margin-bottom: 12px;
-}
-
-.game-over-screen p {
-    font-size: 20px;
-    margin-bottom: 12px;
-}
-
-/* Auth / store / home profile */
-.auth-screen .auth-form {
-    width: 90%;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 10px auto 20px;
-}
-.auth-form label {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    color: #fff;
-    font-size: 13px;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-}
-.auth-form input {
-    border: none;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 15px;
-    font-family: inherit;
-}
-.auth-submit { width: 100%; text-align: center; }
-.auth-error {
-    background: rgba(127,29,29,0.85);
-    color: #fecaca;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 13px;
-}
-.auth-hint { color: #eee; font-size: 12px; opacity: 0.9; }
-.auth-footer { flex-wrap: wrap; gap: 8px; }
-.home-profile {
-    text-align: center;
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-    margin-top: 8px;
-}
-.home-name { font-size: 22px; font-family: 'Playfair Display', 'Fredoka One', serif; }
-.home-tag { color: #FFD700; font-size: 14px; margin-top: 4px; }
-.home-actions { flex-wrap: wrap; gap: 8px; justify-content: center; }
-.home-hero-spacer { flex: 1; min-height: 120px; }
-.hud-player-tag {
-    font-size: 11px;
-    color: #FFD700;
-    margin-bottom: 2px;
-}
-#avatar3d {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-    pointer-events: none;
-    left: -9999px;
-}
-.map-card.locked {
-    opacity: 0.45;
-    filter: grayscale(0.4);
-    cursor: not-allowed;
-}
-.store-status {
-    width: 90%;
-    margin: 0 auto 10px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    font-size: 13px;
-    text-align: center;
-}
-.store-status.ok { background: rgba(22,101,52,0.85); color: #bbf7d0; }
-.store-status.err { background: rgba(127,29,29,0.85); color: #fecaca; }
-.store-card.owned { opacity: 0.7; }
-.restart-btn {
-    background: linear-gradient(45deg, #22c55e, #86efac) !important;
-    color: #052e16 !important;
-    min-width: 160px;
-}
-.exit-btn {
-    background: linear-gradient(45deg, #64748b, #94a3b8) !important;
-    color: #0f172a !important;
-}
-.pause-menu .game-btn {
-    display: block;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-}
-#exitGameBtn {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-}
-
-/* Difficulty power scale */
-.difficulty-panel {
-    width: 94%;
-    margin: 4px auto 10px;
-    padding: 10px 12px;
-    border-radius: 16px;
-    background: rgba(0,0,0,0.45);
-    text-align: center;
-}
-.difficulty-label {
-    color: #fff;
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    opacity: 0.9;
-}
-.difficulty-options {
+/* Map / show grid */
+.map-selection {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.85rem;
+    padding: 0.25rem 0 1rem;
 }
-.difficulty-btn {
-    border: 2px solid rgba(255,255,255,0.25);
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    border-radius: 12px;
-    padding: 8px 4px;
-    font-size: 11px;
-    font-family: 'Fredoka One', cursive;
+
+.map-card,
+.show-card,
+.store-card {
+    padding: 1.1rem 1.15rem;
+    text-align: left;
     cursor: pointer;
-    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
-.difficulty-btn.selected {
-    border-color: var(--diff-accent, #FFD700);
-    background: color-mix(in srgb, var(--diff-accent, #FFD700) 35%, transparent);
-    transform: translateY(-1px);
-    box-shadow: 0 0 0 1px var(--diff-accent, #FFD700);
+
+.map-card h2,
+.show-card h2,
+.store-card h2 {
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    margin-bottom: 0.35rem;
 }
-.difficulty-hint {
-    margin-top: 8px;
-    color: #fde68a;
-    font-size: 11px;
-    line-height: 1.3;
+
+.screen-content,
+.game-header {
+    animation: homeFade 0.8s var(--ease) both;
 }
-.hud-difficulty {
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #fde68a;
-    margin-bottom: 2px;
+
+@keyframes homeFade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-.hud-difficulty[data-level="easy"] { color: #86efac; }
-.hud-difficulty[data-level="medium"] { color: #fde68a; }
-.hud-difficulty[data-level="hard"] { color: #fdba74; }
-.hud-difficulty[data-level="impossible"] { color: #fca5a5; }
