@@ -10,6 +10,13 @@
         evening: { src: 'chibidoll3.png', hair: 0x3b2118, skin: 0xffdbac, label: 'Evening Doll' }
     };
 
+    const GAIT_PRESETS = {
+        strut: { label: 'Strut', speed: 8, amp: 0.35, arm: 0.7, bounce: 0.02, hip: 0.04 },
+        model: { label: 'Model Walk', speed: 5.5, amp: 0.22, arm: 0.45, bounce: 0.045, hip: 0.09 },
+        power: { label: 'Power Walk', speed: 10, amp: 0.42, arm: 0.85, bounce: 0.015, hip: 0.025 },
+        sashay: { label: 'Sashay', speed: 6.5, amp: 0.28, arm: 0.55, bounce: 0.06, hip: 0.12 }
+    };
+
     function makeFabricTexture(THREE, baseHex, pattern) {
         const c = document.createElement('canvas');
         c.width = 128;
@@ -384,15 +391,30 @@
         const BASE_SCALE = 1.0;
         let begT = 0;
         let begDur = 0;
+        let gaitId = 'strut';
+        let dressSnapT = 0;
+        let dressSnapSlot = null;
+
+        function setGait(id) {
+            if (GAIT_PRESETS[id]) gaitId = id;
+        }
 
         function playBeg(seconds) {
             begDur = Math.max(0.4, seconds || 1.1);
             begT = begDur;
         }
 
+        function playDressSnap(slot) {
+            dressSnapSlot = slot || 'top';
+            dressSnapT = 0.9;
+        }
+
         function update(dt, state) {
             state = state || {};
-            const { jumping, sliding, dressing, dying, deathT } = state;
+            const { jumping, sliding, dressing, dying, deathT, dressSlot } = state;
+            if (state.gait && GAIT_PRESETS[state.gait]) gaitId = state.gait;
+            const gait = GAIT_PRESETS[gaitId] || GAIT_PRESETS.strut;
+
             if (dying) {
                 const t = Math.min(1, (deathT || 0) / 1.15);
                 root.rotation.z = t * Math.PI * 1.35;
@@ -407,7 +429,6 @@
             if (begT > 0) {
                 begT = Math.max(0, begT - dt);
                 const u = 1 - begT / begDur;
-                // Courteous runway beg / bow before the walk
                 const bow = Math.sin(Math.min(1, u * 1.4) * Math.PI) * 0.55;
                 root.rotation.x = bow;
                 root.rotation.z = 0;
@@ -418,20 +439,88 @@
                 return;
             }
 
+            // Getting dressed — arms lift, garment snaps onto body
+            if ((dressing && dressing > 0) || dressSnapT > 0) {
+                if (dressSnapT > 0) dressSnapT = Math.max(0, dressSnapT - dt);
+                const slot = dressSlot || dressSnapSlot || 'top';
+                const u = dressing > 0 ? 1 - Math.min(1, dressing / 0.9) : 1 - dressSnapT / 0.9;
+                const ease = 1 - Math.pow(1 - Math.min(1, u), 3);
+                const reach = Math.sin(Math.min(1, u) * Math.PI);
+
+                root.rotation.z = 0;
+                root.rotation.x = -0.08 * reach;
+                root.position.x = 0;
+                root.position.y = 0.04 * reach;
+                root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
+
+                if (slot === 'shoes') {
+                    armL.rotation.x = -0.2;
+                    armR.rotation.x = -0.2;
+                    armL.rotation.z = 0;
+                    armR.rotation.z = 0;
+                    legL.rotation.x = 0.35 * reach;
+                    legR.rotation.x = -0.15;
+                } else if (slot === 'bottoms') {
+                    armL.rotation.x = -0.55 * reach;
+                    armR.rotation.x = -0.55 * reach;
+                    armL.rotation.z = 0;
+                    armR.rotation.z = 0;
+                    legL.rotation.x = 0.12;
+                    legR.rotation.x = -0.12;
+                    if (skirt.visible) {
+                        const s = 0.25 + ease * 0.8;
+                        skirt.scale.set(s, s, s);
+                    }
+                } else if (slot === 'outer') {
+                    armL.rotation.x = -1.1 * reach;
+                    armR.rotation.x = -1.1 * reach;
+                    armL.rotation.z = 0.35 * reach;
+                    armR.rotation.z = -0.35 * reach;
+                    legL.rotation.x = 0;
+                    legR.rotation.x = 0;
+                    if (outer.visible) {
+                        const s = 0.35 + ease * 0.7;
+                        outer.scale.set(s, 0.5 + ease * 0.5, s);
+                    }
+                } else {
+                    armL.rotation.x = -1.35 * reach;
+                    armR.rotation.x = -1.35 * reach;
+                    armL.rotation.z = 0.25 * reach;
+                    armR.rotation.z = -0.25 * reach;
+                    legL.rotation.x = 0;
+                    legR.rotation.x = 0;
+                }
+                sleeveL.rotation.x = armL.rotation.x * 0.5;
+                sleeveR.rotation.x = armR.rotation.x * 0.5;
+
+                if ((!dressing || dressing <= 0.05) && dressSnapT <= 0) {
+                    armL.rotation.z = 0;
+                    armR.rotation.z = 0;
+                    if (skirt.visible) skirt.scale.set(1, 1, 1);
+                    if (outer.visible) outer.scale.set(1, 1, 1);
+                }
+                return;
+            }
+
+            armL.rotation.z = 0;
+            armR.rotation.z = 0;
+            if (skirt.visible) skirt.scale.set(1, 1, 1);
+            if (outer.visible) outer.scale.set(1, 1, 1);
+
             root.rotation.z = 0;
             root.rotation.x = 0;
             root.position.x = 0;
-            walkT += dt * (sliding ? 2 : 8);
-            // Keep jump pose simple — no limb swing (avoids hitch mid-air)
-            const swing = jumping ? 0 : Math.sin(walkT) * (sliding ? 0.15 : 0.35);
+            const speed = sliding ? gait.speed * 0.25 : gait.speed;
+            walkT += dt * speed;
+            const swing = jumping ? 0 : Math.sin(walkT) * (sliding ? gait.amp * 0.4 : gait.amp);
             legL.rotation.x = swing;
             legR.rotation.x = -swing;
-            armL.rotation.x = -swing * 0.7;
-            armR.rotation.x = swing * 0.7;
+            armL.rotation.x = -swing * gait.arm;
+            armR.rotation.x = swing * gait.arm;
             sleeveL.rotation.x = armL.rotation.x * 0.5;
             sleeveR.rotation.x = armR.rotation.x * 0.5;
+            hips.rotation.y = jumping || sliding ? 0 : Math.sin(walkT) * gait.hip;
 
-            // Always reset scale each frame so jump/dress never compounds
             if (sliding) {
                 root.scale.set(BASE_SCALE * 1.15, BASE_SCALE * 0.55, BASE_SCALE * 1.1);
                 root.position.y = 0;
@@ -440,11 +529,7 @@
                 root.position.y = 0.18;
             } else {
                 root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
-                root.position.y = 0;
-            }
-            if (dressing) {
-                const pulse = 1 + Math.sin(dressing * 20) * 0.06;
-                root.scale.multiplyScalar(pulse);
+                root.position.y = Math.abs(Math.sin(walkT)) * gait.bounce;
             }
         }
 
@@ -458,6 +543,8 @@
             applyPieceColors,
             setOwnedSlots,
             setCameraFacing,
+            setGait,
+            playDressSnap,
             update,
             playBeg,
             mats,
@@ -531,5 +618,5 @@
         return { renderer, scene, camera, avatar, resize, setCameraMode, render };
     }
 
-    global.Runway3D = { createAvatar, createRenderer, CHARACTER_LIBRARY };
+    global.Runway3D = { createAvatar, createRenderer, CHARACTER_LIBRARY, GAIT_PRESETS };
 })(window);

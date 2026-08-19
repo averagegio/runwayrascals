@@ -3,9 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const characterDisplay = document.getElementById('selectedCharacter');
     const outfitOptions = document.querySelector('.outfit-options');
     const designerOptions = document.querySelector('.designer-options');
+    const gaitOptions = document.getElementById('gaitOptions');
     const confirmOutfitBtn = document.getElementById('confirmOutfitBtn');
     const tabBtns = document.querySelectorAll('.tab-btn');
     let selectedOutfit = null;
+    let selectedGait = localStorage.getItem('selectedGait') || 'strut';
 
     const characterImages = {
         male: 'chibibrodoll.png',
@@ -46,6 +48,13 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: 'Miami Swim', image: 'chibidoll2.png' }
     ];
 
+    const gaits = [
+        { id: 'strut', name: 'Strut', blurb: 'Classic runway pace' },
+        { id: 'model', name: 'Model Walk', blurb: 'Slow, hip-led glide' },
+        { id: 'power', name: 'Power Walk', blurb: 'Fast, sharp swing' },
+        { id: 'sashay', name: 'Sashay', blurb: 'Bounce with sway' }
+    ];
+
     function createOutfitElement(outfit) {
         const outfitElement = document.createElement('div');
         outfitElement.classList.add('outfit-option');
@@ -70,8 +79,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return designerElement;
     }
 
+    function createGaitElement(gait) {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'gait-option' + (gait.id === selectedGait ? ' selected' : '');
+        el.dataset.gait = gait.id;
+        el.innerHTML = `
+            <span class="gait-name">${gait.name}</span>
+            <span class="gait-blurb">${gait.blurb}</span>
+        `;
+        el.addEventListener('click', () => {
+            selectedGait = gait.id;
+            document.querySelectorAll('.gait-option').forEach((n) => n.classList.remove('selected'));
+            el.classList.add('selected');
+        });
+        return el;
+    }
+
     outfits.forEach(outfit => outfitOptions.appendChild(createOutfitElement(outfit)));
     designers.forEach(designer => designerOptions.appendChild(createDesignerElement(designer)));
+    if (gaitOptions) gaits.forEach((g) => gaitOptions.appendChild(createGaitElement(g)));
 
     function selectOutfit(element, outfit) {
         document.querySelectorAll('.outfit-option').forEach(opt => opt.classList.remove('selected'));
@@ -81,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     confirmOutfitBtn.addEventListener('click', () => {
+        localStorage.setItem('selectedGait', selectedGait || 'strut');
         if (selectedOutfit) {
             localStorage.setItem('selectedOutfit', JSON.stringify(selectedOutfit));
             window.location.href = 'map-select.html';

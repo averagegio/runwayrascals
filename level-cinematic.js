@@ -126,6 +126,16 @@
         });
     }
 
+    function lookUnlocked(root, pieceName, stage) {
+        return play({
+            root,
+            mode: 'open',
+            title: pieceName || 'New Look',
+            subtitle: 'Getting dressed',
+            tag: stage != null ? `LOOK ${stage}` : 'WARDROBE'
+        });
+    }
+
     function levelOpening(root, levelId, characterName) {
         const name = LEVEL_NAMES[levelId] || levelId;
         return play({
@@ -199,6 +209,7 @@
 
     global.RunwayCinematic = {
         levelUnlocked,
+        lookUnlocked,
         levelOpening,
         levelClosing,
         runwayCountdown,
