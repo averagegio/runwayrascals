@@ -17,50 +17,36 @@
   <div class="intro-splash" id="introSplash" aria-hidden="false">
     <div class="intro-mark">
       <div class="intro-write-stage" id="introWriteStage">
-        <!-- Cursive RR: first R, shoelace loop, second R askew -->
-        <svg id="rrMonogramSvg" class="intro-rr-svg" viewBox="0 0 320 220" aria-label="RR">
+        <!-- One continuous elegant RR monogram stroke -->
+        <svg id="rrMonogramSvg" class="intro-rr-svg" viewBox="0 0 340 200" aria-label="RR">
           <defs>
             <linearGradient id="rrStrokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#f4efe6" />
-              <stop offset="55%" stop-color="#e8d5a8" />
+              <stop offset="0%" stop-color="#f7f2ea" />
+              <stop offset="55%" stop-color="#e4d2a6" />
               <stop offset="100%" stop-color="#c9a56a" />
             </linearGradient>
           </defs>
-          <!-- First cursive R (upright) -->
-          <path id="rrPathL" class="rr-stroke" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"
-            d="M 52 178
-               C 48 140, 46 78, 54 42
-               C 58 24, 78 16, 98 22
-               C 128 30, 142 58, 132 84
-               C 122 110, 92 118, 68 112
-               C 68 112, 96 118, 118 148
-               C 132 168, 148 182, 168 188" />
-          <!-- Shoelace tie flourish between the Rs -->
-          <path id="rrPathLace" class="rr-stroke rr-lace" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"
-            d="M 168 188
-               C 188 198, 210 186, 208 164
-               C 206 142, 178 138, 172 156
-               C 166 174, 188 192, 214 176
-               C 236 162, 242 140, 228 128" />
-          <!-- Second cursive R — askew -->
-          <g transform="translate(198,18) rotate(-16 70 100)">
-            <path id="rrPathR" class="rr-stroke" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"
-              d="M 36 172
-                 C 34 132, 32 72, 42 38
-                 C 48 18, 72 10, 94 20
-                 C 124 32, 136 62, 124 88
-                 C 112 114, 82 120, 58 112
-                 C 58 112, 88 122, 112 154
-                 C 126 174, 140 186, 158 190" />
-          </g>
+          <path id="rrPath" class="rr-stroke" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"
+            d="M 36 168
+               C 34 120, 38 62, 52 36
+               C 62 18, 86 12, 108 24
+               C 132 38, 138 68, 122 90
+               C 108 110, 78 116, 56 104
+               C 56 104, 86 118, 108 152
+               C 118 168, 130 178, 148 172
+               C 168 164, 176 140, 168 118
+               C 160 96, 172 78, 196 72
+               C 220 66, 248 78, 254 104
+               C 260 130, 242 150, 216 148
+               C 196 146, 186 130, 196 116
+               C 206 102, 230 108, 248 128
+               C 268 150, 286 168, 308 174" />
         </svg>
         <div class="intro-pen" id="introPen" aria-hidden="true">
-          <svg viewBox="0 0 64 64" width="56" height="56">
-            <path fill="#3b2f2a" d="M44 6c-2-2-6-2-9 1L8 34l-3 14 14-3 27-27c3-3 3-7 0-10z"/>
+          <svg viewBox="0 0 64 64" width="44" height="44">
+            <path fill="#2a221c" d="M44 6c-2-2-6-2-9 1L8 34l-3 14 14-3 27-27c3-3 3-7 0-10z"/>
             <path fill="#c9a56a" d="M42 8l6 6-4 4-6-6z"/>
             <path fill="#f4efe6" d="M10 40l6 6-8 2z"/>
-            <path fill="#8b6914" d="M46 4c4 1 8 6 8 10 0 0-6-2-10-6 1-2 1-3 2-4z"/>
-            <path fill="#d4a574" d="M52 8c2 3 3 6 2 9-3-2-6-5-8-8 2-1 4-1 6-1z"/>
           </svg>
         </div>
       </div>

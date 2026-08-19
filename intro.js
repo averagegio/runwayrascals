@@ -1,5 +1,5 @@
 /**
- * Intro: slow cursive R → shoelace flourish → askew cursive R, then swipe-up.
+ * Intro: one continuous swift RR monogram stroke, then swipe-up.
  */
 (function () {
     const splash = document.getElementById('introSplash');
@@ -20,18 +20,16 @@
         return;
     }
 
-    const pathL = document.getElementById('rrPathL');
-    const pathLace = document.getElementById('rrPathLace');
-    const pathR = document.getElementById('rrPathR');
+    const pathRR = document.getElementById('rrPath');
     const pen = document.getElementById('introPen');
-    const stage = document.getElementById('introWriteStage');
-    const swipeHint = document.getElementById('introSwipeHint');
     const brand = splash.querySelector('.brand');
     const sub = splash.querySelector('.sub');
     const rule = splash.querySelector('.intro-rule');
+    const swipeHint = document.getElementById('introSwipeHint');
+    const svg = document.getElementById('rrMonogramSvg');
 
     function pathLen(el) {
-        try { return el.getTotalLength(); } catch (_) { return 400; }
+        try { return el.getTotalLength(); } catch (_) { return 900; }
     }
 
     function preparePath(el) {
@@ -42,16 +40,12 @@
         return len;
     }
 
-    const lenL = preparePath(pathL);
-    const lenLace = preparePath(pathLace);
-    const lenR = preparePath(pathR);
+    const lenRR = preparePath(pathRR);
 
     function placePen(pathEl, t, len) {
-        if (!pen || !pathEl || !stage) return;
+        if (!pen || !pathEl || !svg) return;
         const d = Math.max(0, Math.min(1, t)) * len;
         const pt = pathEl.getPointAtLength(d);
-        // Account for nested transform on askew R by using getScreenCTM when available
-        const svg = document.getElementById('rrMonogramSvg');
         const ctm = pathEl.getScreenCTM();
         const svgCtm = svg.getScreenCTM();
         if (ctm && svgCtm) {
@@ -71,19 +65,15 @@
         pen.classList.add('is-writing');
     }
 
-    // Slow, deliberate cursive timing
-    const WRITE1_MS = 3400;
-    const LACE_MS = 1600;
-    const WRITE2_MS = 3200;
-    const HOLD_MS = 400;
+    // One continuous swift stroke
+    const WRITE_MS = 2100;
+    const HOLD_MS = 280;
 
     let readyToSwipe = false;
     let dismissing = false;
 
     function finishWrite() {
-        if (pathL) pathL.style.strokeDashoffset = '0';
-        if (pathLace) pathLace.style.strokeDashoffset = '0';
-        if (pathR) pathR.style.strokeDashoffset = '0';
+        if (pathRR) pathRR.style.strokeDashoffset = '0';
         if (pen) {
             pen.classList.remove('is-writing');
             pen.classList.add('is-done');
@@ -108,43 +98,25 @@
         }, 780);
     }
 
-    function easeInOut(t) {
-        return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
     }
 
     const t0 = performance.now();
     function frame(now) {
         const elapsed = now - t0;
 
-        if (elapsed < WRITE1_MS) {
-            const t = easeInOut(elapsed / WRITE1_MS);
-            if (pathL) pathL.style.strokeDashoffset = String(lenL * (1 - t));
-            placePen(pathL, t, lenL);
+        if (elapsed < WRITE_MS) {
+            const t = easeOutCubic(elapsed / WRITE_MS);
+            if (pathRR) pathRR.style.strokeDashoffset = String(lenRR * (1 - t));
+            placePen(pathRR, t, lenRR);
             requestAnimationFrame(frame);
             return;
         }
 
-        if (pathL) pathL.style.strokeDashoffset = '0';
+        if (pathRR) pathRR.style.strokeDashoffset = '0';
 
-        if (elapsed < WRITE1_MS + LACE_MS) {
-            const t = easeInOut((elapsed - WRITE1_MS) / LACE_MS);
-            if (pathLace) pathLace.style.strokeDashoffset = String(lenLace * (1 - t));
-            placePen(pathLace, t, lenLace);
-            requestAnimationFrame(frame);
-            return;
-        }
-
-        if (pathLace) pathLace.style.strokeDashoffset = '0';
-
-        if (elapsed < WRITE1_MS + LACE_MS + WRITE2_MS) {
-            const t = easeInOut((elapsed - WRITE1_MS - LACE_MS) / WRITE2_MS);
-            if (pathR) pathR.style.strokeDashoffset = String(lenR * (1 - t));
-            placePen(pathR, t, lenR);
-            requestAnimationFrame(frame);
-            return;
-        }
-
-        if (elapsed < WRITE1_MS + LACE_MS + WRITE2_MS + HOLD_MS) {
+        if (elapsed < WRITE_MS + HOLD_MS) {
             requestAnimationFrame(frame);
             return;
         }

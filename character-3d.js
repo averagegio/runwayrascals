@@ -288,6 +288,12 @@
             const mat = mats[matKey];
             if (!mat) return;
             const color = new THREE.Color(hex);
+            const nextHex = color.getHex();
+            // Skip rebuild if already dressed this color/pattern (avoids per-frame GC / WebGL crash)
+            if (mat.userData.dressed === nextHex && mat.userData.pattern === pattern && mat.map) {
+                mat.color.copy(color);
+                return;
+            }
             mat.color.copy(color);
             if (mat.map) {
                 mat.map.dispose();
@@ -295,7 +301,8 @@
             }
             mat.map = makeFabricTexture(THREE, hex, pattern);
             mat.needsUpdate = true;
-            mat.userData.dressed = color.getHex();
+            mat.userData.dressed = nextHex;
+            mat.userData.pattern = pattern;
         }
 
         function setOwnedSlots(ownedSlots) {
@@ -316,7 +323,14 @@
             if (!has('shoes')) dressMaterial('shoes', 0x6b7280, 'leather');
         }
 
+        let lastOutfitKey = '';
         function applyPieceColors(pieces, ownedSlots) {
+            const key = JSON.stringify({
+                o: ownedSlots,
+                p: (pieces || []).filter((x) => ownedSlots && ownedSlots[x.slot]).map((x) => [x.slot, x.color])
+            });
+            if (key === lastOutfitKey) return;
+            lastOutfitKey = key;
             (pieces || []).forEach((p) => {
                 if (!ownedSlots[p.slot]) return;
                 const hex = new THREE.Color(p.color).getHex();
@@ -328,8 +342,13 @@
                 }
                 if (p.slot === 'bottoms') {
                     dressMaterial('bottoms', hex, pat);
-                    skirt.material = mats.bottoms.clone();
-                    skirt.material.side = THREE.DoubleSide;
+                    if (!skirt.material || skirt.material === mats.bottoms) {
+                        skirt.material = mats.bottoms.clone();
+                        skirt.material.side = THREE.DoubleSide;
+                    } else {
+                        skirt.material.color.copy(mats.bottoms.color);
+                        if (mats.bottoms.map) skirt.material.map = mats.bottoms.map;
+                    }
                     skirt.visible = true;
                     skirt.scale.set(1.05, 1.05, 1.05);
                 }
@@ -357,18 +376,12 @@
         }
 
         function setCameraFacing(mode) {
-            // Library face always faces the gameplay camera so features stay readable
             const hasFace = !!faceFront.material.map;
-            faceFront.visible = hasFace;
+            // Front cam: face toward lens. Back cam: hair/outfit from behind.
+            faceFront.position.set(0, 1.74, 0.32);
+            faceFront.rotation.y = 0;
+            faceFront.visible = mode === 'front' && hasFace;
             faceBack.visible = false;
-            if (mode === 'back') {
-                // Billboard on the rear so chase-cam still sees the face card
-                faceFront.position.set(0, 1.74, -0.34);
-                faceFront.rotation.y = Math.PI;
-            } else {
-                faceFront.position.set(0, 1.74, 0.32);
-                faceFront.rotation.y = 0;
-            }
         }
 
         let walkT = 0;
@@ -382,8 +395,8 @@
                 root.rotation.x = t * 0.9;
                 root.position.y = Math.sin(t * Math.PI) * 0.35 - t * 0.55;
                 root.position.x = Math.sin(t * 10) * 0.08;
-                const s = BASE_SCALE * (1 - t * 0.25);
-                root.scale.set(s, s * (1 - t * 0.35), s);
+                const s = Math.max(0.05, BASE_SCALE * (1 - t * 0.25));
+                root.scale.set(s, Math.max(0.05, s * (1 - t * 0.35)), s);
                 return;
             }
             root.rotation.z = 0;
@@ -397,10 +410,14 @@
             armR.rotation.x = swing * 0.7;
             sleeveL.rotation.x = armL.rotation.x * 0.5;
             sleeveR.rotation.x = armR.rotation.x * 0.5;
-            if (jumping) root.position.y = 0.25;
-            else if (sliding) {
+
+            // Always reset scale each frame so jump/dress never compounds (runtime crash fix)
+            if (sliding) {
                 root.scale.set(BASE_SCALE * 1.15, BASE_SCALE * 0.55, BASE_SCALE * 1.1);
                 root.position.y = 0;
+            } else if (jumping) {
+                root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
+                root.position.y = 0.22;
             } else {
                 root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
                 root.position.y = 0;
@@ -471,17 +488,16 @@
 
         function setCameraMode(mode) {
             avatar.setCameraFacing(mode);
+            // Same distance/fov for both cams so on-screen blit size stays consistent
+            camera.fov = 36;
+            camera.position.set(0, 1.08, 3.0);
+            camera.lookAt(0, 1.02, 0);
             if (mode === 'front') {
+                // Face toward camera (+Z)
                 avatar.root.rotation.y = 0;
-                camera.position.set(0, 1.55, 1.55);
-                camera.lookAt(0, 1.55, 0);
-                camera.fov = 34;
             } else {
-                // Full-body chase framing — feet to hair fill the offscreen canvas
-                avatar.root.rotation.y = 0;
-                camera.position.set(0, 1.05, 3.05);
-                camera.lookAt(0, 1.0, 0);
-                camera.fov = 36;
+                // Run into the runway — camera sees the back
+                avatar.root.rotation.y = Math.PI;
             }
             camera.updateProjectionMatrix();
         }
