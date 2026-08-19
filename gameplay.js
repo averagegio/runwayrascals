@@ -386,17 +386,18 @@
     }
 
     function setLane(next) {
+        if (dying || paused || gameOver || levelComplete) return;
         targetLane = Math.max(0, Math.min(LANES - 1, next));
     }
 
     function jump() {
-        if (isJumping || isSliding || gameOver || levelComplete) return;
+        if (isJumping || isSliding || gameOver || levelComplete || dying || paused) return;
         isJumping = true;
         jumpT = 0;
     }
 
     function slide() {
-        if (isJumping || isSliding || gameOver || levelComplete) return;
+        if (isJumping || isSliding || gameOver || levelComplete || dying || paused) return;
         isSliding = true;
         slideT = 0;
     }
