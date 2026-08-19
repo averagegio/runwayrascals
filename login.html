@@ -45,7 +45,7 @@
                     email: document.getElementById('email').value,
                     password: document.getElementById('password').value
                 });
-                window.location.href = 'index.html';
+                window.location.href = new URLSearchParams(location.search).get('next') || 'index.html';
             } catch (ex) {
                 err.textContent = ex.message;
                 err.hidden = false;

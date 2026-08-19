@@ -1811,6 +1811,12 @@
 
             if (e.kind === 'pickup' && e.item) {
                 drawFashionShape(ctx, e.item.shape, size * 0.9, e.item.color, e.item.accent);
+                if (e.item.logo && window.drawLogoMark) {
+                    ctx.save();
+                    ctx.translate(0, -size * 0.42);
+                    window.drawLogoMark(ctx, e.item.logo, size * 0.35);
+                    ctx.restore();
+                }
                 ctx.fillStyle = e.item.accent || '#c9a56a';
                 ctx.font = `600 ${Math.max(7, Math.floor(size * 0.18))}px Syne, sans-serif`;
                 ctx.textAlign = 'center';
@@ -2204,6 +2210,9 @@
         if (window.THREE && window.Runway3D && avatarCanvas) {
             const characterId = localStorage.getItem('selectedCharacter') || 'female';
             selectedGait = localStorage.getItem('selectedGait') || 'strut';
+            const memberGaits = { power: true, sashay: true };
+            const isMember = !!(window.RunwayAuth && RunwayAuth.getToken && RunwayAuth.getToken());
+            if (memberGaits[selectedGait] && !isMember) selectedGait = 'strut';
             avatar3d = Runway3D.createRenderer(avatarCanvas, THREE, { characterId });
             avatar3d.resize(180, 260);
             if (avatar3d.avatar.setGait) avatar3d.avatar.setGait(selectedGait);

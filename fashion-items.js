@@ -87,6 +87,7 @@ window.FASHION_ITEMS = [
         shape: 'tee',
         color: '#1e40af',
         accent: '#ffffff',
+        logo: 'balenciaga',
         points: 52,
         boostMs: 1.4,
         speedBurst: 1.2
@@ -98,6 +99,7 @@ window.FASHION_ITEMS = [
         shape: 'sneaker',
         color: '#ef4444',
         accent: '#3b82f6',
+        logo: 'balenciaga',
         points: 58,
         boostMs: 1.6,
         speedBurst: 1.28
@@ -109,6 +111,7 @@ window.FASHION_ITEMS = [
         shape: 'boot',
         color: '#111111',
         accent: '#f5f0e6',
+        logo: 'rick',
         points: 55,
         boostMs: 1.5,
         speedBurst: 1.22
@@ -120,6 +123,7 @@ window.FASHION_ITEMS = [
         shape: 'pants',
         color: '#0a0a0a',
         accent: '#f5f0e6',
+        logo: 'rick',
         points: 44,
         boostMs: 1.25,
         speedBurst: 1.14
@@ -131,6 +135,7 @@ window.FASHION_ITEMS = [
         shape: 'shirt',
         color: '#f5f0e6',
         accent: '#1e3a5f',
+        logo: 'casablanca',
         points: 50,
         boostMs: 1.45,
         speedBurst: 1.18
@@ -142,6 +147,7 @@ window.FASHION_ITEMS = [
         shape: 'polo',
         color: '#16a34a',
         accent: '#eab308',
+        logo: 'ralph',
         points: 48,
         boostMs: 1.35,
         speedBurst: 1.16
@@ -153,6 +159,7 @@ window.FASHION_ITEMS = [
         shape: 'tote',
         color: '#1e3a5f',
         accent: '#f5f0e6',
+        logo: 'dior',
         points: 60,
         boostMs: 1.65,
         speedBurst: 1.24

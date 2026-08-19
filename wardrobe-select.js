@@ -1,22 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const selectedCharacter = localStorage.getItem('selectedCharacter') || 'female';
     const characterDisplay = document.getElementById('selectedCharacter');
     const walkCanvas = document.getElementById('walkPreview');
     const walkLabel = document.getElementById('walkPreviewLabel');
-    const outfitOptions = document.getElementById('outfitOptions') || document.querySelector('.outfit-options');
-    const designerOptions = document.getElementById('designerOptions') || document.querySelector('.designer-options');
+    const outfitOptions = document.getElementById('outfitOptions');
+    const designerOptions = document.getElementById('designerOptions');
     const gaitOptions = document.getElementById('gaitOptions');
     const shopStatus = document.getElementById('shopStatus');
     const confirmOutfitBtn = document.getElementById('confirmOutfitBtn');
     const tabBtns = document.querySelectorAll('.tab-btn');
     const subtitle = document.getElementById('wardrobeSubtitle');
+    const modelToggle = document.getElementById('walkModelToggle');
 
     let selectedOutfit = null;
     let selectedGait = localStorage.getItem('selectedGait') || 'strut';
+    let walkModel = localStorage.getItem('walkPreviewModel')
+        || (localStorage.getItem('selectedCharacter') === 'male' ? 'male' : 'female');
+    if (walkModel !== 'male' && walkModel !== 'female') walkModel = 'female';
+
     let walkPreview = null;
     let walkRaf = 0;
     let lastWalkTs = 0;
     let activeTab = 'outfits';
+
+    const isMember = () => Boolean(window.RunwayAuth && RunwayAuth.getToken && RunwayAuth.getToken());
 
     const characterImages = {
         male: 'chibibrodoll.png',
@@ -25,16 +31,23 @@ document.addEventListener('DOMContentLoaded', () => {
         evening: 'chibidoll3.png'
     };
 
-    characterDisplay.src = characterImages[selectedCharacter] || 'chibidoll2.png';
+    characterDisplay.src = characterImages[localStorage.getItem('selectedCharacter') || 'female'] || 'chibidoll2.png';
 
-    const designerSets = window.DESIGNER_SETS || [];
+    const wardrobeItems = window.WARDROBE_ITEMS || [];
+    const shopPacks = (window.DESIGNER_SETS || []).filter((s) => s.membersOnly);
 
     const gaits = [
-        { id: 'strut', name: 'Strut', blurb: 'Classic runway pace + knee drive' },
-        { id: 'model', name: 'Model Walk', blurb: 'Slow hip-led glide' },
-        { id: 'power', name: 'Power Walk', blurb: 'Fast sharp arm swing' },
-        { id: 'sashay', name: 'Sashay', blurb: 'Bounce, sway & skirt swish' }
+        { id: 'strut', name: 'Strut', blurb: 'Classic runway pace', membersOnly: false },
+        { id: 'model', name: 'Model Walk', blurb: 'Slow hip-led glide', membersOnly: false },
+        { id: 'power', name: 'Power Walk', blurb: 'Members · sharp arm swing', membersOnly: true },
+        { id: 'sashay', name: 'Sashay', blurb: 'Members · bounce & sway', membersOnly: true }
     ];
+
+    function logoBadgeHtml(logoKey) {
+        const mark = window.getLogoMark && window.getLogoMark(logoKey);
+        if (!mark) return '';
+        return `<span class="logo-badge logo-${mark.monogram}" style="--logo-bg:${mark.bg};--logo-fg:${mark.color}" aria-hidden="true">${mark.label}</span>`;
+    }
 
     function fullOwnedSlots(pieces) {
         const owned = {};
@@ -44,93 +57,169 @@ document.addEventListener('DOMContentLoaded', () => {
         return owned;
     }
 
-    function createSetElement(set) {
+    function goSignup(next) {
+        const dest = next || 'wardrobe-select.html';
+        location.href = `signup.html?next=${encodeURIComponent(dest)}`;
+    }
+
+    function createItemElement(item) {
         const el = document.createElement('button');
         el.type = 'button';
-        el.className = 'outfit-option set-option';
-        el.style.setProperty('--set-accent', set.accent);
-        const swatches = (set.swatches || []).map((c) =>
+        el.className = 'outfit-option set-option' + (item.membersOnly ? ' is-locked' : '');
+        el.style.setProperty('--set-accent', item.accent);
+        const swatches = (item.swatches || []).map((c) =>
             `<span class="set-swatch" style="background:${c}"></span>`
         ).join('');
+        const lock = item.membersOnly
+            ? '<span class="lock-pill">Members</span>'
+            : '<span class="open-pill">Open</span>';
         el.innerHTML = `
+            <div class="set-card-top">
+                ${logoBadgeHtml(item.logo)}
+                ${lock}
+            </div>
             <div class="set-swatch-row">${swatches}</div>
             <div class="outfit-info">
-                <p class="set-designer">${set.designer}</p>
-                <h3>${set.name}</h3>
-                <p>${set.tagline}</p>
+                <p class="set-designer">${item.designer}</p>
+                <h3>${item.name}</h3>
+                <p>${item.tagline}</p>
             </div>
         `;
-        el.addEventListener('click', () => selectSet(el, set));
+        el.addEventListener('click', () => {
+            if (item.membersOnly && !isMember()) {
+                goSignup('wardrobe-select.html');
+                return;
+            }
+            selectItem(el, item);
+        });
         return el;
     }
 
-    function createShopElement(set) {
+    function createShopElement(pack) {
         const el = document.createElement('button');
         el.type = 'button';
-        el.className = 'designer-option shop-set-card';
-        el.style.setProperty('--set-accent', set.accent);
+        el.className = 'designer-option shop-set-card' + (pack.membersOnly ? ' is-locked' : '');
+        el.style.setProperty('--set-accent', pack.accent);
         el.innerHTML = `
-            <div class="set-swatch-row">${(set.swatches || []).slice(0, 4).map((c) =>
+            <div class="set-card-top">
+                ${logoBadgeHtml(pack.logo)}
+                <span class="lock-pill">Members</span>
+            </div>
+            <div class="set-swatch-row">${(pack.swatches || []).slice(0, 4).map((c) =>
                 `<span class="set-swatch" style="background:${c}"></span>`
             ).join('')}</div>
-            <p class="set-designer">${set.designer}</p>
-            <p class="shop-set-name">${set.name}</p>
-            <span class="shop-cta">Checkout set</span>
+            <p class="set-designer">${pack.designer}</p>
+            <p class="shop-set-name">${pack.name}</p>
+            <span class="shop-cta">${isMember() ? 'Checkout' : 'Sign up to unlock'}</span>
         `;
-        el.addEventListener('click', () => checkoutSet(set));
+        el.addEventListener('click', () => {
+            if (!isMember()) {
+                goSignup('store.html');
+                return;
+            }
+            checkoutPack(pack);
+        });
         return el;
     }
 
     function createGaitElement(gait) {
+        const locked = gait.membersOnly && !isMember();
         const el = document.createElement('button');
         el.type = 'button';
-        el.className = 'gait-option' + (gait.id === selectedGait ? ' selected' : '');
+        el.className = 'gait-option'
+            + (gait.id === selectedGait ? ' selected' : '')
+            + (locked ? ' is-locked' : '');
         el.dataset.gait = gait.id;
         el.innerHTML = `
-            <span class="gait-name">${gait.name}</span>
+            <span class="gait-name">${gait.name}${locked ? ' · 🔒' : ''}</span>
             <span class="gait-blurb">${gait.blurb}</span>
         `;
         el.addEventListener('click', () => {
+            if (gait.membersOnly && !isMember()) {
+                goSignup('wardrobe-select.html');
+                return;
+            }
             selectedGait = gait.id;
             localStorage.setItem('selectedGait', selectedGait);
             document.querySelectorAll('.gait-option').forEach((n) => n.classList.remove('selected'));
             el.classList.add('selected');
             if (walkPreview && walkPreview.avatar) {
                 walkPreview.avatar.setGait(selectedGait);
+                walkPreview.setCameraMode('side');
             }
-            if (subtitle) subtitle.textContent = `${gait.name} · walking in place`;
+            if (subtitle) subtitle.textContent = `${gait.name} · side profile`;
+            if (walkLabel) walkLabel.textContent = `${walkModel === 'male' ? 'Male' : 'Female'} · ${gait.name}`;
         });
         return el;
     }
 
-    designerSets.forEach((set) => outfitOptions.appendChild(createSetElement(set)));
-    designerSets.forEach((set) => designerOptions.appendChild(createShopElement(set)));
-    if (gaitOptions) gaits.forEach((g) => gaitOptions.appendChild(createGaitElement(g)));
+    wardrobeItems.forEach((item) => outfitOptions.appendChild(createItemElement(item)));
+    shopPacks.forEach((pack) => designerOptions.appendChild(createShopElement(pack)));
+    if (gaitOptions) {
+        // If saved gait is locked and guest, fall back to strut
+        const saved = gaits.find((g) => g.id === selectedGait);
+        if (saved && saved.membersOnly && !isMember()) {
+            selectedGait = 'strut';
+            localStorage.setItem('selectedGait', 'strut');
+        }
+        gaits.forEach((g) => gaitOptions.appendChild(createGaitElement(g)));
+    }
 
-    function selectSet(element, set) {
+    if (modelToggle) {
+        modelToggle.querySelectorAll('.model-toggle-btn').forEach((btn) => {
+            btn.classList.toggle('selected', btn.dataset.model === walkModel);
+            btn.addEventListener('click', () => {
+                walkModel = btn.dataset.model;
+                localStorage.setItem('walkPreviewModel', walkModel);
+                modelToggle.querySelectorAll('.model-toggle-btn').forEach((b) => {
+                    b.classList.toggle('selected', b.dataset.model === walkModel);
+                });
+                rebuildWalkPreview();
+                if (walkLabel) walkLabel.textContent = `${walkModel === 'male' ? 'Male' : 'Female'} · ${selectedGait}`;
+            });
+        });
+    }
+
+    function selectItem(element, item) {
         document.querySelectorAll('.outfit-option').forEach((opt) => opt.classList.remove('selected'));
         element.classList.add('selected');
         selectedOutfit = {
-            id: set.id,
-            name: set.name,
-            designer: set.designer,
-            image: set.image || characterImages[selectedCharacter],
-            showId: set.showId,
-            city: set.city,
-            pieces: set.pieces,
-            accent: set.accent,
-            storeId: set.storeId
+            id: item.id,
+            name: item.name,
+            designer: item.designer,
+            image: item.image || characterImages.female,
+            showId: item.showId,
+            city: item.city,
+            pieces: item.pieces,
+            accent: item.accent,
+            storeId: item.storeId,
+            logo: item.logo,
+            membersOnly: !!item.membersOnly
         };
         characterDisplay.src = selectedOutfit.image;
-        applyWalkOutfit(set);
-        if (subtitle) subtitle.textContent = `${set.designer} · ${set.name}`;
+        applyWalkOutfit(item);
+        if (subtitle) subtitle.textContent = `${item.designer} · ${item.name}`;
     }
 
-    function applyWalkOutfit(set) {
-        if (!walkPreview || !walkPreview.avatar || !set) return;
-        const pieces = set.pieces || [];
-        const owned = fullOwnedSlots(pieces);
-        walkPreview.avatar.applyPieceColors(pieces, owned);
+    function applyWalkOutfit(item) {
+        if (!walkPreview || !walkPreview.avatar || !item) return;
+        const pieces = item.pieces || [];
+        walkPreview.avatar.applyPieceColors(pieces, fullOwnedSlots(pieces));
+    }
+
+    function disposeWalkPreview() {
+        cancelAnimationFrame(walkRaf);
+        walkRaf = 0;
+        if (walkPreview && walkPreview.renderer) {
+            try { walkPreview.renderer.dispose(); } catch (_) { /* ignore */ }
+        }
+        walkPreview = null;
+    }
+
+    function rebuildWalkPreview() {
+        disposeWalkPreview();
+        ensureWalkPreview();
+        if (activeTab === 'walk') startWalkLoop();
     }
 
     function ensureWalkPreview() {
@@ -141,15 +230,15 @@ document.addEventListener('DOMContentLoaded', () => {
             walkCanvas.width = w;
             walkCanvas.height = h;
             walkPreview = window.Runway3D.createRenderer(walkCanvas, window.THREE, {
-                characterId: selectedCharacter
+                characterId: walkModel
             });
             walkPreview.resize(w, h);
-            walkPreview.setCameraMode('back');
+            walkPreview.setCameraMode('side');
             if (walkPreview.avatar.setGait) walkPreview.avatar.setGait(selectedGait);
-            if (selectedOutfit && selectedOutfit.pieces) {
-                applyWalkOutfit(selectedOutfit);
-            } else if (designerSets[0]) {
-                applyWalkOutfit(designerSets[0]);
+            if (selectedOutfit && selectedOutfit.pieces) applyWalkOutfit(selectedOutfit);
+            else {
+                const open = wardrobeItems.find((i) => !i.membersOnly) || wardrobeItems[0];
+                if (open) applyWalkOutfit(open);
             }
         } catch (err) {
             console.warn('Walk preview unavailable', err);
@@ -164,9 +253,12 @@ document.addEventListener('DOMContentLoaded', () => {
         characterDisplay.style.display = 'none';
         walkCanvas.hidden = false;
         walkCanvas.style.display = 'block';
-        if (walkLabel) walkLabel.hidden = false;
+        if (walkLabel) {
+            walkLabel.hidden = false;
+            walkLabel.textContent = `${walkModel === 'male' ? 'Male' : 'Female'} · ${selectedGait}`;
+        }
+        walkPreview.setCameraMode('side');
         if (selectedOutfit && selectedOutfit.pieces) applyWalkOutfit(selectedOutfit);
-        else if (designerSets[0]) applyWalkOutfit(designerSets[0]);
         cancelAnimationFrame(walkRaf);
         lastWalkTs = performance.now();
 
@@ -203,16 +295,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (walkLabel) walkLabel.hidden = true;
     }
 
-    async function checkoutSet(set) {
-        if (!window.RunwayAuth || !RunwayAuth.getToken || !RunwayAuth.getToken()) {
-            location.href = `login.html?next=${encodeURIComponent('store.html')}`;
-            return;
-        }
-        const itemId = set.storeId || set.id;
+    async function checkoutPack(pack) {
+        const itemId = pack.storeId || pack.id;
         try {
             if (shopStatus) {
                 shopStatus.hidden = false;
-                shopStatus.textContent = `Opening checkout for ${set.name}…`;
+                shopStatus.textContent = `Opening checkout for ${pack.name}…`;
                 shopStatus.classList.remove('err');
                 shopStatus.classList.add('ok');
             }
@@ -223,14 +311,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ itemId, successUrl, cancelUrl })
             });
             if (data.free) {
-                if (shopStatus) shopStatus.textContent = `Added ${set.name} to your closet.`;
+                if (shopStatus) shopStatus.textContent = `Added ${pack.name} to your closet.`;
                 return;
             }
             if (data.url) {
                 location.href = data.url.startsWith('http') ? data.url : data.url;
                 return;
             }
-            location.href = `store.html`;
+            location.href = 'store.html';
         } catch (ex) {
             if (shopStatus) {
                 shopStatus.hidden = false;
@@ -244,14 +332,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirmOutfitBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        if (selectedOutfit && selectedOutfit.membersOnly && !isMember()) {
+            goSignup('wardrobe-select.html');
+            return;
+        }
+        const gaitMeta = gaits.find((g) => g.id === selectedGait);
+        if (gaitMeta && gaitMeta.membersOnly && !isMember()) {
+            selectedGait = 'strut';
+        }
         localStorage.setItem('selectedGait', selectedGait || 'strut');
+        localStorage.setItem('walkPreviewModel', walkModel);
         if (selectedOutfit) {
             localStorage.setItem('selectedOutfit', JSON.stringify(selectedOutfit));
             if (selectedOutfit.city) localStorage.setItem('selectedMap', selectedOutfit.city);
             if (selectedOutfit.showId) localStorage.setItem('selectedShow', selectedOutfit.showId);
             window.location.href = 'map-select.html';
         } else {
-            alert('Please select a designer set before confirming.');
+            alert('Please select a look before confirming.');
         }
     });
 
@@ -263,13 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(tabName).classList.add('active');
             tabBtns.forEach((b) => b.classList.remove('active'));
             btn.classList.add('active');
-
             if (tabName === 'walk') startWalkLoop();
             else stopWalkLoop();
         });
     });
 
-    // Prefill first set selection for faster confirm
-    const firstSetBtn = outfitOptions.querySelector('.set-option');
-    if (firstSetBtn && designerSets[0]) selectSet(firstSetBtn, designerSets[0]);
+    const firstOpen = wardrobeItems.find((i) => !i.membersOnly) || wardrobeItems[0];
+    const firstBtn = outfitOptions.querySelector('.set-option:not(.is-locked)') || outfitOptions.querySelector('.set-option');
+    if (firstBtn && firstOpen) selectItem(firstBtn, firstOpen);
 });
