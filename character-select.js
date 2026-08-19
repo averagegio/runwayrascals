@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const characterType = selectedCharacter.dataset.character;
             localStorage.setItem('selectedCharacter', characterType);
             localStorage.setItem('selectedCharacterImage', defaultImages[characterType] || 'chibidoll2.png');
-            window.location.href = 'wardrobe-select.html';
+            window.location.href = 'character-create.html';
         } else {
             alert('Please select a character before confirming.');
         }

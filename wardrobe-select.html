@@ -16,7 +16,7 @@
     <div class="phone-frame">
         <div class="app-container wardrobe-select-bg">
             <div class="page-nav">
-                <a href="character-select.html" class="game-btn back-btn"><span class="btn-text">Back</span></a>
+                <a href="character-create.html" class="game-btn back-btn"><span class="btn-text">Back</span></a>
                 <a href="store.html" class="game-btn"><span class="btn-text">Checkout</span></a>
             </div>
             <div class="game-header">
@@ -39,10 +39,20 @@
                     <div class="outfit-options" id="outfitOptions"></div>
                 </div>
                 <div id="walk" class="tab-content">
-                    <p class="walk-hint">Side profile walk — switch model &amp; gait</p>
+                    <p class="walk-hint">360° orbit — front · side · back as you slide</p>
                     <div class="walk-model-toggle" id="walkModelToggle" role="group" aria-label="Model">
                         <button type="button" class="model-toggle-btn" data-model="female">Female</button>
                         <button type="button" class="model-toggle-btn" data-model="male">Male</button>
+                    </div>
+                    <div class="orbit-slider-wrap">
+                        <label class="orbit-label" for="orbitSlider">
+                            <span id="orbitAngleLabel">Front</span>
+                            <span id="orbitDegLabel">0°</span>
+                        </label>
+                        <input type="range" id="orbitSlider" min="0" max="360" value="90" step="1" aria-label="360 orbit" />
+                        <div class="orbit-ticks" aria-hidden="true">
+                            <span>Front</span><span>Side</span><span>Back</span><span>Side</span><span>Front</span>
+                        </div>
                     </div>
                     <div class="gait-options" id="gaitOptions"></div>
                 </div>
@@ -53,7 +63,7 @@
                 </div>
             </div>
             <div class="game-footer">
-                <a href="character-select.html" class="game-btn back-btn">
+                <a href="character-create.html" class="game-btn back-btn">
                     <span class="btn-text">Back</span>
                     <span class="btn-shine"></span>
                 </a>
@@ -67,7 +77,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="auth-client.js"></script>
     <script src="designer-sets.js"></script>
-    <script src="character-3d.js?v=logo2"></script>
-    <script src="wardrobe-select.js?v=members2"></script>
+    <script src="character-3d.js?v=create1"></script>
+    <script src="wardrobe-select.js?v=orbit1"></script>
 </body>
 </html>

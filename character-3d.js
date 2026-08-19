@@ -310,24 +310,74 @@
             headGroup.add(earringR);
         }
 
-        // Hidden face cards (palette only)
-        const faceGeo = new THREE.PlaneGeometry(0.72, 0.78);
-        const faceMat = new THREE.MeshBasicMaterial({
-            transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, visible: false
+        // Stand-in face cards — chibi lookalike billboards on the head
+        const faceGeo = new THREE.PlaneGeometry(0.88, 0.96);
+        const faceMatFront = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 1,
+            depthWrite: false,
+            side: THREE.DoubleSide
         });
-        const faceFront = new THREE.Mesh(faceGeo, faceMat);
-        faceFront.visible = false;
+        const faceMatBack = faceMatFront.clone();
+        const faceFront = new THREE.Mesh(faceGeo, faceMatFront);
+        faceFront.position.set(0, 0.02, 0.4);
+        faceFront.visible = true;
+        faceFront.name = 'faceFront';
         headGroup.add(faceFront);
-        const faceBack = new THREE.Mesh(faceGeo.clone(), faceMat.clone());
+        const faceBack = new THREE.Mesh(faceGeo.clone(), faceMatBack);
+        faceBack.position.set(0, 0.02, -0.4);
+        faceBack.rotation.y = Math.PI;
         faceBack.visible = false;
+        faceBack.name = 'faceBack';
         headGroup.add(faceBack);
+
+        // Soften procedural face features under the billboard
+        eyeL.visible = false;
+        eyeR.visible = false;
+        browL.visible = false;
+        browR.visible = false;
+        mouth.visible = false;
+
+        function applyStandInFace(src) {
+            const url = src || profile.src;
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const c = document.createElement('canvas');
+                c.width = 256;
+                c.height = 256;
+                const g = c.getContext('2d');
+                // Focus on upper body / face of stand-in art
+                const sw = img.width;
+                const sh = img.height;
+                const cropH = sh * 0.55;
+                g.drawImage(img, 0, 0, sw, cropH, 0, 0, 256, 256);
+                const tex = new THREE.CanvasTexture(c);
+                tex.needsUpdate = true;
+                faceMatFront.map = tex;
+                faceMatFront.needsUpdate = true;
+                faceMatBack.map = tex;
+                faceMatBack.needsUpdate = true;
+                // Sample mid tones into skin/hair for body match
+                try {
+                    const sample = g.getImageData(120, 140, 1, 1).data;
+                    const hex = (sample[0] << 16) | (sample[1] << 8) | sample[2];
+                    mats.skin.color.setHex(hex);
+                } catch (_) { /* tainted canvas ok to skip */ }
+            };
+            img.onerror = () => { /* keep mesh face */ };
+            img.src = url;
+        }
+        applyStandInFace(options.faceSrc || profile.src);
 
         const loader = new THREE.TextureLoader();
         loader.load(profile.src, () => {
             mats.hair.color.setHex(profile.hair);
-            mats.skin.color.setHex(profile.skin);
             browMat.color.setHex(profile.hair);
         }, undefined, () => { /* keep defaults */ });
+
+        // Chibi proportions — larger head relative to body
+        headGroup.scale.set(1.15, 1.15, 1.15);
 
         const skirt = mesh(new THREE.CylinderGeometry(0.2, 0.48, 0.4, 10, 1, true), mats.bottoms.clone());
         skirt.position.y = -0.1;
@@ -508,9 +558,86 @@
             setOwnedSlots(ownedSlots);
         }
 
-        function setCameraFacing() {
-            faceFront.visible = false;
-            faceBack.visible = false;
+        function setCameraFacing(mode) {
+            // Face billboard toward camera for front / orbit angles
+            if (mode === 'back') {
+                faceFront.visible = false;
+                faceBack.visible = true;
+            } else if (mode === 'side') {
+                faceFront.visible = true;
+                faceBack.visible = false;
+            } else {
+                faceFront.visible = true;
+                faceBack.visible = false;
+            }
+        }
+
+        function syncFaceToYaw(yawRad) {
+            const y = ((yawRad % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+            // Front hemisphere when facing camera (yaw near 0)
+            const frontish = y < Math.PI * 0.55 || y > Math.PI * 1.45;
+            faceFront.visible = frontish;
+            faceBack.visible = !frontish;
+        }
+
+        function applyScanTexture(slot, imageSource) {
+            return new Promise((resolve, reject) => {
+                if (!imageSource) {
+                    reject(new Error('No image'));
+                    return;
+                }
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const c = document.createElement('canvas');
+                    c.width = 256;
+                    c.height = 256;
+                    const g = c.getContext('2d');
+                    g.drawImage(img, 0, 0, 256, 256);
+                    const tex = new THREE.CanvasTexture(c);
+                    tex.needsUpdate = true;
+                    const target = slot === 'outer' ? 'outer'
+                        : slot === 'bottoms' ? 'bottoms'
+                            : 'top';
+                    const mat = mats[target];
+                    if (mat.map) {
+                        try { mat.map.dispose(); } catch (_) { /* ignore */ }
+                    }
+                    mat.map = tex;
+                    mat.color.setHex(0xffffff);
+                    mat.needsUpdate = true;
+                    mat.userData.dressed = 'scan';
+                    mat.userData.pattern = 'scan';
+                    if (target === 'top') {
+                        sleeveL.material = mat;
+                        sleeveR.material = mat;
+                    }
+                    if (target === 'outer') {
+                        outer.visible = true;
+                        collar.visible = true;
+                        outer.material = mat;
+                    }
+                    if (target === 'bottoms') {
+                        skirt.visible = true;
+                        skirt.material = mat.clone();
+                        skirt.material.side = THREE.DoubleSide;
+                        legLMesh.material = mat;
+                        legRMesh.material = mat;
+                    }
+                    resolve(target);
+                };
+                img.onerror = () => reject(new Error('Could not load wardrobe image'));
+                img.src = imageSource;
+            });
+        }
+
+        function applySavedScans(scans) {
+            if (!scans || typeof scans !== 'object') return Promise.resolve();
+            const jobs = [];
+            ['top', 'bottoms', 'outer'].forEach((slot) => {
+                if (scans[slot]) jobs.push(applyScanTexture(slot, scans[slot]));
+            });
+            return Promise.all(jobs);
         }
 
         let walkT = 0;
@@ -745,13 +872,22 @@
         dressMaterial('bottoms', 0x9ca3af, 'denim');
         dressMaterial('shoes', 0x6b7280, 'leather');
 
+        // Create-flow wardrobe scans override base fabric
+        if (options.scans) {
+            setTimeout(() => applySavedScans(options.scans), 0);
+        }
+
         return {
             root,
             applyPieceColors,
             setOwnedSlots,
             setCameraFacing,
+            syncFaceToYaw,
             setGait,
             playDressSnap,
+            applyScanTexture,
+            applySavedScans,
+            applyStandInFace,
             update,
             playBeg,
             mats,
@@ -766,12 +902,12 @@
         const renderer = new THREE.WebGLRenderer({
             canvas,
             alpha: true,
-            antialias: false,
+            antialias: true,
             preserveDrawingBuffer: false,
             powerPreference: 'high-performance'
         });
         renderer.setClearColor(0x000000, 0);
-        renderer.setPixelRatio(1);
+        renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
@@ -796,6 +932,8 @@
         const avatar = createAvatar(THREE, options);
         scene.add(avatar.root);
 
+        let orbitYaw = 0;
+
         function resize(w, h) {
             renderer.setSize(w, h, false);
             camera.aspect = w / Math.max(1, h);
@@ -804,29 +942,47 @@
 
         function setCameraMode(mode) {
             avatar.setCameraFacing(mode);
-            camera.fov = mode === 'side' ? 34 : 36;
+            camera.fov = 36;
+            camera.position.set(0, 1.05, 2.85);
+            camera.lookAt(0, 1.0, 0);
             if (mode === 'front') {
-                camera.position.set(0, 1.05, 2.75);
-                camera.lookAt(0, 1.0, 0);
-                avatar.root.rotation.y = 0;
+                orbitYaw = 0;
             } else if (mode === 'side') {
-                // Camera on +X, character faces +Z → clear side silhouette for gait
-                camera.position.set(3.05, 1.08, 0);
-                camera.lookAt(0, 1.02, 0);
-                avatar.root.rotation.y = 0;
-            } else {
-                camera.position.set(0, 1.05, 2.75);
-                camera.lookAt(0, 1.0, 0);
-                avatar.root.rotation.y = Math.PI;
+                orbitYaw = Math.PI / 2;
+            } else if (mode === 'back') {
+                orbitYaw = Math.PI;
             }
+            avatar.root.rotation.y = orbitYaw;
             camera.updateProjectionMatrix();
         }
 
+        /** Continuous 360° orbit — degrees 0=front, 90=side, 180=back */
+        function setOrbitYaw(degrees) {
+            const deg = Number(degrees) || 0;
+            orbitYaw = (deg * Math.PI) / 180;
+            avatar.root.rotation.y = orbitYaw;
+            if (avatar.syncFaceToYaw) avatar.syncFaceToYaw(orbitYaw);
+            camera.position.set(0, 1.05, 2.85);
+            camera.lookAt(0, 1.0, 0);
+            camera.fov = 36;
+            camera.updateProjectionMatrix();
+            return orbitYaw;
+        }
+
+        function getOrbitYawDegrees() {
+            return ((orbitYaw * 180) / Math.PI + 360) % 360;
+        }
+
         function render() {
+            // Keep orbit while gait animates (update clears x/z only)
+            avatar.root.rotation.y = orbitYaw;
             renderer.render(scene, camera);
         }
 
-        return { renderer, scene, camera, avatar, resize, setCameraMode, render };
+        return {
+            renderer, scene, camera, avatar, resize,
+            setCameraMode, setOrbitYaw, getOrbitYawDegrees, render
+        };
     }
 
     global.Runway3D = { createAvatar, createRenderer, CHARACTER_LIBRARY, GAIT_PRESETS };
