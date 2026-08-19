@@ -1615,15 +1615,15 @@
 
         // Name + @tag over the 3D model
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px Fredoka One, sans-serif';
+        ctx.font = '600 12px Syne, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(characterName, x, y - ph - 22);
+        ctx.fillText(characterName, x, footY - ph - 22);
         ctx.fillStyle = show?.accent || theme.accent;
-        ctx.font = 'bold 11px Fredoka One, sans-serif';
-        ctx.fillText(`@${gamerTag}`, x, y - ph - 8);
+        ctx.font = '600 11px Syne, sans-serif';
+        ctx.fillText(`@${gamerTag}`, x, footY - ph - 8);
         ctx.fillStyle = 'rgba(255,255,255,0.75)';
-        ctx.font = 'bold 10px Fredoka One, sans-serif';
-        ctx.fillText(cameraMode === 'front' ? 'FRONT CAM' : 'BACK CAM', x, y - ph - 36);
+        ctx.font = '600 10px Syne, sans-serif';
+        ctx.fillText(cameraMode === 'front' ? 'FRONT CAM' : 'BACK CAM', x, footY - ph - 36);
 
         if (isJumping) {
             ctx.fillStyle = theme.accent;

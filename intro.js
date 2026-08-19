@@ -1,5 +1,5 @@
 /**
- * Intro: feather pen writes interlocking RR, then swipe-up reveals home.
+ * Intro: slow cursive R → shoelace flourish → askew cursive R, then swipe-up.
  */
 (function () {
     const splash = document.getElementById('introSplash');
@@ -21,17 +21,17 @@
     }
 
     const pathL = document.getElementById('rrPathL');
+    const pathLace = document.getElementById('rrPathLace');
     const pathR = document.getElementById('rrPathR');
     const pen = document.getElementById('introPen');
     const stage = document.getElementById('introWriteStage');
-    const cast = document.getElementById('introCast');
     const swipeHint = document.getElementById('introSwipeHint');
     const brand = splash.querySelector('.brand');
     const sub = splash.querySelector('.sub');
     const rule = splash.querySelector('.intro-rule');
 
     function pathLen(el) {
-        try { return el.getTotalLength(); } catch (_) { return 420; }
+        try { return el.getTotalLength(); } catch (_) { return 400; }
     }
 
     function preparePath(el) {
@@ -43,26 +43,46 @@
     }
 
     const lenL = preparePath(pathL);
+    const lenLace = preparePath(pathLace);
     const lenR = preparePath(pathR);
 
     function placePen(pathEl, t, len) {
         if (!pen || !pathEl || !stage) return;
         const d = Math.max(0, Math.min(1, t)) * len;
         const pt = pathEl.getPointAtLength(d);
+        // Account for nested transform on askew R by using getScreenCTM when available
         const svg = document.getElementById('rrMonogramSvg');
-        const box = svg.viewBox.baseVal;
-        pen.style.left = (pt.x / box.width) * 100 + '%';
-        pen.style.top = (pt.y / box.height) * 100 + '%';
+        const ctm = pathEl.getScreenCTM();
+        const svgCtm = svg.getScreenCTM();
+        if (ctm && svgCtm) {
+            const ptDom = svg.createSVGPoint();
+            ptDom.x = pt.x;
+            ptDom.y = pt.y;
+            const screen = ptDom.matrixTransform(ctm);
+            const local = screen.matrixTransform(svgCtm.inverse());
+            const box = svg.viewBox.baseVal;
+            pen.style.left = (local.x / box.width) * 100 + '%';
+            pen.style.top = (local.y / box.height) * 100 + '%';
+        } else {
+            const box = svg.viewBox.baseVal;
+            pen.style.left = (pt.x / box.width) * 100 + '%';
+            pen.style.top = (pt.y / box.height) * 100 + '%';
+        }
         pen.classList.add('is-writing');
     }
 
-    const WRITE_MS = 2400;
-    const GAP_MS = 200;
+    // Slow, deliberate cursive timing
+    const WRITE1_MS = 3400;
+    const LACE_MS = 1600;
+    const WRITE2_MS = 3200;
+    const HOLD_MS = 400;
+
     let readyToSwipe = false;
     let dismissing = false;
 
     function finishWrite() {
         if (pathL) pathL.style.strokeDashoffset = '0';
+        if (pathLace) pathLace.style.strokeDashoffset = '0';
         if (pathR) pathR.style.strokeDashoffset = '0';
         if (pen) {
             pen.classList.remove('is-writing');
@@ -71,7 +91,6 @@
         if (brand) brand.classList.add('is-in');
         if (sub) sub.classList.add('is-in');
         if (rule) rule.classList.add('is-in');
-        if (cast) cast.classList.add('is-visible');
         if (swipeHint) swipeHint.classList.add('is-visible');
         splash.classList.add('intro-ready');
         readyToSwipe = true;
@@ -89,32 +108,50 @@
         }, 780);
     }
 
+    function easeInOut(t) {
+        return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    }
+
     const t0 = performance.now();
     function frame(now) {
         const elapsed = now - t0;
-        if (elapsed < WRITE_MS) {
-            const t = elapsed / WRITE_MS;
+
+        if (elapsed < WRITE1_MS) {
+            const t = easeInOut(elapsed / WRITE1_MS);
             if (pathL) pathL.style.strokeDashoffset = String(lenL * (1 - t));
             placePen(pathL, t, lenL);
             requestAnimationFrame(frame);
             return;
         }
-        if (elapsed < WRITE_MS + GAP_MS) {
-            if (pathL) pathL.style.strokeDashoffset = '0';
+
+        if (pathL) pathL.style.strokeDashoffset = '0';
+
+        if (elapsed < WRITE1_MS + LACE_MS) {
+            const t = easeInOut((elapsed - WRITE1_MS) / LACE_MS);
+            if (pathLace) pathLace.style.strokeDashoffset = String(lenLace * (1 - t));
+            placePen(pathLace, t, lenLace);
             requestAnimationFrame(frame);
             return;
         }
-        const t2 = (elapsed - WRITE_MS - GAP_MS) / WRITE_MS;
-        if (t2 < 1) {
-            if (pathR) pathR.style.strokeDashoffset = String(lenR * (1 - t2));
-            placePen(pathR, t2, lenR);
+
+        if (pathLace) pathLace.style.strokeDashoffset = '0';
+
+        if (elapsed < WRITE1_MS + LACE_MS + WRITE2_MS) {
+            const t = easeInOut((elapsed - WRITE1_MS - LACE_MS) / WRITE2_MS);
+            if (pathR) pathR.style.strokeDashoffset = String(lenR * (1 - t));
+            placePen(pathR, t, lenR);
             requestAnimationFrame(frame);
             return;
         }
+
+        if (elapsed < WRITE1_MS + LACE_MS + WRITE2_MS + HOLD_MS) {
+            requestAnimationFrame(frame);
+            return;
+        }
+
         finishWrite();
     }
 
-    // Swipe / wheel / click to enter
     let touchY0 = null;
     splash.addEventListener('touchstart', function (e) {
         if (!e.touches[0]) return;
