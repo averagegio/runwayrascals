@@ -1195,4 +1195,80 @@ body, html {
 .store-status.ok { background: rgba(22,101,52,0.85); color: #bbf7d0; }
 .store-status.err { background: rgba(127,29,29,0.85); color: #fecaca; }
 .store-card.owned { opacity: 0.7; }
-.unlock-line { color: #fbbf24 !important; }
+.restart-btn {
+    background: linear-gradient(45deg, #22c55e, #86efac) !important;
+    color: #052e16 !important;
+    min-width: 160px;
+}
+.exit-btn {
+    background: linear-gradient(45deg, #64748b, #94a3b8) !important;
+    color: #0f172a !important;
+}
+.pause-menu .game-btn {
+    display: block;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+#exitGameBtn {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+}
+
+/* Difficulty power scale */
+.difficulty-panel {
+    width: 94%;
+    margin: 4px auto 10px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    background: rgba(0,0,0,0.45);
+    text-align: center;
+}
+.difficulty-label {
+    color: #fff;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.9;
+}
+.difficulty-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+.difficulty-btn {
+    border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-radius: 12px;
+    padding: 8px 4px;
+    font-size: 11px;
+    font-family: 'Fredoka One', cursive;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.difficulty-btn.selected {
+    border-color: var(--diff-accent, #FFD700);
+    background: color-mix(in srgb, var(--diff-accent, #FFD700) 35%, transparent);
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 1px var(--diff-accent, #FFD700);
+}
+.difficulty-hint {
+    margin-top: 8px;
+    color: #fde68a;
+    font-size: 11px;
+    line-height: 1.3;
+}
+.hud-difficulty {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fde68a;
+    margin-bottom: 2px;
+}
+.hud-difficulty[data-level="easy"] { color: #86efac; }
+.hud-difficulty[data-level="medium"] { color: #fde68a; }
+.hud-difficulty[data-level="hard"] { color: #fdba74; }
+.hud-difficulty[data-level="impossible"] { color: #fca5a5; }

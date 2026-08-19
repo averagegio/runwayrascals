@@ -123,7 +123,20 @@
         }
 
         let walkT = 0;
-        function update(dt, { jumping, sliding, dressing }) {
+        function update(dt, { jumping, sliding, dressing, dying, deathT }) {
+            if (dying) {
+                const t = Math.min(1, (deathT || 0) / 1.15);
+                root.rotation.z = t * Math.PI * 1.35;
+                root.rotation.x = t * 0.9;
+                root.position.y = Math.sin(t * Math.PI) * 0.35 - t * 0.55;
+                root.position.x = Math.sin(t * 10) * 0.08;
+                const s = 1 - t * 0.25;
+                root.scale.set(s, s * (1 - t * 0.35), s);
+                return;
+            }
+            root.rotation.z = 0;
+            root.rotation.x = 0;
+            root.position.x = 0;
             walkT += dt * (sliding ? 2 : 8);
             const swing = Math.sin(walkT) * (jumping ? 0.05 : 0.35);
             legL.rotation.x = swing;

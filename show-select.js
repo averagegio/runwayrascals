@@ -1,4 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const DIFFICULTIES = [
+        {
+            id: 'easy',
+            label: 'Easy',
+            hint: 'Easy — slower runway, more time to dodge',
+            accent: '#22c55e'
+        },
+        {
+            id: 'medium',
+            label: 'Medium',
+            hint: 'Medium — balanced runway pace',
+            accent: '#eab308'
+        },
+        {
+            id: 'hard',
+            label: 'Hard',
+            hint: 'Hard — faster walk, denser barriers',
+            accent: '#f97316'
+        },
+        {
+            id: 'impossible',
+            label: 'Impossible',
+            hint: 'Impossible — blistering speed that keeps climbing',
+            accent: '#ef4444'
+        }
+    ];
+
     let cityId = 'newyork';
     let cityName = 'New York';
     try {
@@ -15,7 +42,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const shows = window.getShowsForCity(cityId);
     const list = document.getElementById('showList');
     const confirmBtn = document.getElementById('confirmShowBtn');
+    const diffRoot = document.getElementById('difficultyOptions');
+    const diffHint = document.getElementById('difficultyHint');
     let selected = null;
+    let selectedDifficulty = 'medium';
+
+    try {
+        const savedDiff = localStorage.getItem('selectedDifficulty');
+        if (savedDiff && DIFFICULTIES.some((d) => d.id === savedDiff)) {
+            selectedDifficulty = savedDiff;
+        }
+    } catch (_) { /* ignore */ }
+
+    DIFFICULTIES.forEach((diff) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'difficulty-btn';
+        btn.dataset.difficulty = diff.id;
+        btn.style.setProperty('--diff-accent', diff.accent);
+        btn.textContent = diff.label;
+        if (diff.id === selectedDifficulty) btn.classList.add('selected');
+        btn.addEventListener('click', () => {
+            selectedDifficulty = diff.id;
+            diffRoot.querySelectorAll('.difficulty-btn').forEach((b) => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if (diffHint) diffHint.textContent = diff.hint;
+        });
+        diffRoot.appendChild(btn);
+    });
+    const initial = DIFFICULTIES.find((d) => d.id === selectedDifficulty);
+    if (diffHint && initial) diffHint.textContent = initial.hint;
 
     shows.forEach((show) => {
         const el = document.createElement('button');
@@ -56,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Pick a designer show to walk for.');
             return;
         }
+        localStorage.setItem('selectedDifficulty', selectedDifficulty);
         localStorage.setItem('selectedShow', JSON.stringify({
             id: selected.id,
             cityId,
