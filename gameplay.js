@@ -720,9 +720,9 @@
 
         if (isJumping) {
             jumpT += dt;
-            const dur = 0.55;
+            const dur = 0.65;
             const p = Math.min(1, jumpT / dur);
-            playerYOffset = Math.sin(p * Math.PI) * Math.min(48, height * 0.06) * jumpMult;
+            playerYOffset = Math.sin(p * Math.PI) * Math.min(72, height * 0.09) * jumpMult;
             if (p >= 1) {
                 isJumping = false;
                 playerYOffset = 0;
@@ -1318,31 +1318,32 @@
     }
 
     function drawAudienceBanks() {
-        // Single-file fashion seating — clear gaps along each bank (no stacked rows)
-        const seatSpacing = 95;
-        const ahead = 18;
+        // Fashion-front seating: spaced singles along each bank (skip far scrapes)
+        const seatSpacing = 150;
+        const ahead = 12;
         const startSlot = Math.floor(distance / seatSpacing) - 1;
         const scroll = distance % seatSpacing;
 
         for (let slot = startSlot; slot < startSlot + ahead; slot++) {
             const worldZ = slot * seatSpacing - scroll;
-            if (worldZ < -40 || worldZ > 520) continue;
+            // Keep guests in the readable near/mid field — far ones look scrunched by perspective
+            if (worldZ < -20 || worldZ > 280) continue;
 
             const seed = Math.abs((slot * 47) % 97);
-            // Occasional empty chair for a natural rhythm
-            if (seed % 5 === 0) continue;
+            if (seed % 4 === 0) continue; // empty chairs for rhythm
 
             for (let side = -1; side <= 1; side += 2) {
-                // Mild stagger so left/right banks aren't mirrored clones
-                const zOff = side < 0 ? (slot % 2) * 12 : ((slot + 1) % 2) * 12;
+                const zOff = side < 0 ? (slot % 2) * 18 : ((slot + 1) % 2) * 18;
                 const p = project(Math.max(0, worldZ + zOff), side < 0 ? 0 : 2);
-                const lateral = 125 * (0.78 + 0.22 * p.t);
+                if (p.scale < 0.42) continue;
+
+                const lateral = 145 * (0.82 + 0.18 * p.t);
                 const x = p.x + side * lateral;
-                const y = p.y + 8;
-                if (y < height * 0.42 || y > height * 0.98) continue;
+                const y = p.y + 10;
+                if (y < height * 0.48 || y > height * 0.97) continue;
 
                 const guestSeed = Math.abs((slot * 47 + side * 9) % 97);
-                drawGuest(x, y, p.scale * 0.72, side, guestSeed);
+                drawGuest(x, y, p.scale * 0.78, side, guestSeed);
             }
         }
     }
