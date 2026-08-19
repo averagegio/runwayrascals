@@ -1251,7 +1251,7 @@
     }
 
     function drawGuest(x, y, scale, side, seed) {
-        const s = Math.max(16, scale * height * 0.072);
+        const s = Math.max(24, scale * height * 0.1);
         const skins = ['#f0c8a8', '#d4a07a', '#ffdbac', '#a0673a', '#ffc8a0', '#c68642'];
         const dresses = ['#111', '#fff0e8', '#9f1239', '#1e3a8a', '#f59e0b', '#7c3aed', theme.accent || '#c9a56a', '#ec4899'];
         const skin = skins[seed % skins.length];
@@ -1318,32 +1318,37 @@
     }
 
     function drawAudienceBanks() {
-        // Fashion-front seating: spaced singles along each bank (skip far scrapes)
-        const seatSpacing = 150;
-        const ahead = 12;
-        const startSlot = Math.floor(distance / seatSpacing) - 1;
+        // Seated chair banks — fuller crowd, but spaced so chairs stay readable
+        const seatSpacing = 58;
+        const rows = 4;
+        const ahead = 24;
+        const startSlot = Math.floor(distance / seatSpacing) - 2;
         const scroll = distance % seatSpacing;
 
         for (let slot = startSlot; slot < startSlot + ahead; slot++) {
             const worldZ = slot * seatSpacing - scroll;
-            // Keep guests in the readable near/mid field — far ones look scrunched by perspective
-            if (worldZ < -20 || worldZ > 280) continue;
+            if (worldZ < -40 || worldZ > 420) continue;
+            for (let row = 0; row < rows; row++) {
+                for (let side = -1; side <= 1; side += 2) {
+                    const stagger = ((slot + row * 2) % 3) * 8;
+                    const p = project(Math.max(0, worldZ + row * 6 + stagger), side < 0 ? 0 : 2);
+                    const lateral = (72 + row * 22) * (0.68 + 0.32 * p.t);
+                    const x = p.x + side * lateral;
+                    const y = p.y + 4 + row * 2;
+                    if (y < height * 0.4 || y > height * 0.98) continue;
 
-            const seed = Math.abs((slot * 47) % 97);
-            if (seed % 4 === 0) continue; // empty chairs for rhythm
+                    // Seat strip under each chair row
+                    const sw = Math.max(10, p.scale * height * 0.05);
+                    ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillRect(x - sw * 0.7, y + sw * 0.18, sw * 1.4, sw * 0.32);
+                    ctx.globalAlpha = 1;
 
-            for (let side = -1; side <= 1; side += 2) {
-                const zOff = side < 0 ? (slot % 2) * 18 : ((slot + 1) % 2) * 18;
-                const p = project(Math.max(0, worldZ + zOff), side < 0 ? 0 : 2);
-                if (p.scale < 0.42) continue;
-
-                const lateral = 145 * (0.82 + 0.18 * p.t);
-                const x = p.x + side * lateral;
-                const y = p.y + 10;
-                if (y < height * 0.48 || y > height * 0.97) continue;
-
-                const guestSeed = Math.abs((slot * 47 + side * 9) % 97);
-                drawGuest(x, y, p.scale * 0.78, side, guestSeed);
+                    const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
+                    // Occasional empty chair — denser gaps in back rows
+                    if (seed % (row < 2 ? 8 : 5) === 0) continue;
+                    drawGuest(x, y, p.scale * (1.05 - row * 0.04), side, seed);
+                }
             }
         }
     }
