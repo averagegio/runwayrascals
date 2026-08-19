@@ -149,7 +149,7 @@ a {
 }
 
 .intro-bg .home-bg-runway {
-    /* Warmer brown deck for intro reveal */
+    /* Same rush as home — 3 layers so the stripe layer scrolls (home has 2) */
     opacity: 0.7;
     background:
         linear-gradient(180deg, rgba(62, 42, 28, 0.15) 0%, rgba(90, 58, 36, 0.55) 40%, rgba(42, 28, 18, 0.85) 100%),
@@ -161,6 +161,11 @@ a {
             rgba(201,165,106,0.0) 54% 100%
         );
     background-size: 100% 100%, 100% 100%, 18% 100%;
+    animation: introRunwayRush 7s linear infinite;
+}
+
+.intro-bg .home-bg-beams {
+    animation: homeBeamSway 9s ease-in-out infinite alternate;
 }
 
 .intro-swipe-veil {
@@ -405,14 +410,21 @@ a {
     font-size: 0.72rem;
     letter-spacing: 0.28em;
     text-transform: uppercase;
-    margin-top: 1.75rem;
+    position: absolute;
+    left: 50%;
+    bottom: max(2.5rem, calc(8vh + var(--safe-bottom)));
+    transform: translateX(-50%);
+    z-index: 3;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 0.55rem;
     opacity: 0;
     pointer-events: none;
     cursor: pointer;
+    width: auto;
+    margin: 0;
 }
 
 .intro-swipe-hint.is-visible {
@@ -430,8 +442,8 @@ a {
 }
 
 @keyframes introSwipePulse {
-    0%, 100% { transform: translateY(0); opacity: 0.55; }
-    50% { transform: translateY(-10px); opacity: 1; }
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.55; }
+    50% { transform: translateX(-50%) translateY(-10px); opacity: 1; }
 }
 
 .page-nav-spacer {
@@ -712,6 +724,11 @@ a {
 @keyframes homeRunwayRush {
     from { background-position: 0 0, 0 0; }
     to { background-position: 0 0, 18% 0; }
+}
+
+@keyframes introRunwayRush {
+    from { background-position: 0 0, 0 0, 0 0; }
+    to { background-position: 0 0, 0 0, 18% 0; }
 }
 
 @keyframes homeBeamSway {

@@ -512,7 +512,7 @@
 
         function update(dt, state) {
             state = state || {};
-            const { jumping, sliding, dressing, dying, deathT, dressSlot } = state;
+            const { jumping, sliding, dressing, dying, deathT, dressSlot, jumpProgress } = state;
             if (state.gait && GAIT_PRESETS[state.gait]) gaitId = state.gait;
             const gait = GAIT_PRESETS[gaitId] || GAIT_PRESETS.strut;
             lifeT += dt;
@@ -541,6 +541,44 @@
                 armL.rotation.x = -0.4 - bow * 0.5;
                 armR.rotation.x = -0.4 - bow * 0.5;
                 headGroup.rotation.x = -bow * 0.35;
+                return;
+            }
+
+            // Jump pose — animate through the arc (never freeze mid-air)
+            if (jumping) {
+                const p = Math.max(0, Math.min(1, Number(jumpProgress) || 0));
+                const lift = Math.sin(p * Math.PI);
+                // Asymmetric phases: tuck on rise, extend on fall
+                const rise = Math.sin(Math.min(1, p * 2) * Math.PI * 0.5);
+                const fall = p > 0.5 ? Math.sin((p - 0.5) * 2 * Math.PI * 0.5) : 0;
+                walkT += dt * 3.2;
+                const flutter = Math.sin(walkT * 2.4) * 0.08 * lift;
+
+                root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
+                root.position.y = 0.06 + lift * 0.22;
+                root.position.x = flutter * 0.15;
+                root.rotation.x = -0.04 - lift * 0.06;
+                root.rotation.z = flutter * 0.4;
+
+                hips.rotation.set(0, flutter * 0.3, 0);
+                torsoGroup.rotation.set(-0.1 - lift * 0.12, flutter * 0.2, 0);
+                headGroup.rotation.set(0.06 * lift - fall * 0.05, 0, flutter * 0.15);
+
+                // Lead leg tucks hard on rise; trail extends for landing
+                legL.rotation.x = -0.2 - rise * 1.05 + fall * 0.35;
+                legR.rotation.x = 0.15 + rise * 0.55 - fall * 0.45;
+                shoeL.rotation.x = rise * 0.55 - fall * 0.2;
+                shoeR.rotation.x = rise * 0.35 + fall * 0.15;
+
+                // Arms pump up then settle for balance
+                armL.rotation.set(-0.4 - lift * 0.85 + flutter, 0, 0.2 + lift * 0.35);
+                armR.rotation.set(-0.3 - lift * 0.7 - flutter, 0, -(0.2 + lift * 0.35));
+                sleeveL.rotation.x = armL.rotation.x * 0.4;
+                sleeveR.rotation.x = armR.rotation.x * 0.4;
+
+                if (skirt.visible) {
+                    skirt.rotation.set(0, flutter * 0.5, -flutter * 0.3);
+                }
                 return;
             }
 
@@ -609,39 +647,39 @@
             const speed = sliding ? gait.speed * 0.28 : gait.speed;
             walkT += dt * speed;
             const phase = walkT;
-            const swing = jumping ? 0 : Math.sin(phase);
-            const swing2 = jumping ? 0 : Math.sin(phase * 2);
+            const swing = Math.sin(phase);
+            const swing2 = Math.sin(phase * 2);
             const amp = sliding ? gait.amp * 0.35 : gait.amp;
 
             // Legs with knee-ish secondary bend via shoe pitch
             legL.rotation.x = swing * amp;
             legR.rotation.x = -swing * amp;
-            shoeL.rotation.x = jumping ? 0 : Math.max(0, -swing) * gait.knee * 0.35;
-            shoeR.rotation.x = jumping ? 0 : Math.max(0, swing) * gait.knee * 0.35;
+            shoeL.rotation.x = Math.max(0, -swing) * gait.knee * 0.35;
+            shoeR.rotation.x = Math.max(0, swing) * gait.knee * 0.35;
 
             // Opposite arm swing + slight shoulder open
             armL.rotation.x = -swing * gait.arm;
             armR.rotation.x = swing * gait.arm;
-            armL.rotation.z = jumping ? 0 : 0.12 + Math.abs(swing) * gait.shoulder * 0.4;
-            armR.rotation.z = jumping ? 0 : -(0.12 + Math.abs(swing) * gait.shoulder * 0.4);
+            armL.rotation.z = 0.12 + Math.abs(swing) * gait.shoulder * 0.4;
+            armR.rotation.z = -(0.12 + Math.abs(swing) * gait.shoulder * 0.4);
             sleeveL.rotation.x = armL.rotation.x * 0.4;
             sleeveR.rotation.x = armR.rotation.x * 0.4;
 
             // Hip sway + torso counter-rotate + lean
-            hips.rotation.y = jumping || sliding ? 0 : swing * gait.hip;
-            hips.rotation.z = jumping || sliding ? 0 : -swing * gait.hip * 0.35;
-            torsoGroup.rotation.y = jumping || sliding ? 0 : -swing * gait.torso;
-            torsoGroup.rotation.z = jumping || sliding ? 0 : swing * gait.shoulder * 0.5;
-            torsoGroup.rotation.x = jumping ? -0.08 : -gait.lean + swing2 * 0.02;
+            hips.rotation.y = sliding ? 0 : swing * gait.hip;
+            hips.rotation.z = sliding ? 0 : -swing * gait.hip * 0.35;
+            torsoGroup.rotation.y = sliding ? 0 : -swing * gait.torso;
+            torsoGroup.rotation.z = sliding ? 0 : swing * gait.shoulder * 0.5;
+            torsoGroup.rotation.x = -gait.lean + swing2 * 0.02;
 
             // Head follows the walk with a soft bob / look
-            headGroup.rotation.y = jumping || sliding ? 0 : -swing * gait.head * 1.2;
-            headGroup.rotation.x = jumping ? 0.05 : gait.head * 0.4 + Math.sin(lifeT * 1.7) * 0.015;
-            headGroup.rotation.z = jumping || sliding ? 0 : swing * gait.head * 0.5;
+            headGroup.rotation.y = sliding ? 0 : -swing * gait.head * 1.2;
+            headGroup.rotation.x = gait.head * 0.4 + Math.sin(lifeT * 1.7) * 0.015;
+            headGroup.rotation.z = sliding ? 0 : swing * gait.head * 0.5;
             mouth.scale.y = 0.65 + Math.abs(Math.sin(lifeT * 2.1)) * 0.15;
 
             // Skirt swish
-            if (skirt.visible && !jumping && !sliding) {
+            if (skirt.visible && !sliding) {
                 skirt.rotation.y = swing * gait.hip * 0.8;
                 skirt.rotation.z = -swing * gait.hip * 0.25;
             } else {
@@ -651,18 +689,16 @@
             if (sliding) {
                 root.scale.set(BASE_SCALE * 1.15, BASE_SCALE * 0.55, BASE_SCALE * 1.1);
                 root.position.y = 0;
+                root.position.x = 0;
                 legL.rotation.x = 0.15;
                 legR.rotation.x = 0.15;
                 armL.rotation.x = 0.4;
                 armR.rotation.x = 0.4;
-            } else if (jumping) {
-                root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
-                root.position.y = 0.18;
             } else {
                 root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
                 root.position.y = Math.abs(swing) * gait.bounce;
+                root.position.x = swing * gait.hip * 0.04;
             }
-            root.position.x = jumping || sliding ? 0 : swing * gait.hip * 0.04;
             root.rotation.z = 0;
             root.rotation.x = 0;
         }
