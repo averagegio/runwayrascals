@@ -1,7 +1,6 @@
 /**
  * Stylized fashion runway pickups — inspired by classic show props
- * (heels, clutches, sunglasses, perfume, scarves) drawn procedurally in-game.
- * Not product replicas; original silhouettes for Runway Rascals.
+ * and designer set pieces. Original silhouettes for Runway Rascals.
  */
 window.FASHION_ITEMS = [
     {
@@ -80,6 +79,83 @@ window.FASHION_ITEMS = [
         points: 42,
         boostMs: 1.35,
         speedBurst: 1.16
+    },
+    {
+        id: 'logo-blue-tee',
+        name: 'Logo Blue Tee',
+        label: 'TEE',
+        shape: 'tee',
+        color: '#1e40af',
+        accent: '#ffffff',
+        points: 52,
+        boostMs: 1.4,
+        speedBurst: 1.2
+    },
+    {
+        id: 'triple-s-sneaker',
+        name: 'Triple-S',
+        label: 'SNEAK',
+        shape: 'sneaker',
+        color: '#ef4444',
+        accent: '#3b82f6',
+        points: 58,
+        boostMs: 1.6,
+        speedBurst: 1.28
+    },
+    {
+        id: 'ramones-boot',
+        name: 'Ramones',
+        label: 'BOOT',
+        shape: 'boot',
+        color: '#111111',
+        accent: '#f5f0e6',
+        points: 55,
+        boostMs: 1.5,
+        speedBurst: 1.22
+    },
+    {
+        id: 'drop-crotch',
+        name: 'Drop Pants',
+        label: 'PANT',
+        shape: 'pants',
+        color: '#0a0a0a',
+        accent: '#f5f0e6',
+        points: 44,
+        boostMs: 1.25,
+        speedBurst: 1.14
+    },
+    {
+        id: 'casa-silk',
+        name: 'Silk Club Shirt',
+        label: 'SILK',
+        shape: 'shirt',
+        color: '#f5f0e6',
+        accent: '#1e3a5f',
+        points: 50,
+        boostMs: 1.45,
+        speedBurst: 1.18
+    },
+    {
+        id: 'crest-polo',
+        name: 'Crest Polo',
+        label: 'POLO',
+        shape: 'polo',
+        color: '#16a34a',
+        accent: '#eab308',
+        points: 48,
+        boostMs: 1.35,
+        speedBurst: 1.16
+    },
+    {
+        id: 'book-tote',
+        name: 'Book Tote',
+        label: 'TOTE',
+        shape: 'tote',
+        color: '#1e3a5f',
+        accent: '#f5f0e6',
+        points: 60,
+        boostMs: 1.65,
+        speedBurst: 1.24
     }
 ];
 

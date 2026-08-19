@@ -36,13 +36,117 @@ const STORE_CATALOG = [
         free: true
     },
     {
+        id: 'set-balenciaga',
+        name: 'Concrete Logo Set',
+        designer: 'Balenciaga',
+        priceCents: 3499,
+        currency: 'usd',
+        description: 'Royal blue logo tee + Triple-S stack — full Berlin look.',
+        color: '#1d4ed8',
+        setId: 'balenciaga-concrete'
+    },
+    {
+        id: 'balenciaga-logo-tee',
+        name: 'Logo Blue Tee',
+        designer: 'Balenciaga',
+        priceCents: 1299,
+        currency: 'usd',
+        description: 'Oversized royal blue tee with white back mark.',
+        color: '#1e40af'
+    },
+    {
+        id: 'balenciaga-triple',
+        name: 'Balenciaga Triple-S',
+        designer: 'Balenciaga',
+        priceCents: 2299,
+        currency: 'usd',
+        description: 'Chunky red / blue / cream stack sneaker.',
+        color: '#ef4444'
+    },
+    {
+        id: 'set-rick',
+        name: 'DRKSHDW Set',
+        designer: 'Rick Owens',
+        priceCents: 3299,
+        currency: 'usd',
+        description: 'Drop-crotch black + Ramones cream sole — full Owens look.',
+        color: '#111111',
+        setId: 'rick-drkshdw'
+    },
+    {
         id: 'rick-ramones',
         name: 'Rick Owens Ramones',
         designer: 'Rick Owens',
         priceCents: 2499,
         currency: 'usd',
-        description: 'Rare runway boots. Unlocks Ramones look in NYFW Owens shows.',
+        description: 'Black high-top with oversized cream toe.',
         color: '#111111'
+    },
+    {
+        id: 'rick-drop-pants',
+        name: 'Drop-Crotch Pants',
+        designer: 'Rick Owens',
+        priceCents: 1599,
+        currency: 'usd',
+        description: 'Black prisoner pant with long cream drawstrings.',
+        color: '#0a0a0a'
+    },
+    {
+        id: 'set-casablanca',
+        name: 'Silk Club Set',
+        designer: 'Casablanca',
+        priceCents: 3199,
+        currency: 'usd',
+        description: 'Cream silk club shirt with navy & emerald trim.',
+        color: '#0f3d2e',
+        setId: 'casablanca-silk'
+    },
+    {
+        id: 'casablanca-silk',
+        name: 'Casablanca Silk Shirt',
+        designer: 'Casablanca',
+        priceCents: 1799,
+        currency: 'usd',
+        description: 'Cream silk camp shirt with crest back graphic.',
+        color: '#f5f0e6'
+    },
+    {
+        id: 'set-ralph',
+        name: 'Polo Crest Set',
+        designer: 'Ralph Lauren',
+        priceCents: 2999,
+        currency: 'usd',
+        description: 'Kelly green crest polo with navy & yellow slash.',
+        color: '#16a34a',
+        setId: 'ralph-polo-green'
+    },
+    {
+        id: 'ralph-crest-polo',
+        name: 'Crest Polo',
+        designer: 'Ralph Lauren',
+        priceCents: 1499,
+        currency: 'usd',
+        description: 'Kelly green polo — navy collar, polo-player graphic.',
+        color: '#16a34a'
+    },
+    {
+        id: 'set-dior',
+        name: 'Book Tote Set',
+        designer: 'Dior',
+        priceCents: 3599,
+        currency: 'usd',
+        description: 'Navy oblique Book Tote + bar jacket polish.',
+        color: '#1e3a5f',
+        setId: 'dior-book-tote'
+    },
+    {
+        id: 'dior-book-tote',
+        name: 'Dior Book Tote',
+        designer: 'Dior',
+        priceCents: 2499,
+        currency: 'usd',
+        description: 'Navy & cream embroidered tote — runway finale piece.',
+        color: '#1e3a5f'
     },
     {
         id: 'prada-nylon',
@@ -63,15 +167,6 @@ const STORE_CATALOG = [
         color: '#9f1239'
     },
     {
-        id: 'balenciaga-triple',
-        name: 'Balenciaga Triple-S',
-        designer: 'Balenciaga',
-        priceCents: 2299,
-        currency: 'usd',
-        description: 'Berlin concrete couture sneakers.',
-        color: '#22c55e'
-    },
-    {
         id: 'versace-baroque',
         name: 'Versace Baroque Print',
         designer: 'Versace',
@@ -79,15 +174,6 @@ const STORE_CATALOG = [
         currency: 'usd',
         description: 'Miami Art Deco heat — gold baroque top.',
         color: '#f59e0b'
-    },
-    {
-        id: 'casablanca-silk',
-        name: 'Casablanca Silk Shirt',
-        designer: 'Casablanca',
-        priceCents: 1799,
-        currency: 'usd',
-        description: 'Silk tennis-club energy for Miami shows.',
-        color: '#f472b6'
     }
 ];
 
