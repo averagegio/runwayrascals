@@ -4,58 +4,74 @@
     const MAP_THEMES = {
         newyork: {
             name: 'New York Fashion Week',
-            skyTop: '#0f172a',
+            skyTop: '#0b1224',
             skyBottom: '#1e293b',
-            runway: '#1f1f1f',
-            runwayEdge: '#F4C430',
-            laneLine: 'rgba(244,196,48,0.55)',
-            crowd: '#334155',
+            catwalk: '#ece7df',
+            catwalkEdge: '#c9a56a',
+            plank: 'rgba(30,30,30,0.07)',
+            crowd: '#1f2937',
+            seat: '#111827',
             accent: '#F4C430',
-            city: 'ny'
+            light: 'rgba(244,196,48,0.22)',
+            city: 'ny',
+            skyline: 'ny'
         },
         milan: {
             name: 'Milan Fashion Week',
-            skyTop: '#2c1810',
-            skyBottom: '#5c3317',
-            runway: '#3b2f2f',
-            runwayEdge: '#c9a227',
-            laneLine: 'rgba(201,162,39,0.5)',
-            crowd: '#4a2c2a',
-            accent: '#8B0000',
-            city: 'milan'
+            skyTop: '#2a1510',
+            skyBottom: '#6b3a22',
+            catwalk: '#f3ebe3',
+            catwalkEdge: '#8B0000',
+            plank: 'rgba(90,40,20,0.08)',
+            crowd: '#3f2a28',
+            seat: '#2a1816',
+            accent: '#c9a227',
+            light: 'rgba(201,162,39,0.2)',
+            city: 'milan',
+            skyline: 'milan'
         },
         london: {
             name: 'London Fashion Week',
-            skyTop: '#0b1d36',
-            skyBottom: '#1e3a5f',
-            runway: '#1a1a1a',
-            runwayEdge: '#C8102E',
-            laneLine: 'rgba(200,16,46,0.45)',
-            crowd: '#243447',
+            skyTop: '#0a1628',
+            skyBottom: '#243b55',
+            catwalk: '#e8eef5',
+            catwalkEdge: '#C8102E',
+            plank: 'rgba(20,40,70,0.08)',
+            crowd: '#1c2a3a',
+            seat: '#0f1a26',
             accent: '#C8102E',
-            city: 'london'
+            light: 'rgba(200,16,46,0.18)',
+            city: 'london',
+            skyline: 'london',
+            wet: true
         },
         berlin: {
             name: 'Berlin Fashion Week',
-            skyTop: '#111111',
-            skyBottom: '#2a2a2a',
-            runway: '#222222',
-            runwayEdge: '#2ECC71',
-            laneLine: 'rgba(46,204,113,0.45)',
-            crowd: '#3a3a3a',
+            skyTop: '#0a0a0a',
+            skyBottom: '#1f1f1f',
+            catwalk: '#d9d6d0',
+            catwalkEdge: '#2ECC71',
+            plank: 'rgba(0,0,0,0.1)',
+            crowd: '#222',
+            seat: '#111',
             accent: '#2ECC71',
-            city: 'berlin'
+            light: 'rgba(46,204,113,0.18)',
+            city: 'berlin',
+            skyline: 'berlin'
         },
         miami: {
             name: 'Miami Fashion Week',
             skyTop: '#0369a1',
-            skyBottom: '#fb923c',
-            runway: '#1e1b4b',
-            runwayEdge: '#FF6EC7',
-            laneLine: 'rgba(255,110,199,0.55)',
-            crowd: '#7c3aed',
+            skyBottom: '#fb7185',
+            catwalk: '#fff7ed',
+            catwalkEdge: '#FF6EC7',
+            plank: 'rgba(255,110,199,0.08)',
+            crowd: '#4c1d95',
+            seat: '#2e1065',
             accent: '#FF6EC7',
-            city: 'miami'
+            light: 'rgba(255,110,199,0.22)',
+            city: 'miami',
+            skyline: 'miami'
         }
     };
 
@@ -143,6 +159,8 @@
     let spawnTimer = 0;
     let flashTimer = 0;
     let shieldTimer = 0;
+    let itemBoostTimer = 0;
+    let itemBoostMult = 1;
 
     // Outfit progression: index into show.pieces (0 = nameless street)
     let outfitStage = 0;
@@ -279,6 +297,8 @@
         spawnTimer = 0;
         flashTimer = 0;
         shieldTimer = 0;
+        itemBoostTimer = 0;
+        itemBoostMult = 1;
         outfitStage = 0;
         ownedSlots = { base: true };
         floatTexts = [];
@@ -304,7 +324,9 @@
     function seedStarterPack() {
         const next = nextDressPiece();
         if (next && !next.rare) spawnPiece(200, 1, next, false);
+        spawnFashionPickup(280, 1);
         spawnPiece(360, 0, pickCommonPiece(), false);
+        spawnFashionPickup(450, 2);
         spawnPiece(520, 2, pickCommonPiece(), false);
         spawnObstacle(640, 0, 'barrier');
         spawnObstacle(820, 2, 'paparazzi');
@@ -352,6 +374,28 @@
         });
     }
 
+    function spawnFashionPickup(z, laneIndex, item) {
+        const it = item || (window.pickFashionItem && window.pickFashionItem()) || {
+            id: 'stiletto', name: 'Runway Stiletto', label: 'HEEL', shape: 'heel',
+            color: '#111', accent: '#c9a56a', points: 40, boostMs: 1.3, speedBurst: 1.2
+        };
+        entities.push({
+            kind: 'pickup',
+            lane: laneIndex,
+            z,
+            w: 48,
+            h: 48,
+            item: it,
+            hit: false
+        });
+    }
+
+    function applyItemBoost(mult, seconds) {
+        itemBoostMult = Math.max(itemBoostMult, mult || 1.15);
+        itemBoostTimer = Math.max(itemBoostTimer, seconds || 1.2);
+        shieldTimer = Math.max(shieldTimer, Math.min(0.45, (seconds || 1.2) * 0.25));
+    }
+
     function rareSpawnChance() {
         // Rares drop more as the level progresses
         const progress = Math.min(1, distance / 2500);
@@ -372,30 +416,36 @@
         const obstacleBias = boost().obstacleBias || 1;
         const roll = Math.random();
 
-        if (roll < 0.58) {
+        if (roll < 0.42) {
             if (Math.random() < rareSpawnChance()) {
                 spawnPiece(z, lanePick, show.rareGoal, true);
             } else {
                 const next = nextDressPiece();
-                // Bias toward the next missing wardrobe piece so dress-up feels intentional
                 if (next && !next.rare && Math.random() < 0.55) {
                     spawnPiece(z, lanePick, next, false);
                 } else {
                     spawnPiece(z, lanePick, pickCommonPiece(), false);
                 }
             }
-            if (Math.random() < 0.3) {
+            if (Math.random() < 0.28) {
                 const other = (lanePick + 1 + Math.floor(Math.random() * 2)) % LANES;
                 spawnPiece(z + 50, other, pickCommonPiece(), false);
             }
-        } else if (Math.random() < obstacleBias) {
+        } else if (roll < 0.72) {
+            // Fashion props — always boost on collect, never wipeout
+            spawnFashionPickup(z, lanePick);
+            if (Math.random() < 0.35) {
+                const other = (lanePick + 1 + Math.floor(Math.random() * 2)) % LANES;
+                spawnFashionPickup(z + 40, other);
+            }
+        } else if (Math.random() < obstacleBias * 0.85) {
             spawnObstacle(z, lanePick);
-            if (Math.random() < 0.22) {
+            if (Math.random() < 0.18) {
                 const other = (lanePick + 1 + Math.floor(Math.random() * 2)) % LANES;
                 spawnObstacle(z + 30, other, 'barrier');
             }
         } else {
-            spawnPiece(z, lanePick, pickCommonPiece(), false);
+            spawnFashionPickup(z, lanePick);
         }
     }
 
@@ -547,9 +597,12 @@
         if (type.rare) {
             rareCollected += 1;
             pushFloat(`${type.name}!`, type.color, laneX, height * 0.48);
+        } else {
+            pushFloat('STRUT!', type.color || '#f4efe6', laneX, height * 0.5);
         }
 
         grantOutfitPiece(type);
+        applyItemBoost(1.18, 1.15);
 
         if (boost().collectShield) {
             shieldTimer = Math.max(shieldTimer, boost().collectShield);
@@ -558,6 +611,16 @@
         if (show && rareCollected >= show.rareGoal.target) {
             completeLevel();
         }
+    }
+
+    function onCollectPickup(item) {
+        if (!item) return;
+        const scoreMult = boost().scoreMult || 1;
+        looksCollected += 1;
+        score += Math.floor((item.points || 30) * scoreMult);
+        applyItemBoost(item.speedBurst || 1.2, item.boostMs || 1.3);
+        pushFloat(`+${item.name}`, item.accent || item.color || '#c9a56a', laneX, height * 0.48);
+        burst(laneX, height * 0.62, item.accent || item.color || '#c9a56a');
     }
 
     function updatePlayer(dt) {
@@ -592,14 +655,13 @@
         if (dressPulse > 0) dressPulse = Math.max(0, dressPulse - dt * 1.8);
         if (shieldTimer > 0) shieldTimer = Math.max(0, shieldTimer - dt);
 
-        // Soft magnet toward nearby clothing
+        // Soft magnet toward nearby clothing + fashion pickups
         const mag = boost().magnet || 0;
         if (mag > 0) {
             for (const e of entities) {
-                if (e.kind !== 'clothing' || e.z > 90 || e.z < 0) continue;
+                if ((e.kind !== 'clothing' && e.kind !== 'pickup') || e.z > 90 || e.z < 0) continue;
                 const dx = laneX - laneCenterX(e.lane);
                 if (Math.abs(dx) < mag + 40 && Math.abs(dx) > 4) {
-                    // Nudge entity lane toward player by shifting projected lane gradually via z-side pull on lane index
                     if (Math.abs(dx) < mag + 10 && e.lane !== targetLane && Math.random() < dt * 3) {
                         e.lane = targetLane;
                     }
@@ -631,11 +693,19 @@
         score = Math.max(score, Math.floor(distance) + looksCollected * 10 + rareCollected * 50);
         const d = difficulty || DIFFICULTY_SCALES.medium;
         speed = Math.min(
-            d.maxSpeed,
-            (d.baseSpeed + distance * d.accel) * boost().speedMult
+            d.maxSpeed * (itemBoostTimer > 0 ? 1.08 : 1),
+            (d.baseSpeed + distance * d.accel) * boost().speedMult * (itemBoostTimer > 0 ? itemBoostMult : 1)
         );
 
         const hit = playerHitbox();
+
+        if (itemBoostTimer > 0) {
+            itemBoostTimer -= dt;
+            if (itemBoostTimer <= 0) {
+                itemBoostTimer = 0;
+                itemBoostMult = 1;
+            }
+        }
 
         for (let i = entities.length - 1; i >= 0; i--) {
             const e = entities[i];
@@ -654,6 +724,13 @@
                     e.hit = true;
                     onCollectClothing(e.type);
                     burst(laneX, height * 0.62, e.type.color);
+                    entities.splice(i, 1);
+                    continue;
+                }
+
+                if (e.kind === 'pickup') {
+                    e.hit = true;
+                    onCollectPickup(e.item);
                     entities.splice(i, 1);
                     continue;
                 }
@@ -872,6 +949,146 @@
         document.getElementById('restartBtn').addEventListener('click', restartRun);
     }
 
+    function drawSkyline() {
+        const horizon = height * 0.26;
+        const kind = theme.skyline || 'ny';
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+
+        if (kind === 'ny') {
+            const heights = [70, 110, 55, 140, 90, 160, 75, 120, 95, 130, 60, 100];
+            for (let i = 0; i < heights.length; i++) {
+                const bx = (i / heights.length) * width + ((distance * 0.015) % 28);
+                const bh = heights[i];
+                const bw = 16 + (i % 3) * 8;
+                ctx.fillRect(bx, horizon - bh, bw, bh);
+                if (i % 4 === 1) {
+                    ctx.fillStyle = theme.accent;
+                    ctx.fillRect(bx + bw * 0.35, horizon - bh - 18, 4, 18);
+                    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                }
+            }
+        } else if (kind === 'milan') {
+            // Duomo-ish spires
+            for (let i = 0; i < 10; i++) {
+                const x = (i / 10) * width + 10;
+                const h = 50 + (i % 5) * 18;
+                ctx.beginPath();
+                ctx.moveTo(x, horizon);
+                ctx.lineTo(x + 14, horizon - h);
+                ctx.lineTo(x + 28, horizon);
+                ctx.fill();
+            }
+            ctx.fillStyle = theme.accent;
+            ctx.beginPath();
+            ctx.moveTo(width * 0.45, horizon);
+            ctx.lineTo(width * 0.5, horizon - 150);
+            ctx.lineTo(width * 0.55, horizon);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        } else if (kind === 'london') {
+            // Big Ben + bridge blocks
+            ctx.fillRect(width * 0.18, horizon - 130, 28, 130);
+            ctx.fillRect(width * 0.2, horizon - 150, 18, 20);
+            ctx.fillStyle = theme.accent;
+            ctx.fillRect(width * 0.205, horizon - 70, 12, 12);
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            for (let i = 0; i < 6; i++) {
+                const x = width * 0.4 + i * 36;
+                ctx.fillRect(x, horizon - 40 - (i % 2) * 20, 30, 40 + (i % 2) * 20);
+            }
+            ctx.beginPath();
+            ctx.moveTo(width * 0.55, horizon - 20);
+            ctx.quadraticCurveTo(width * 0.7, horizon - 70, width * 0.85, horizon - 20);
+            ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        } else if (kind === 'berlin') {
+            // TV tower
+            ctx.fillRect(width * 0.48, horizon - 160, 8, 160);
+            ctx.beginPath();
+            ctx.arc(width * 0.484, horizon - 110, 16, 0, Math.PI * 2);
+            ctx.fill();
+            for (let i = 0; i < 8; i++) {
+                ctx.fillRect(i * (width / 8), horizon - 45 - (i % 3) * 25, 40, 45 + (i % 3) * 25);
+            }
+            ctx.fillStyle = theme.accent;
+            ctx.fillRect(width * 0.2, horizon - 8, width * 0.6, 3);
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        } else {
+            // Miami art deco + palms
+            for (let i = 0; i < 7; i++) {
+                const x = 20 + i * (width / 7);
+                const h = 55 + (i % 3) * 30;
+                ctx.fillStyle = i % 2 ? 'rgba(255,110,199,0.35)' : 'rgba(56,189,248,0.3)';
+                ctx.fillRect(x, horizon - h, 34, h);
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(x, horizon - h, 34, 8);
+            }
+            ctx.fillStyle = 'rgba(20,80,40,0.55)';
+            for (let i = 0; i < 5; i++) {
+                const x = 40 + i * width * 0.2;
+                ctx.fillRect(x, horizon - 50, 4, 50);
+                ctx.beginPath();
+                ctx.ellipse(x + 2, horizon - 55, 22, 10, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    function drawAudienceBanks() {
+        // Tiered seating — fashion show, not roadside
+        const drawBank = (left) => {
+            for (let row = 0; row < 5; row++) {
+                const y0 = height * (0.34 + row * 0.1);
+                const inset = width * (0.16 + row * 0.015);
+                ctx.fillStyle = row % 2 ? theme.seat : theme.crowd;
+                ctx.beginPath();
+                if (left) {
+                    ctx.moveTo(0, y0);
+                    ctx.lineTo(inset, y0 + height * 0.08);
+                    ctx.lineTo(0, y0 + height * 0.1);
+                } else {
+                    ctx.moveTo(width, y0);
+                    ctx.lineTo(width - inset, y0 + height * 0.08);
+                    ctx.lineTo(width, y0 + height * 0.1);
+                }
+                ctx.closePath();
+                ctx.fill();
+                // Head dots
+                ctx.fillStyle = 'rgba(244,239,230,0.12)';
+                for (let n = 0; n < 6; n++) {
+                    const t = (n + 0.5) / 6;
+                    const x = left
+                        ? inset * (0.15 + t * 0.7)
+                        : width - inset * (0.15 + t * 0.7);
+                    ctx.beginPath();
+                    ctx.arc(x, y0 + 10, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        };
+        drawBank(true);
+        drawBank(false);
+    }
+
+    function drawSpotlights() {
+        const topY = height * 0.1;
+        for (let i = 0; i < 3; i++) {
+            const x = width * (0.28 + i * 0.22);
+            const g = ctx.createRadialGradient(x, topY, 4, x, height * 0.55, height * 0.5);
+            g.addColorStop(0, theme.light || 'rgba(255,255,255,0.18)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.moveTo(x - 8, topY);
+            ctx.lineTo(x + 8, topY);
+            ctx.lineTo(x + width * 0.12, height * 0.85);
+            ctx.lineTo(x - width * 0.12, height * 0.85);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
     function drawBackground() {
         const g = ctx.createLinearGradient(0, 0, 0, height);
         g.addColorStop(0, theme.skyTop);
@@ -879,41 +1096,36 @@
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, width, height);
 
-        ctx.fillStyle = 'rgba(0,0,0,0.28)';
-        const horizon = height * 0.28;
-        for (let i = 0; i < 12; i++) {
-            const bx = (i / 12) * width + ((distance * 0.02) % 40);
-            const bh = 40 + ((i * 37) % 90);
-            const bw = 18 + (i % 3) * 10;
-            ctx.fillRect(bx, horizon - bh, bw, bh);
-        }
-
-        ctx.fillStyle = theme.crowd;
-        ctx.beginPath();
-        ctx.moveTo(0, height * 0.35);
-        ctx.lineTo(width * 0.18, height * 0.88);
-        ctx.lineTo(0, height);
-        ctx.closePath();
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(width, height * 0.35);
-        ctx.lineTo(width * 0.82, height * 0.88);
-        ctx.lineTo(width, height);
-        ctx.closePath();
-        ctx.fill();
-
-        drawRunway();
+        drawSkyline();
+        drawSpotlights();
+        drawAudienceBanks();
+        drawCatwalk();
     }
 
-    function drawRunway() {
-        const topL = width * 0.42;
-        const topR = width * 0.58;
-        const botL = width * 0.12;
-        const botR = width * 0.88;
+    function drawCatwalk() {
+        const topL = width * 0.40;
+        const topR = width * 0.60;
+        const botL = width * 0.16;
+        const botR = width * 0.84;
         const topY = height * 0.28;
-        const botY = height * 0.92;
+        const botY = height * 0.94;
 
-        ctx.fillStyle = theme.runway;
+        // Raised stage thickness (side edge)
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.beginPath();
+        ctx.moveTo(botL, botY);
+        ctx.lineTo(botR, botY);
+        ctx.lineTo(botR + 10, botY + 14);
+        ctx.lineTo(botL - 10, botY + 14);
+        ctx.closePath();
+        ctx.fill();
+
+        // Glossy catwalk surface
+        const deck = ctx.createLinearGradient(0, topY, 0, botY);
+        deck.addColorStop(0, theme.catwalk || '#ece7df');
+        deck.addColorStop(0.55, '#fff');
+        deck.addColorStop(1, theme.catwalk || '#ece7df');
+        ctx.fillStyle = deck;
         ctx.beginPath();
         ctx.moveTo(topL, topY);
         ctx.lineTo(topR, topY);
@@ -922,8 +1134,16 @@
         ctx.closePath();
         ctx.fill();
 
-        ctx.strokeStyle = show?.accent || theme.runwayEdge;
-        ctx.lineWidth = 3;
+        if (theme.wet) {
+            ctx.fillStyle = 'rgba(120,160,200,0.12)';
+            ctx.beginPath();
+            ctx.ellipse(width * 0.5, height * 0.7, width * 0.12, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Gold / accent binding tape edges (fashion tape, not road curb)
+        ctx.strokeStyle = show?.accent || theme.catwalkEdge || theme.accent;
+        ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(topL, topY);
         ctx.lineTo(botL, botY);
@@ -931,10 +1151,24 @@
         ctx.lineTo(botR, botY);
         ctx.stroke();
 
-        ctx.strokeStyle = theme.laneLine;
-        ctx.lineWidth = 2;
-        ctx.setLineDash([18, 22]);
-        ctx.lineDashOffset = -(distance * 2.2) % 40;
+        // Board seams (planks), scrolling — not dashed highway lines
+        ctx.strokeStyle = theme.plank || 'rgba(0,0,0,0.08)';
+        ctx.lineWidth = 1.5;
+        const seamCount = 14;
+        for (let i = 0; i < seamCount; i++) {
+            const t = ((i / seamCount) + (distance * 0.004) % 1) % 1;
+            const y = topY + (botY - topY) * t;
+            const xL = topL + (botL - topL) * t;
+            const xR = topR + (botR - topR) * t;
+            ctx.beginPath();
+            ctx.moveTo(xL + 4, y);
+            ctx.lineTo(xR - 4, y);
+            ctx.stroke();
+        }
+
+        // Soft lane guides (photographer marks), very subtle
+        ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+        ctx.lineWidth = 1;
         for (let i = 1; i < LANES; i++) {
             const t = i / LANES;
             const xTop = topL + (topR - topL) * t;
@@ -944,7 +1178,111 @@
             ctx.lineTo(xBot, botY);
             ctx.stroke();
         }
-        ctx.setLineDash([]);
+    }
+
+    function drawFashionShape(ctx, shape, size, color, accent) {
+        const s = size;
+        ctx.save();
+        if (shape === 'heel') {
+            ctx.fillStyle = color;
+            ctx.fillRect(-s * 0.08, -s * 0.35, s * 0.16, s * 0.7);
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.35, -s * 0.15);
+            ctx.lineTo(s * 0.4, -s * 0.2);
+            ctx.lineTo(s * 0.45, -s * 0.05);
+            ctx.lineTo(-s * 0.2, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.1, s * 0.28, s * 0.2, s * 0.08);
+        } else if (shape === 'clutch') {
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.4, -s * 0.22, s * 0.8, s * 0.44, 6);
+            ctx.fill();
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.08, -s * 0.06, s * 0.16, s * 0.12);
+        } else if (shape === 'shades') {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.ellipse(-s * 0.22, 0, s * 0.2, s * 0.16, 0, 0, Math.PI * 2);
+            ctx.ellipse(s * 0.22, 0, s * 0.2, s * 0.16, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.02, -s * 0.02);
+            ctx.lineTo(s * 0.02, -s * 0.02);
+            ctx.moveTo(-s * 0.42, -s * 0.02);
+            ctx.lineTo(-s * 0.55, -s * 0.08);
+            ctx.moveTo(s * 0.42, -s * 0.02);
+            ctx.lineTo(s * 0.55, -s * 0.08);
+            ctx.stroke();
+        } else if (shape === 'perfume') {
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.08, -s * 0.42, s * 0.16, s * 0.14);
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.22, -s * 0.28, s * 0.44, s * 0.6, 8);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            ctx.fillRect(-s * 0.12, -s * 0.18, s * 0.1, s * 0.35);
+        } else if (shape === 'scarf') {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = Math.max(3, s * 0.12);
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.35, -s * 0.25);
+            ctx.quadraticCurveTo(0, s * 0.35, s * 0.35, -s * 0.1);
+            ctx.stroke();
+            ctx.fillStyle = accent;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (shape === 'bag') {
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.32, -s * 0.1, s * 0.64, s * 0.45, 8);
+            ctx.fill();
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, -s * 0.1, s * 0.22, Math.PI, 0);
+            ctx.stroke();
+            ctx.fillStyle = accent;
+            ctx.beginPath();
+            ctx.arc(0, s * 0.05, s * 0.06, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (shape === 'cuff') {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = Math.max(5, s * 0.16);
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.32, 0.2, Math.PI * 1.8);
+            ctx.stroke();
+            ctx.fillStyle = accent;
+            for (let i = 0; i < 5; i++) {
+                const a = (i / 5) * Math.PI * 1.5 + 0.4;
+                ctx.beginPath();
+                ctx.arc(Math.cos(a) * s * 0.32, Math.sin(a) * s * 0.32, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rr);
+        ctx.arcTo(x + w, y + h, x, y + h, rr);
+        ctx.arcTo(x, y + h, x, y, rr);
+        ctx.arcTo(x, y, x + w, y, rr);
+        ctx.closePath();
     }
 
     function drawEntity(e) {
@@ -953,30 +1291,40 @@
         const x = p.x;
         const y = p.y - size * 0.35;
 
-        if (e.kind === 'clothing') {
+        if (e.kind === 'clothing' || e.kind === 'pickup') {
             ctx.save();
             ctx.translate(x, y);
-            const r = size * (e.type.rare ? 0.52 : 0.45);
+            const r = size * (e.kind === 'clothing' && e.type && e.type.rare ? 0.52 : 0.45);
             ctx.beginPath();
-            ctx.fillStyle = e.type.rare ? 'rgba(255,215,0,0.35)' : 'rgba(255,255,255,0.22)';
-            ctx.arc(0, 0, r * 1.2, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.18)';
+            ctx.arc(0, 0, r * 1.35, 0, Math.PI * 2);
             ctx.fill();
-            ctx.beginPath();
-            ctx.fillStyle = e.type.color;
-            ctx.arc(0, 0, r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = e.type.rare ? '#fbbf24' : '#fff';
-            ctx.lineWidth = Math.max(1.5, 2.2 * p.scale);
-            ctx.stroke();
-            ctx.fillStyle = '#fff';
-            ctx.font = `bold ${Math.max(7, Math.floor(size * 0.24))}px Fredoka One, sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(e.type.label, 0, 0);
-            if (e.type.rare) {
-                ctx.fillStyle = '#fbbf24';
-                ctx.font = `bold ${Math.max(7, Math.floor(size * 0.18))}px Fredoka One, sans-serif`;
-                ctx.fillText('RARE', 0, r + 10);
+
+            if (e.kind === 'pickup' && e.item) {
+                drawFashionShape(ctx, e.item.shape, size * 0.9, e.item.color, e.item.accent);
+                ctx.fillStyle = e.item.accent || '#c9a56a';
+                ctx.font = `600 ${Math.max(7, Math.floor(size * 0.18))}px Syne, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(e.item.label || 'ITEM', 0, r + 12);
+            } else {
+                ctx.beginPath();
+                ctx.fillStyle = e.type.color;
+                ctx.arc(0, 0, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = e.type.rare ? '#fbbf24' : '#fff';
+                ctx.lineWidth = Math.max(1.5, 2.2 * p.scale);
+                ctx.stroke();
+                ctx.fillStyle = '#fff';
+                ctx.font = `600 ${Math.max(7, Math.floor(size * 0.22))}px Syne, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(e.type.label, 0, 0);
+                if (e.type.rare) {
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.font = `600 ${Math.max(7, Math.floor(size * 0.16))}px Syne, sans-serif`;
+                    ctx.fillText('RARE', 0, r + 10);
+                }
             }
             ctx.restore();
             return;
@@ -997,7 +1345,7 @@
             ctx.arc(x, y - hh - size * 0.28, size * 0.14, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#fff';
-            ctx.font = `bold ${Math.max(8, Math.floor(size * 0.22))}px Fredoka One, sans-serif`;
+            ctx.font = `600 ${Math.max(8, Math.floor(size * 0.2))}px Syne, sans-serif`;
             ctx.textAlign = 'center';
             ctx.fillText('PAPS', x, y - hh - size * 0.55);
             if (Math.random() < 0.08) flashTimer = 0.12;
@@ -1030,7 +1378,7 @@
             ctx.closePath();
             ctx.fill();
             ctx.fillStyle = '#111';
-            ctx.font = `bold ${Math.max(8, Math.floor(size * 0.22))}px Fredoka One, sans-serif`;
+            ctx.font = `600 ${Math.max(8, Math.floor(size * 0.2))}px Syne, sans-serif`;
             ctx.textAlign = 'center';
             ctx.fillText('FLASH', x, y + 10);
         } else {
@@ -1039,7 +1387,7 @@
             ctx.fillStyle = '#9f1239';
             ctx.fillRect(x - hw, y - hh * 0.35, hw * 2, 8);
             ctx.fillStyle = '#eab308';
-            ctx.font = `bold ${Math.floor(10 + size * 0.2)}px Fredoka One, sans-serif`;
+            ctx.font = `600 ${Math.floor(10 + size * 0.18)}px Syne, sans-serif`;
             ctx.textAlign = 'center';
             ctx.fillText('NO ENTRY', x, y + 4);
         }
