@@ -1,22 +1,107 @@
 /**
- * Low-poly Three.js runway avatar (3D, not a flat PNG).
- * Clothing layers tint mesh parts as the player dresses up.
+ * Low-poly Three.js runway avatar with character-library textures
+ * and fabric materials that update as outfit pieces unlock.
  */
 (function (global) {
-    function createAvatar(THREE) {
+    const CHARACTER_LIBRARY = {
+        male: { src: 'chibibrodoll.png', hair: 0x1a1a1a, skin: 0xe8b896, label: 'Devil Boy' },
+        female: { src: 'chibidoll2.png', hair: 0x2d1b14, skin: 0xffdbac, label: 'Mouse Girl' },
+        fashion: { src: 'chibidollfashion.png', hair: 0x111111, skin: 0xf5d0b0, label: 'Fashion Doll' },
+        evening: { src: 'chibidoll3.png', hair: 0x3b2118, skin: 0xffdbac, label: 'Evening Doll' }
+    };
+
+    function makeFabricTexture(THREE, baseHex, pattern) {
+        const c = document.createElement('canvas');
+        c.width = 128;
+        c.height = 128;
+        const g = c.getContext('2d');
+        const col = new THREE.Color(baseHex);
+        g.fillStyle = `#${col.getHexString()}`;
+        g.fillRect(0, 0, 128, 128);
+
+        // Weave / couture grain
+        g.globalAlpha = 0.18;
+        for (let y = 0; y < 128; y += 3) {
+            g.fillStyle = y % 6 === 0 ? '#fff' : '#000';
+            g.fillRect(0, y, 128, 1);
+        }
+        g.globalAlpha = 0.12;
+        for (let x = 0; x < 128; x += 4) {
+            g.fillStyle = '#fff';
+            g.fillRect(x, 0, 1, 128);
+        }
+
+        if (pattern === 'leather') {
+            g.globalAlpha = 0.25;
+            for (let i = 0; i < 40; i++) {
+                g.beginPath();
+                g.arc(Math.random() * 128, Math.random() * 128, 2 + Math.random() * 6, 0, Math.PI * 2);
+                g.fillStyle = '#000';
+                g.fill();
+            }
+        } else if (pattern === 'knit') {
+            g.globalAlpha = 0.22;
+            g.strokeStyle = '#fff';
+            for (let y = 4; y < 128; y += 8) {
+                g.beginPath();
+                for (let x = 0; x < 128; x += 8) {
+                    g.moveTo(x, y);
+                    g.quadraticCurveTo(x + 4, y - 3, x + 8, y);
+                }
+                g.stroke();
+            }
+        } else if (pattern === 'silk') {
+            const grad = g.createLinearGradient(0, 0, 128, 128);
+            grad.addColorStop(0, 'rgba(255,255,255,0.35)');
+            grad.addColorStop(0.5, 'rgba(255,255,255,0)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.2)');
+            g.globalAlpha = 1;
+            g.fillStyle = grad;
+            g.fillRect(0, 0, 128, 128);
+        } else if (pattern === 'denim') {
+            g.globalAlpha = 0.2;
+            for (let i = 0; i < 80; i++) {
+                g.fillStyle = Math.random() > 0.5 ? '#fff' : '#000';
+                g.fillRect(Math.random() * 128, Math.random() * 128, 2, 2);
+            }
+        }
+
+        g.globalAlpha = 1;
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(2, 2);
+        tex.needsUpdate = true;
+        return tex;
+    }
+
+    function patternForSlot(slot, piece) {
+        const name = ((piece && piece.name) || '').toLowerCase();
+        if (slot === 'outer' || name.includes('leather')) return 'leather';
+        if (name.includes('knit') || name.includes('tee') || name.includes('shirt')) return 'knit';
+        if (name.includes('silk') || name.includes('gown') || name.includes('evening') || slot === 'finale') return 'silk';
+        if (name.includes('jean') || name.includes('denim') || name.includes('chino')) return 'denim';
+        if (slot === 'bottoms') return 'denim';
+        if (slot === 'shoes') return 'leather';
+        return 'knit';
+    }
+
+    function createAvatar(THREE, options) {
+        options = options || {};
+        const charId = options.characterId || 'female';
+        const profile = CHARACTER_LIBRARY[charId] || CHARACTER_LIBRARY.female;
+
         const root = new THREE.Group();
         root.name = 'RunwayAvatar';
 
-        const skin = 0xffdbac;
         const mats = {
-            skin: new THREE.MeshStandardMaterial({ color: skin, roughness: 0.65 }),
-            hair: new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.8 }),
-            street: new THREE.MeshStandardMaterial({ color: 0x9ca3af, roughness: 0.85 }),
+            skin: new THREE.MeshStandardMaterial({ color: profile.skin, roughness: 0.55 }),
+            hair: new THREE.MeshStandardMaterial({ color: profile.hair, roughness: 0.85 }),
+            street: new THREE.MeshStandardMaterial({ color: 0x9ca3af, roughness: 0.9 }),
             bottoms: new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.8 }),
             top: new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.75 }),
-            shoes: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.55 }),
-            outer: new THREE.MeshStandardMaterial({ color: 0x374151, roughness: 0.7 }),
-            accent: new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.4, metalness: 0.2 })
+            shoes: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.45, metalness: 0.15 }),
+            outer: new THREE.MeshStandardMaterial({ color: 0x374151, roughness: 0.65 }),
+            accent: new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.35, metalness: 0.35 })
         };
 
         function mesh(geo, mat) {
@@ -25,7 +110,6 @@
             return m;
         }
 
-        // Body
         const hips = mesh(new THREE.BoxGeometry(0.55, 0.2, 0.3), mats.street);
         hips.position.y = 0.85;
         root.add(hips);
@@ -35,87 +119,153 @@
         torso.name = 'top';
         root.add(torso);
 
-        const outer = mesh(new THREE.BoxGeometry(0.72, 0.62, 0.4), mats.outer);
-        outer.position.y = 1.18;
+        // Sleeve cuffs (read as garment volume)
+        const sleeveL = mesh(new THREE.BoxGeometry(0.18, 0.42, 0.18), mats.top);
+        sleeveL.position.set(-0.42, 1.22, 0);
+        root.add(sleeveL);
+        const sleeveR = mesh(new THREE.BoxGeometry(0.18, 0.42, 0.18), mats.top);
+        sleeveR.position.set(0.42, 1.22, 0);
+        root.add(sleeveR);
+
+        const outer = mesh(new THREE.BoxGeometry(0.78, 0.7, 0.42), mats.outer);
+        outer.position.y = 1.16;
         outer.visible = false;
         outer.name = 'outer';
         root.add(outer);
 
-        const head = mesh(new THREE.SphereGeometry(0.28, 16, 12), mats.skin);
+        const collar = mesh(new THREE.BoxGeometry(0.5, 0.1, 0.36), mats.outer);
+        collar.position.set(0, 1.48, 0.02);
+        collar.visible = false;
+        root.add(collar);
+
+        const head = mesh(new THREE.SphereGeometry(0.28, 18, 14), mats.skin);
         head.position.y = 1.72;
         root.add(head);
 
-        const hair = mesh(new THREE.SphereGeometry(0.3, 12, 10), mats.hair);
-        hair.scale.set(1, 0.7, 1.05);
-        hair.position.set(0, 1.82, 0);
+        const hair = mesh(new THREE.SphereGeometry(0.31, 14, 12), mats.hair);
+        hair.scale.set(1.05, 0.72, 1.08);
+        hair.position.set(0, 1.84, -0.02);
         root.add(hair);
 
-        // Arms
-        const armL = mesh(new THREE.BoxGeometry(0.16, 0.55, 0.16), mats.skin);
-        armL.position.set(-0.42, 1.15, 0);
+        // Face card from character library PNG
+        const faceGeo = new THREE.PlaneGeometry(0.42, 0.42);
+        const faceMat = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+        const face = new THREE.Mesh(faceGeo, faceMat);
+        face.position.set(0, 1.72, 0.27);
+        root.add(face);
+
+        const loader = new THREE.TextureLoader();
+        loader.load(profile.src, (tex) => {
+            tex.minFilter = THREE.LinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            faceMat.map = tex;
+            faceMat.opacity = 0.95;
+            faceMat.needsUpdate = true;
+            // Soften hair/skin toward library vibe
+            mats.hair.color.setHex(profile.hair);
+            mats.skin.color.setHex(profile.skin);
+        }, undefined, () => {
+            face.visible = false;
+        });
+
+        const armL = mesh(new THREE.BoxGeometry(0.14, 0.5, 0.14), mats.skin);
+        armL.position.set(-0.42, 0.95, 0);
         root.add(armL);
-        const armR = mesh(new THREE.BoxGeometry(0.16, 0.55, 0.16), mats.skin);
-        armR.position.set(0.42, 1.15, 0);
+        const armR = mesh(new THREE.BoxGeometry(0.14, 0.5, 0.14), mats.skin);
+        armR.position.set(0.42, 0.95, 0);
         root.add(armR);
 
-        // Legs / bottoms
-        const legL = mesh(new THREE.BoxGeometry(0.2, 0.7, 0.22), mats.bottoms);
+        const legL = mesh(new THREE.BoxGeometry(0.22, 0.72, 0.24), mats.bottoms);
         legL.position.set(-0.16, 0.45, 0);
         legL.name = 'bottomsL';
         root.add(legL);
-        const legR = mesh(new THREE.BoxGeometry(0.2, 0.7, 0.22), mats.bottoms);
+        const legR = mesh(new THREE.BoxGeometry(0.22, 0.72, 0.24), mats.bottoms);
         legR.position.set(0.16, 0.45, 0);
         legR.name = 'bottomsR';
         root.add(legR);
 
-        const shoeL = mesh(new THREE.BoxGeometry(0.24, 0.14, 0.36), mats.shoes);
-        shoeL.position.set(-0.16, 0.08, 0.04);
+        const shoeL = mesh(new THREE.BoxGeometry(0.26, 0.16, 0.4), mats.shoes);
+        shoeL.position.set(-0.16, 0.08, 0.05);
         shoeL.name = 'shoesL';
         root.add(shoeL);
-        const shoeR = mesh(new THREE.BoxGeometry(0.24, 0.14, 0.36), mats.shoes);
-        shoeR.position.set(0.16, 0.08, 0.04);
+        const shoeR = mesh(new THREE.BoxGeometry(0.26, 0.16, 0.4), mats.shoes);
+        shoeR.position.set(0.16, 0.08, 0.05);
         shoeR.name = 'shoesR';
         root.add(shoeR);
 
-        const finale = mesh(new THREE.BoxGeometry(0.35, 0.08, 0.12), mats.accent);
-        finale.position.set(0, 1.45, 0.22);
+        const heelL = mesh(new THREE.BoxGeometry(0.08, 0.18, 0.08), mats.shoes);
+        heelL.position.set(-0.16, 0.02, -0.12);
+        heelL.visible = false;
+        root.add(heelL);
+        const heelR = mesh(new THREE.BoxGeometry(0.08, 0.18, 0.08), mats.shoes);
+        heelR.position.set(0.16, 0.02, -0.12);
+        heelR.visible = false;
+        root.add(heelR);
+
+        const finale = mesh(new THREE.BoxGeometry(0.4, 0.1, 0.14), mats.accent);
+        finale.position.set(0, 1.42, 0.24);
         finale.visible = false;
         finale.name = 'finale';
         root.add(finale);
 
-        const parts = { torso, outer, legL, legR, shoeL, shoeR, finale, mats, hips };
+        function dressMaterial(matKey, hex, pattern) {
+            const mat = mats[matKey];
+            if (!mat) return;
+            const color = new THREE.Color(hex);
+            mat.color.copy(color);
+            if (mat.map) {
+                mat.map.dispose();
+                mat.map = null;
+            }
+            mat.map = makeFabricTexture(THREE, hex, pattern);
+            mat.needsUpdate = true;
+            mat.userData.dressed = color.getHex();
+        }
 
         function setOwnedSlots(ownedSlots) {
             const has = (s) => !!ownedSlots[s];
-            // Street default colors until pieces unlock
-            mats.top.color.setHex(has('top') ? mats.top.userData.dressed || 0x6b7280 : 0x9ca3af);
-            mats.bottoms.color.setHex(has('bottoms') ? (mats.bottoms.userData.dressed || 0x4b5563) : 0x9ca3af);
-            outer.visible = has('outer');
-            finale.visible = has('finale');
-            if (!has('shoes')) {
-                mats.shoes.color.setHex(0x6b7280);
+            if (!has('top')) {
+                dressMaterial('top', 0x9ca3af, 'knit');
+                sleeveL.material = mats.top;
+                sleeveR.material = mats.top;
             }
+            if (!has('bottoms')) dressMaterial('bottoms', 0x9ca3af, 'denim');
+            outer.visible = has('outer');
+            collar.visible = has('outer');
+            finale.visible = has('finale');
+            heelL.visible = has('shoes');
+            heelR.visible = has('shoes');
+            if (!has('shoes')) dressMaterial('shoes', 0x6b7280, 'leather');
         }
 
         function applyPieceColors(pieces, ownedSlots) {
             (pieces || []).forEach((p) => {
                 if (!ownedSlots[p.slot]) return;
                 const hex = new THREE.Color(p.color).getHex();
+                const pat = patternForSlot(p.slot, p);
                 if (p.slot === 'top') {
-                    mats.top.userData.dressed = hex;
-                    mats.top.color.setHex(hex);
+                    dressMaterial('top', hex, pat);
+                    sleeveL.material = mats.top;
+                    sleeveR.material = mats.top;
                 }
-                if (p.slot === 'bottoms') {
-                    mats.bottoms.userData.dressed = hex;
-                    mats.bottoms.color.setHex(hex);
+                if (p.slot === 'bottoms') dressMaterial('bottoms', hex, pat);
+                if (p.slot === 'shoes') {
+                    dressMaterial('shoes', hex, 'leather');
+                    heelL.visible = true;
+                    heelR.visible = true;
                 }
-                if (p.slot === 'shoes') mats.shoes.color.setHex(hex);
                 if (p.slot === 'outer') {
-                    mats.outer.color.setHex(hex);
+                    dressMaterial('outer', hex, pat);
                     outer.visible = true;
+                    collar.visible = true;
                 }
                 if (p.slot === 'finale') {
-                    mats.accent.color.setHex(hex);
+                    dressMaterial('accent', hex, 'silk');
                     finale.visible = true;
                 }
             });
@@ -123,7 +273,9 @@
         }
 
         let walkT = 0;
-        function update(dt, { jumping, sliding, dressing, dying, deathT }) {
+        function update(dt, state) {
+            state = state || {};
+            const { jumping, sliding, dressing, dying, deathT } = state;
             if (dying) {
                 const t = Math.min(1, (deathT || 0) / 1.15);
                 root.rotation.z = t * Math.PI * 1.35;
@@ -143,6 +295,8 @@
             legR.rotation.x = -swing;
             armL.rotation.x = -swing * 0.7;
             armR.rotation.x = swing * 0.7;
+            sleeveL.rotation.x = armL.rotation.x * 0.5;
+            sleeveR.rotation.x = armR.rotation.x * 0.5;
             if (jumping) root.position.y = 0.25;
             else if (sliding) {
                 root.scale.set(1.15, 0.55, 1.1);
@@ -157,10 +311,23 @@
             }
         }
 
-        return { root, applyPieceColors, setOwnedSlots, update, mats };
+        // Street default fabrics
+        dressMaterial('top', 0x9ca3af, 'knit');
+        dressMaterial('bottoms', 0x9ca3af, 'denim');
+        dressMaterial('shoes', 0x6b7280, 'leather');
+
+        return {
+            root,
+            applyPieceColors,
+            setOwnedSlots,
+            update,
+            mats,
+            characterId: charId,
+            profile
+        };
     }
 
-    function createRenderer(canvas, THREE) {
+    function createRenderer(canvas, THREE, options) {
         const renderer = new THREE.WebGLRenderer({
             canvas,
             alpha: true,
@@ -175,13 +342,16 @@
         camera.position.set(0, 1.3, 4.2);
         camera.lookAt(0, 1.1, 0);
 
-        const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.1);
+        const hemi = new THREE.HemisphereLight(0xfff5e8, 0x2a2a32, 1.15);
         scene.add(hemi);
-        const key = new THREE.DirectionalLight(0xffffff, 0.9);
-        key.position.set(2, 4, 3);
+        const key = new THREE.DirectionalLight(0xffffff, 1.05);
+        key.position.set(2.2, 4.2, 3.2);
         scene.add(key);
+        const rim = new THREE.DirectionalLight(0xc9a56a, 0.45);
+        rim.position.set(-2, 2, -2);
+        scene.add(rim);
 
-        const avatar = createAvatar(THREE);
+        const avatar = createAvatar(THREE, options);
         scene.add(avatar.root);
 
         function resize(w, h) {
@@ -208,5 +378,5 @@
         return { renderer, scene, camera, avatar, resize, setCameraMode, render };
     }
 
-    global.Runway3D = { createAvatar, createRenderer };
+    global.Runway3D = { createAvatar, createRenderer, CHARACTER_LIBRARY };
 })(window);

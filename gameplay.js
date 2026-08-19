@@ -4,58 +4,74 @@
     const MAP_THEMES = {
         newyork: {
             name: 'New York Fashion Week',
-            skyTop: '#0f172a',
+            skyTop: '#0b1224',
             skyBottom: '#1e293b',
-            runway: '#1f1f1f',
-            runwayEdge: '#F4C430',
-            laneLine: 'rgba(244,196,48,0.55)',
-            crowd: '#334155',
+            catwalk: '#ece7df',
+            catwalkEdge: '#c9a56a',
+            plank: 'rgba(30,30,30,0.07)',
+            crowd: '#1f2937',
+            seat: '#111827',
             accent: '#F4C430',
-            city: 'ny'
+            light: 'rgba(244,196,48,0.22)',
+            city: 'ny',
+            skyline: 'ny'
         },
         milan: {
             name: 'Milan Fashion Week',
-            skyTop: '#2c1810',
-            skyBottom: '#5c3317',
-            runway: '#3b2f2f',
-            runwayEdge: '#c9a227',
-            laneLine: 'rgba(201,162,39,0.5)',
-            crowd: '#4a2c2a',
-            accent: '#8B0000',
-            city: 'milan'
+            skyTop: '#2a1510',
+            skyBottom: '#6b3a22',
+            catwalk: '#f3ebe3',
+            catwalkEdge: '#8B0000',
+            plank: 'rgba(90,40,20,0.08)',
+            crowd: '#3f2a28',
+            seat: '#2a1816',
+            accent: '#c9a227',
+            light: 'rgba(201,162,39,0.2)',
+            city: 'milan',
+            skyline: 'milan'
         },
         london: {
             name: 'London Fashion Week',
-            skyTop: '#0b1d36',
-            skyBottom: '#1e3a5f',
-            runway: '#1a1a1a',
-            runwayEdge: '#C8102E',
-            laneLine: 'rgba(200,16,46,0.45)',
-            crowd: '#243447',
+            skyTop: '#0a1628',
+            skyBottom: '#243b55',
+            catwalk: '#e8eef5',
+            catwalkEdge: '#C8102E',
+            plank: 'rgba(20,40,70,0.08)',
+            crowd: '#1c2a3a',
+            seat: '#0f1a26',
             accent: '#C8102E',
-            city: 'london'
+            light: 'rgba(200,16,46,0.18)',
+            city: 'london',
+            skyline: 'london',
+            wet: true
         },
         berlin: {
             name: 'Berlin Fashion Week',
-            skyTop: '#111111',
-            skyBottom: '#2a2a2a',
-            runway: '#222222',
-            runwayEdge: '#2ECC71',
-            laneLine: 'rgba(46,204,113,0.45)',
-            crowd: '#3a3a3a',
+            skyTop: '#0a0a0a',
+            skyBottom: '#1f1f1f',
+            catwalk: '#d9d6d0',
+            catwalkEdge: '#2ECC71',
+            plank: 'rgba(0,0,0,0.1)',
+            crowd: '#222',
+            seat: '#111',
             accent: '#2ECC71',
-            city: 'berlin'
+            light: 'rgba(46,204,113,0.18)',
+            city: 'berlin',
+            skyline: 'berlin'
         },
         miami: {
             name: 'Miami Fashion Week',
             skyTop: '#0369a1',
-            skyBottom: '#fb923c',
-            runway: '#1e1b4b',
-            runwayEdge: '#FF6EC7',
-            laneLine: 'rgba(255,110,199,0.55)',
-            crowd: '#7c3aed',
+            skyBottom: '#fb7185',
+            catwalk: '#fff7ed',
+            catwalkEdge: '#FF6EC7',
+            plank: 'rgba(255,110,199,0.08)',
+            crowd: '#4c1d95',
+            seat: '#2e1065',
             accent: '#FF6EC7',
-            city: 'miami'
+            light: 'rgba(255,110,199,0.22)',
+            city: 'miami',
+            skyline: 'miami'
         }
     };
 
@@ -143,6 +159,8 @@
     let spawnTimer = 0;
     let flashTimer = 0;
     let shieldTimer = 0;
+    let itemBoostTimer = 0;
+    let itemBoostMult = 1;
 
     // Outfit progression: index into show.pieces (0 = nameless street)
     let outfitStage = 0;
@@ -239,9 +257,17 @@
         laneX = laneCenterX(lane);
     }
 
-    function laneCenterX(laneIndex) {
-        const runwayLeft = width * 0.18;
-        const runwayRight = width * 0.82;
+    function curveAt(worldZ) {
+        // Serpentine fashion runway — turns & S-curves along the walk
+        const w = distance * 0.085 + worldZ * 0.0042;
+        return Math.sin(w) * 0.22 + Math.sin(w * 0.47 + 1.1) * 0.1 + Math.cos(w * 0.23) * 0.05;
+    }
+
+    function laneCenterX(laneIndex, z) {
+        const zz = z == null ? 0 : z;
+        const curve = curveAt(zz);
+        const runwayLeft = width * (0.18 + curve * 0.35);
+        const runwayRight = width * (0.82 + curve * 0.35);
         const runwayW = runwayRight - runwayLeft;
         const laneW = runwayW / LANES;
         return runwayLeft + laneW * (laneIndex + 0.5);
@@ -255,10 +281,10 @@
         const horizonY = height * 0.28;
         const groundY = height * 0.88;
         const y = horizonY + (groundY - horizonY) * (1 - Math.pow(1 - t, 1.35));
-        const center = width / 2;
-        const laneXWorld = laneCenterX(laneIndex);
+        const center = width / 2 + curveAt(z) * width * 0.42 * (0.2 + 0.8 * t);
+        const laneXWorld = laneCenterX(laneIndex, z);
         const x = center + (laneXWorld - center) * (0.25 + 0.75 * t);
-        return { x, y, scale, t };
+        return { x, y, scale, t, curve: curveAt(z) };
     }
 
     function resetRun() {
@@ -279,6 +305,8 @@
         spawnTimer = 0;
         flashTimer = 0;
         shieldTimer = 0;
+        itemBoostTimer = 0;
+        itemBoostMult = 1;
         outfitStage = 0;
         ownedSlots = { base: true };
         floatTexts = [];
@@ -304,7 +332,9 @@
     function seedStarterPack() {
         const next = nextDressPiece();
         if (next && !next.rare) spawnPiece(200, 1, next, false);
+        spawnFashionPickup(280, 1);
         spawnPiece(360, 0, pickCommonPiece(), false);
+        spawnFashionPickup(450, 2);
         spawnPiece(520, 2, pickCommonPiece(), false);
         spawnObstacle(640, 0, 'barrier');
         spawnObstacle(820, 2, 'paparazzi');
@@ -352,6 +382,28 @@
         });
     }
 
+    function spawnFashionPickup(z, laneIndex, item) {
+        const it = item || (window.pickFashionItem && window.pickFashionItem()) || {
+            id: 'stiletto', name: 'Runway Stiletto', label: 'HEEL', shape: 'heel',
+            color: '#111', accent: '#c9a56a', points: 40, boostMs: 1.3, speedBurst: 1.2
+        };
+        entities.push({
+            kind: 'pickup',
+            lane: laneIndex,
+            z,
+            w: 48,
+            h: 48,
+            item: it,
+            hit: false
+        });
+    }
+
+    function applyItemBoost(mult, seconds) {
+        itemBoostMult = Math.max(itemBoostMult, mult || 1.15);
+        itemBoostTimer = Math.max(itemBoostTimer, seconds || 1.2);
+        shieldTimer = Math.max(shieldTimer, Math.min(0.45, (seconds || 1.2) * 0.25));
+    }
+
     function rareSpawnChance() {
         // Rares drop more as the level progresses
         const progress = Math.min(1, distance / 2500);
@@ -372,30 +424,36 @@
         const obstacleBias = boost().obstacleBias || 1;
         const roll = Math.random();
 
-        if (roll < 0.58) {
+        if (roll < 0.42) {
             if (Math.random() < rareSpawnChance()) {
                 spawnPiece(z, lanePick, show.rareGoal, true);
             } else {
                 const next = nextDressPiece();
-                // Bias toward the next missing wardrobe piece so dress-up feels intentional
                 if (next && !next.rare && Math.random() < 0.55) {
                     spawnPiece(z, lanePick, next, false);
                 } else {
                     spawnPiece(z, lanePick, pickCommonPiece(), false);
                 }
             }
-            if (Math.random() < 0.3) {
+            if (Math.random() < 0.28) {
                 const other = (lanePick + 1 + Math.floor(Math.random() * 2)) % LANES;
                 spawnPiece(z + 50, other, pickCommonPiece(), false);
             }
-        } else if (Math.random() < obstacleBias) {
+        } else if (roll < 0.72) {
+            // Fashion props — always boost on collect, never wipeout
+            spawnFashionPickup(z, lanePick);
+            if (Math.random() < 0.35) {
+                const other = (lanePick + 1 + Math.floor(Math.random() * 2)) % LANES;
+                spawnFashionPickup(z + 40, other);
+            }
+        } else if (Math.random() < obstacleBias * 0.85) {
             spawnObstacle(z, lanePick);
-            if (Math.random() < 0.22) {
+            if (Math.random() < 0.18) {
                 const other = (lanePick + 1 + Math.floor(Math.random() * 2)) % LANES;
                 spawnObstacle(z + 30, other, 'barrier');
             }
         } else {
-            spawnPiece(z, lanePick, pickCommonPiece(), false);
+            spawnFashionPickup(z, lanePick);
         }
     }
 
@@ -547,9 +605,12 @@
         if (type.rare) {
             rareCollected += 1;
             pushFloat(`${type.name}!`, type.color, laneX, height * 0.48);
+        } else {
+            pushFloat('STRUT!', type.color || '#f4efe6', laneX, height * 0.5);
         }
 
         grantOutfitPiece(type);
+        applyItemBoost(1.18, 1.15);
 
         if (boost().collectShield) {
             shieldTimer = Math.max(shieldTimer, boost().collectShield);
@@ -558,6 +619,16 @@
         if (show && rareCollected >= show.rareGoal.target) {
             completeLevel();
         }
+    }
+
+    function onCollectPickup(item) {
+        if (!item) return;
+        const scoreMult = boost().scoreMult || 1;
+        looksCollected += 1;
+        score += Math.floor((item.points || 30) * scoreMult);
+        applyItemBoost(item.speedBurst || 1.2, item.boostMs || 1.3);
+        pushFloat(`+${item.name}`, item.accent || item.color || '#c9a56a', laneX, height * 0.48);
+        burst(laneX, height * 0.62, item.accent || item.color || '#c9a56a');
     }
 
     function updatePlayer(dt) {
@@ -592,14 +663,13 @@
         if (dressPulse > 0) dressPulse = Math.max(0, dressPulse - dt * 1.8);
         if (shieldTimer > 0) shieldTimer = Math.max(0, shieldTimer - dt);
 
-        // Soft magnet toward nearby clothing
+        // Soft magnet toward nearby clothing + fashion pickups
         const mag = boost().magnet || 0;
         if (mag > 0) {
             for (const e of entities) {
-                if (e.kind !== 'clothing' || e.z > 90 || e.z < 0) continue;
-                const dx = laneX - laneCenterX(e.lane);
+                if ((e.kind !== 'clothing' && e.kind !== 'pickup') || e.z > 90 || e.z < 0) continue;
+                const dx = laneX - laneCenterX(e.lane, e.z);
                 if (Math.abs(dx) < mag + 40 && Math.abs(dx) > 4) {
-                    // Nudge entity lane toward player by shifting projected lane gradually via z-side pull on lane index
                     if (Math.abs(dx) < mag + 10 && e.lane !== targetLane && Math.random() < dt * 3) {
                         e.lane = targetLane;
                     }
@@ -631,11 +701,19 @@
         score = Math.max(score, Math.floor(distance) + looksCollected * 10 + rareCollected * 50);
         const d = difficulty || DIFFICULTY_SCALES.medium;
         speed = Math.min(
-            d.maxSpeed,
-            (d.baseSpeed + distance * d.accel) * boost().speedMult
+            d.maxSpeed * (itemBoostTimer > 0 ? 1.08 : 1),
+            (d.baseSpeed + distance * d.accel) * boost().speedMult * (itemBoostTimer > 0 ? itemBoostMult : 1)
         );
 
         const hit = playerHitbox();
+
+        if (itemBoostTimer > 0) {
+            itemBoostTimer -= dt;
+            if (itemBoostTimer <= 0) {
+                itemBoostTimer = 0;
+                itemBoostMult = 1;
+            }
+        }
 
         for (let i = entities.length - 1; i >= 0; i--) {
             const e = entities[i];
@@ -647,13 +725,20 @@
             }
 
             if (e.z > -10 && e.z < 58 && !e.hit) {
-                const sameLane = e.lane === hit.lane || Math.abs(laneCenterX(e.lane) - laneX) < 28 + (boost().magnet || 0) * 0.25;
+                const sameLane = e.lane === hit.lane || Math.abs(laneCenterX(e.lane, e.z) - laneX) < 28 + (boost().magnet || 0) * 0.25;
                 if (!sameLane) continue;
 
                 if (e.kind === 'clothing') {
                     e.hit = true;
                     onCollectClothing(e.type);
                     burst(laneX, height * 0.62, e.type.color);
+                    entities.splice(i, 1);
+                    continue;
+                }
+
+                if (e.kind === 'pickup') {
+                    e.hit = true;
+                    onCollectPickup(e.item);
                     entities.splice(i, 1);
                     continue;
                 }
@@ -872,6 +957,183 @@
         document.getElementById('restartBtn').addEventListener('click', restartRun);
     }
 
+    function drawSkyline() {
+        const horizon = height * 0.26;
+        const kind = theme.skyline || 'ny';
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+
+        if (kind === 'ny') {
+            const heights = [70, 110, 55, 140, 90, 160, 75, 120, 95, 130, 60, 100];
+            for (let i = 0; i < heights.length; i++) {
+                const bx = (i / heights.length) * width + ((distance * 0.015) % 28);
+                const bh = heights[i];
+                const bw = 16 + (i % 3) * 8;
+                ctx.fillRect(bx, horizon - bh, bw, bh);
+                if (i % 4 === 1) {
+                    ctx.fillStyle = theme.accent;
+                    ctx.fillRect(bx + bw * 0.35, horizon - bh - 18, 4, 18);
+                    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                }
+            }
+        } else if (kind === 'milan') {
+            // Duomo-ish spires
+            for (let i = 0; i < 10; i++) {
+                const x = (i / 10) * width + 10;
+                const h = 50 + (i % 5) * 18;
+                ctx.beginPath();
+                ctx.moveTo(x, horizon);
+                ctx.lineTo(x + 14, horizon - h);
+                ctx.lineTo(x + 28, horizon);
+                ctx.fill();
+            }
+            ctx.fillStyle = theme.accent;
+            ctx.beginPath();
+            ctx.moveTo(width * 0.45, horizon);
+            ctx.lineTo(width * 0.5, horizon - 150);
+            ctx.lineTo(width * 0.55, horizon);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        } else if (kind === 'london') {
+            // Big Ben + bridge blocks
+            ctx.fillRect(width * 0.18, horizon - 130, 28, 130);
+            ctx.fillRect(width * 0.2, horizon - 150, 18, 20);
+            ctx.fillStyle = theme.accent;
+            ctx.fillRect(width * 0.205, horizon - 70, 12, 12);
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            for (let i = 0; i < 6; i++) {
+                const x = width * 0.4 + i * 36;
+                ctx.fillRect(x, horizon - 40 - (i % 2) * 20, 30, 40 + (i % 2) * 20);
+            }
+            ctx.beginPath();
+            ctx.moveTo(width * 0.55, horizon - 20);
+            ctx.quadraticCurveTo(width * 0.7, horizon - 70, width * 0.85, horizon - 20);
+            ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        } else if (kind === 'berlin') {
+            // TV tower
+            ctx.fillRect(width * 0.48, horizon - 160, 8, 160);
+            ctx.beginPath();
+            ctx.arc(width * 0.484, horizon - 110, 16, 0, Math.PI * 2);
+            ctx.fill();
+            for (let i = 0; i < 8; i++) {
+                ctx.fillRect(i * (width / 8), horizon - 45 - (i % 3) * 25, 40, 45 + (i % 3) * 25);
+            }
+            ctx.fillStyle = theme.accent;
+            ctx.fillRect(width * 0.2, horizon - 8, width * 0.6, 3);
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        } else {
+            // Miami art deco + palms
+            for (let i = 0; i < 7; i++) {
+                const x = 20 + i * (width / 7);
+                const h = 55 + (i % 3) * 30;
+                ctx.fillStyle = i % 2 ? 'rgba(255,110,199,0.35)' : 'rgba(56,189,248,0.3)';
+                ctx.fillRect(x, horizon - h, 34, h);
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(x, horizon - h, 34, 8);
+            }
+            ctx.fillStyle = 'rgba(20,80,40,0.55)';
+            for (let i = 0; i < 5; i++) {
+                const x = 40 + i * width * 0.2;
+                ctx.fillRect(x, horizon - 50, 4, 50);
+                ctx.beginPath();
+                ctx.ellipse(x + 2, horizon - 55, 22, 10, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    function drawGuest(x, y, scale, side, seed) {
+        // Seated fashion-show guest (infinite loop silhouettes)
+        const s = Math.max(6, scale * 28);
+        const skin = seed % 3 === 0 ? '#e8c4a8' : seed % 3 === 1 ? '#c68c6c' : '#f0d2b4';
+        const dress = [
+            theme.accent || '#c9a56a',
+            '#111',
+            '#f4efe6',
+            '#7c2d12',
+            '#1e3a5f',
+            '#9f1239'
+        ][seed % 6];
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(side < 0 ? -1 : 1, 1);
+
+        ctx.fillStyle = theme.seat || '#111';
+        ctx.fillRect(-s * 0.35, s * 0.15, s * 0.7, s * 0.55);
+        ctx.fillRect(-s * 0.4, -s * 0.1, s * 0.12, s * 0.8);
+
+        ctx.fillStyle = dress;
+        ctx.beginPath();
+        ctx.ellipse(0, s * 0.2, s * 0.32, s * 0.38, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = skin;
+        ctx.beginPath();
+        ctx.arc(0, -s * 0.25, s * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = seed % 2 ? '#1a1a1a' : '#4a3728';
+        ctx.beginPath();
+        ctx.ellipse(0, -s * 0.34, s * 0.22, s * 0.14, 0, Math.PI, Math.PI * 2);
+        ctx.fill();
+
+        if (seed % 4 === 0) {
+            ctx.fillStyle = '#eee';
+            ctx.fillRect(s * 0.12, s * 0.05, s * 0.18, s * 0.22);
+        } else if (seed % 4 === 1) {
+            ctx.fillStyle = '#222';
+            ctx.fillRect(s * 0.15, s * 0.08, s * 0.12, s * 0.2);
+            ctx.fillStyle = theme.accent || '#c9a56a';
+            ctx.fillRect(s * 0.17, s * 0.1, s * 0.08, s * 0.1);
+        }
+
+        ctx.restore();
+    }
+
+    function drawAudienceBanks() {
+        // Infinite scrolling guests along both margins of the curved catwalk
+        const loop = 920;
+        const base = distance % loop;
+        const rows = 9;
+
+        for (let row = 0; row < rows; row++) {
+            for (let side = -1; side <= 1; side += 2) {
+                for (let n = 0; n < 7; n++) {
+                    const z = ((n * 130 + row * 40) - base * 1.15 + loop * 3) % loop;
+                    if (z > 780) continue;
+                    const p = project(z, side < 0 ? 0 : 2);
+                    const edge = side < 0 ? -1 : 1;
+                    const x = p.x + edge * (55 + row * 16) * (0.35 + 0.65 * p.t);
+                    const y = p.y - 8 - row * 3;
+                    if (y < height * 0.3 || y > height * 0.92) continue;
+                    const seed = (row * 17 + n * 31 + side + 3 + Math.floor(distance / loop)) & 255;
+                    drawGuest(x, y, p.scale * (1 - row * 0.05), side, seed);
+                }
+            }
+        }
+    }
+
+    function drawSpotlights() {
+        const topY = height * 0.1;
+        for (let i = 0; i < 3; i++) {
+            const bend = curveAt(i * 120) * width * 0.2;
+            const x = width * (0.28 + i * 0.22) + bend;
+            const g = ctx.createRadialGradient(x, topY, 4, x, height * 0.55, height * 0.5);
+            g.addColorStop(0, theme.light || 'rgba(255,255,255,0.18)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.moveTo(x - 8, topY);
+            ctx.lineTo(x + 8, topY);
+            ctx.lineTo(x + width * 0.12, height * 0.85);
+            ctx.lineTo(x - width * 0.12, height * 0.85);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
     function drawBackground() {
         const g = ctx.createLinearGradient(0, 0, 0, height);
         g.addColorStop(0, theme.skyTop);
@@ -879,72 +1141,212 @@
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, width, height);
 
-        ctx.fillStyle = 'rgba(0,0,0,0.28)';
-        const horizon = height * 0.28;
-        for (let i = 0; i < 12; i++) {
-            const bx = (i / 12) * width + ((distance * 0.02) % 40);
-            const bh = 40 + ((i * 37) % 90);
-            const bw = 18 + (i % 3) * 10;
-            ctx.fillRect(bx, horizon - bh, bw, bh);
-        }
-
-        ctx.fillStyle = theme.crowd;
-        ctx.beginPath();
-        ctx.moveTo(0, height * 0.35);
-        ctx.lineTo(width * 0.18, height * 0.88);
-        ctx.lineTo(0, height);
-        ctx.closePath();
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(width, height * 0.35);
-        ctx.lineTo(width * 0.82, height * 0.88);
-        ctx.lineTo(width, height);
-        ctx.closePath();
-        ctx.fill();
-
-        drawRunway();
+        drawSkyline();
+        drawSpotlights();
+        drawCatwalk();
+        drawAudienceBanks();
     }
 
-    function drawRunway() {
-        const topL = width * 0.42;
-        const topR = width * 0.58;
-        const botL = width * 0.12;
-        const botR = width * 0.88;
-        const topY = height * 0.28;
-        const botY = height * 0.92;
+    function catwalkEdgeX(z, side) {
+        const t = 1 / (1 + z * 0.0045);
+        const halfNear = width * 0.34;
+        const halfFar = width * 0.1;
+        const half = halfFar + (halfNear - halfFar) * t;
+        const cx = width / 2 + curveAt(z) * width * 0.42 * (0.2 + 0.8 * t);
+        return cx + side * half;
+    }
 
-        ctx.fillStyle = theme.runway;
+    function drawCatwalk() {
+        const topY = height * 0.28;
+        const botY = height * 0.94;
+        const steps = 28;
+
+        const left = [];
+        const right = [];
+        for (let i = 0; i <= steps; i++) {
+            const u = i / steps;
+            const z = (1 - u) * 900;
+            const y = topY + (botY - topY) * u;
+            left.push({ x: catwalkEdgeX(z, -1), y });
+            right.push({ x: catwalkEdgeX(z, 1), y });
+        }
+
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
         ctx.beginPath();
-        ctx.moveTo(topL, topY);
-        ctx.lineTo(topR, topY);
-        ctx.lineTo(botR, botY);
-        ctx.lineTo(botL, botY);
+        ctx.moveTo(left[steps].x, left[steps].y);
+        ctx.lineTo(right[steps].x, right[steps].y);
+        ctx.lineTo(right[steps].x + 12, right[steps].y + 16);
+        ctx.lineTo(left[steps].x - 12, left[steps].y + 16);
         ctx.closePath();
         ctx.fill();
 
-        ctx.strokeStyle = show?.accent || theme.runwayEdge;
-        ctx.lineWidth = 3;
+        const deck = ctx.createLinearGradient(0, topY, 0, botY);
+        deck.addColorStop(0, theme.catwalk || '#ece7df');
+        deck.addColorStop(0.5, '#ffffff');
+        deck.addColorStop(1, theme.catwalk || '#ece7df');
+        ctx.fillStyle = deck;
         ctx.beginPath();
-        ctx.moveTo(topL, topY);
-        ctx.lineTo(botL, botY);
-        ctx.moveTo(topR, topY);
-        ctx.lineTo(botR, botY);
+        ctx.moveTo(left[0].x, left[0].y);
+        for (let i = 1; i <= steps; i++) ctx.lineTo(left[i].x, left[i].y);
+        for (let i = steps; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
+        ctx.closePath();
+        ctx.fill();
+
+        if (theme.wet) {
+            ctx.fillStyle = 'rgba(120,160,200,0.12)';
+            const mid = project(80, 1);
+            ctx.beginPath();
+            ctx.ellipse(mid.x, mid.y, width * 0.1, 14, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.strokeStyle = show?.accent || theme.catwalkEdge || theme.accent;
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(left[0].x, left[0].y);
+        for (let i = 1; i <= steps; i++) ctx.lineTo(left[i].x, left[i].y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(right[0].x, right[0].y);
+        for (let i = 1; i <= steps; i++) ctx.lineTo(right[i].x, right[i].y);
         ctx.stroke();
 
-        ctx.strokeStyle = theme.laneLine;
-        ctx.lineWidth = 2;
-        ctx.setLineDash([18, 22]);
-        ctx.lineDashOffset = -(distance * 2.2) % 40;
-        for (let i = 1; i < LANES; i++) {
-            const t = i / LANES;
-            const xTop = topL + (topR - topL) * t;
-            const xBot = botL + (botR - botL) * t;
+        ctx.strokeStyle = theme.plank || 'rgba(0,0,0,0.08)';
+        ctx.lineWidth = 1.25;
+        const seamCount = 16;
+        for (let i = 0; i < seamCount; i++) {
+            const t = ((i / seamCount) + (distance * 0.004) % 1) % 1;
+            const z = (1 - t) * 900;
+            const y = topY + (botY - topY) * t;
+            const xL = catwalkEdgeX(z, -1);
+            const xR = catwalkEdgeX(z, 1);
             ctx.beginPath();
-            ctx.moveTo(xTop, topY);
-            ctx.lineTo(xBot, botY);
+            ctx.moveTo(xL + 3, y);
+            ctx.lineTo(xR - 3, y);
             ctx.stroke();
         }
-        ctx.setLineDash([]);
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+        ctx.lineWidth = 1;
+        for (let laneI = 1; laneI < LANES; laneI++) {
+            ctx.beginPath();
+            for (let i = 0; i <= steps; i++) {
+                const u = i / steps;
+                const z = (1 - u) * 900;
+                const y = topY + (botY - topY) * u;
+                const xL = catwalkEdgeX(z, -1);
+                const xR = catwalkEdgeX(z, 1);
+                const x = xL + (xR - xL) * (laneI / LANES);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+    }
+
+    function drawFashionShape(ctx, shape, size, color, accent) {
+        const s = size;
+        ctx.save();
+        if (shape === 'heel') {
+            ctx.fillStyle = color;
+            ctx.fillRect(-s * 0.08, -s * 0.35, s * 0.16, s * 0.7);
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.35, -s * 0.15);
+            ctx.lineTo(s * 0.4, -s * 0.2);
+            ctx.lineTo(s * 0.45, -s * 0.05);
+            ctx.lineTo(-s * 0.2, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.1, s * 0.28, s * 0.2, s * 0.08);
+        } else if (shape === 'clutch') {
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.4, -s * 0.22, s * 0.8, s * 0.44, 6);
+            ctx.fill();
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.08, -s * 0.06, s * 0.16, s * 0.12);
+        } else if (shape === 'shades') {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.ellipse(-s * 0.22, 0, s * 0.2, s * 0.16, 0, 0, Math.PI * 2);
+            ctx.ellipse(s * 0.22, 0, s * 0.2, s * 0.16, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.02, -s * 0.02);
+            ctx.lineTo(s * 0.02, -s * 0.02);
+            ctx.moveTo(-s * 0.42, -s * 0.02);
+            ctx.lineTo(-s * 0.55, -s * 0.08);
+            ctx.moveTo(s * 0.42, -s * 0.02);
+            ctx.lineTo(s * 0.55, -s * 0.08);
+            ctx.stroke();
+        } else if (shape === 'perfume') {
+            ctx.fillStyle = accent;
+            ctx.fillRect(-s * 0.08, -s * 0.42, s * 0.16, s * 0.14);
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.22, -s * 0.28, s * 0.44, s * 0.6, 8);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            ctx.fillRect(-s * 0.12, -s * 0.18, s * 0.1, s * 0.35);
+        } else if (shape === 'scarf') {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = Math.max(3, s * 0.12);
+            ctx.beginPath();
+            ctx.moveTo(-s * 0.35, -s * 0.25);
+            ctx.quadraticCurveTo(0, s * 0.35, s * 0.35, -s * 0.1);
+            ctx.stroke();
+            ctx.fillStyle = accent;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (shape === 'bag') {
+            ctx.fillStyle = color;
+            roundRect(ctx, -s * 0.32, -s * 0.1, s * 0.64, s * 0.45, 8);
+            ctx.fill();
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, -s * 0.1, s * 0.22, Math.PI, 0);
+            ctx.stroke();
+            ctx.fillStyle = accent;
+            ctx.beginPath();
+            ctx.arc(0, s * 0.05, s * 0.06, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (shape === 'cuff') {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = Math.max(5, s * 0.16);
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.32, 0.2, Math.PI * 1.8);
+            ctx.stroke();
+            ctx.fillStyle = accent;
+            for (let i = 0; i < 5; i++) {
+                const a = (i / 5) * Math.PI * 1.5 + 0.4;
+                ctx.beginPath();
+                ctx.arc(Math.cos(a) * s * 0.32, Math.sin(a) * s * 0.32, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+        const rr = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rr);
+        ctx.arcTo(x + w, y + h, x, y + h, rr);
+        ctx.arcTo(x, y + h, x, y, rr);
+        ctx.arcTo(x, y, x + w, y, rr);
+        ctx.closePath();
     }
 
     function drawEntity(e) {
@@ -953,30 +1355,40 @@
         const x = p.x;
         const y = p.y - size * 0.35;
 
-        if (e.kind === 'clothing') {
+        if (e.kind === 'clothing' || e.kind === 'pickup') {
             ctx.save();
             ctx.translate(x, y);
-            const r = size * (e.type.rare ? 0.52 : 0.45);
+            const r = size * (e.kind === 'clothing' && e.type && e.type.rare ? 0.52 : 0.45);
             ctx.beginPath();
-            ctx.fillStyle = e.type.rare ? 'rgba(255,215,0,0.35)' : 'rgba(255,255,255,0.22)';
-            ctx.arc(0, 0, r * 1.2, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.18)';
+            ctx.arc(0, 0, r * 1.35, 0, Math.PI * 2);
             ctx.fill();
-            ctx.beginPath();
-            ctx.fillStyle = e.type.color;
-            ctx.arc(0, 0, r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = e.type.rare ? '#fbbf24' : '#fff';
-            ctx.lineWidth = Math.max(1.5, 2.2 * p.scale);
-            ctx.stroke();
-            ctx.fillStyle = '#fff';
-            ctx.font = `bold ${Math.max(7, Math.floor(size * 0.24))}px Fredoka One, sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(e.type.label, 0, 0);
-            if (e.type.rare) {
-                ctx.fillStyle = '#fbbf24';
-                ctx.font = `bold ${Math.max(7, Math.floor(size * 0.18))}px Fredoka One, sans-serif`;
-                ctx.fillText('RARE', 0, r + 10);
+
+            if (e.kind === 'pickup' && e.item) {
+                drawFashionShape(ctx, e.item.shape, size * 0.9, e.item.color, e.item.accent);
+                ctx.fillStyle = e.item.accent || '#c9a56a';
+                ctx.font = `600 ${Math.max(7, Math.floor(size * 0.18))}px Syne, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(e.item.label || 'ITEM', 0, r + 12);
+            } else {
+                ctx.beginPath();
+                ctx.fillStyle = e.type.color;
+                ctx.arc(0, 0, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = e.type.rare ? '#fbbf24' : '#fff';
+                ctx.lineWidth = Math.max(1.5, 2.2 * p.scale);
+                ctx.stroke();
+                ctx.fillStyle = '#fff';
+                ctx.font = `600 ${Math.max(7, Math.floor(size * 0.22))}px Syne, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(e.type.label, 0, 0);
+                if (e.type.rare) {
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.font = `600 ${Math.max(7, Math.floor(size * 0.16))}px Syne, sans-serif`;
+                    ctx.fillText('RARE', 0, r + 10);
+                }
             }
             ctx.restore();
             return;
@@ -997,7 +1409,7 @@
             ctx.arc(x, y - hh - size * 0.28, size * 0.14, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#fff';
-            ctx.font = `bold ${Math.max(8, Math.floor(size * 0.22))}px Fredoka One, sans-serif`;
+            ctx.font = `600 ${Math.max(8, Math.floor(size * 0.2))}px Syne, sans-serif`;
             ctx.textAlign = 'center';
             ctx.fillText('PAPS', x, y - hh - size * 0.55);
             if (Math.random() < 0.08) flashTimer = 0.12;
@@ -1030,7 +1442,7 @@
             ctx.closePath();
             ctx.fill();
             ctx.fillStyle = '#111';
-            ctx.font = `bold ${Math.max(8, Math.floor(size * 0.22))}px Fredoka One, sans-serif`;
+            ctx.font = `600 ${Math.max(8, Math.floor(size * 0.2))}px Syne, sans-serif`;
             ctx.textAlign = 'center';
             ctx.fillText('FLASH', x, y + 10);
         } else {
@@ -1039,7 +1451,7 @@
             ctx.fillStyle = '#9f1239';
             ctx.fillRect(x - hw, y - hh * 0.35, hw * 2, 8);
             ctx.fillStyle = '#eab308';
-            ctx.font = `bold ${Math.floor(10 + size * 0.2)}px Fredoka One, sans-serif`;
+            ctx.font = `600 ${Math.floor(10 + size * 0.18)}px Syne, sans-serif`;
             ctx.textAlign = 'center';
             ctx.fillText('NO ENTRY', x, y + 4);
         }
@@ -1309,8 +1721,9 @@
         }
 
         if (window.THREE && window.Runway3D && avatarCanvas) {
-            avatar3d = Runway3D.createRenderer(avatarCanvas, THREE);
-            avatar3d.resize(160, 220);
+            const characterId = localStorage.getItem('selectedCharacter') || 'female';
+            avatar3d = Runway3D.createRenderer(avatarCanvas, THREE, { characterId });
+            avatar3d.resize(200, 280);
             if (show) avatar3d.avatar.applyPieceColors(show.pieces, { base: true });
         }
 
