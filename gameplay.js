@@ -1318,37 +1318,31 @@
     }
 
     function drawAudienceBanks() {
-        // Generous seating — clear gaps along the runway and between rows
-        const seatSpacing = 110;
-        const rows = 3;
-        const ahead = 16;
+        // Single-file fashion seating — clear gaps along each bank (no stacked rows)
+        const seatSpacing = 95;
+        const ahead = 18;
         const startSlot = Math.floor(distance / seatSpacing) - 1;
         const scroll = distance % seatSpacing;
 
         for (let slot = startSlot; slot < startSlot + ahead; slot++) {
             const worldZ = slot * seatSpacing - scroll;
-            if (worldZ < -50 || worldZ > 540) continue;
-            for (let row = 0; row < rows; row++) {
-                for (let side = -1; side <= 1; side += 2) {
-                    const stagger = ((slot * 2 + row * 5) % 5) * 14;
-                    const p = project(Math.max(0, worldZ + row * 14 + stagger), side < 0 ? 0 : 2);
-                    const lateral = (110 + row * 48) * (0.75 + 0.25 * p.t);
-                    const x = p.x + side * lateral;
-                    const y = p.y + 6 + row * 4;
-                    if (y < height * 0.4 || y > height * 0.98) continue;
+            if (worldZ < -40 || worldZ > 520) continue;
 
-                    const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
-                    // Leave empty chairs so banks breathe
-                    if (seed % (row === 0 ? 5 : 3) === 0) continue;
+            const seed = Math.abs((slot * 47) % 97);
+            // Occasional empty chair for a natural rhythm
+            if (seed % 5 === 0) continue;
 
-                    const sw = Math.max(6, p.scale * height * 0.032);
-                    ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
-                    ctx.globalAlpha = 0.4;
-                    ctx.fillRect(x - sw * 0.55, y + sw * 0.1, sw * 1.1, sw * 0.22);
-                    ctx.globalAlpha = 1;
+            for (let side = -1; side <= 1; side += 2) {
+                // Mild stagger so left/right banks aren't mirrored clones
+                const zOff = side < 0 ? (slot % 2) * 12 : ((slot + 1) % 2) * 12;
+                const p = project(Math.max(0, worldZ + zOff), side < 0 ? 0 : 2);
+                const lateral = 125 * (0.78 + 0.22 * p.t);
+                const x = p.x + side * lateral;
+                const y = p.y + 8;
+                if (y < height * 0.42 || y > height * 0.98) continue;
 
-                    drawGuest(x, y, p.scale * (0.68 - row * 0.06), side, seed);
-                }
+                const guestSeed = Math.abs((slot * 47 + side * 9) % 97);
+                drawGuest(x, y, p.scale * 0.72, side, guestSeed);
             }
         }
     }
