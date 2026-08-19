@@ -386,6 +386,14 @@
 
         let walkT = 0;
         const BASE_SCALE = 1.0;
+        let begT = 0;
+        let begDur = 0;
+
+        function playBeg(seconds) {
+            begDur = Math.max(0.4, seconds || 1.1);
+            begT = begDur;
+        }
+
         function update(dt, state) {
             state = state || {};
             const { jumping, sliding, dressing, dying, deathT } = state;
@@ -399,11 +407,27 @@
                 root.scale.set(s, Math.max(0.05, s * (1 - t * 0.35)), s);
                 return;
             }
+
+            if (begT > 0) {
+                begT = Math.max(0, begT - dt);
+                const u = 1 - begT / begDur;
+                // Courteous runway beg / bow before the walk
+                const bow = Math.sin(Math.min(1, u * 1.4) * Math.PI) * 0.55;
+                root.rotation.x = bow;
+                root.rotation.z = 0;
+                root.position.y = 0;
+                root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
+                armL.rotation.x = -0.4 - bow * 0.4;
+                armR.rotation.x = -0.4 - bow * 0.4;
+                return;
+            }
+
             root.rotation.z = 0;
             root.rotation.x = 0;
             root.position.x = 0;
             walkT += dt * (sliding ? 2 : 8);
-            const swing = Math.sin(walkT) * (jumping ? 0.05 : 0.35);
+            // Keep jump pose simple — no limb swing (avoids hitch mid-air)
+            const swing = jumping ? 0 : Math.sin(walkT) * (sliding ? 0.15 : 0.35);
             legL.rotation.x = swing;
             legR.rotation.x = -swing;
             armL.rotation.x = -swing * 0.7;
@@ -411,13 +435,13 @@
             sleeveL.rotation.x = armL.rotation.x * 0.5;
             sleeveR.rotation.x = armR.rotation.x * 0.5;
 
-            // Always reset scale each frame so jump/dress never compounds (runtime crash fix)
+            // Always reset scale each frame so jump/dress never compounds
             if (sliding) {
                 root.scale.set(BASE_SCALE * 1.15, BASE_SCALE * 0.55, BASE_SCALE * 1.1);
                 root.position.y = 0;
             } else if (jumping) {
                 root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
-                root.position.y = 0.22;
+                root.position.y = 0.18;
             } else {
                 root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
                 root.position.y = 0;
@@ -439,6 +463,7 @@
             setOwnedSlots,
             setCameraFacing,
             update,
+            playBeg,
             mats,
             characterId: charId,
             profile,
@@ -451,11 +476,12 @@
         const renderer = new THREE.WebGLRenderer({
             canvas,
             alpha: true,
-            antialias: true,
-            preserveDrawingBuffer: true
+            antialias: false,
+            preserveDrawingBuffer: false,
+            powerPreference: 'high-performance'
         });
         renderer.setClearColor(0x000000, 0);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setPixelRatio(1);
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);

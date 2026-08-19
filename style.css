@@ -124,19 +124,33 @@ a {
     z-index: 1000;
     display: grid;
     place-items: center;
-    background: linear-gradient(145deg, #1a1410 0%, #0a0a0b 42%, #2a2118 100%);
+    background: #070708;
     transition: opacity 0.75s var(--ease), transform 0.75s var(--ease), visibility 0.75s;
     will-change: transform, opacity;
+    overflow: hidden;
+}
+
+.intro-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.intro-mark-overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    pointer-events: none;
+}
+
+.intro-mark-overlay .intro-swipe-hint {
+    pointer-events: auto;
 }
 
 .intro-splash::before {
-    content: "";
-    position: absolute;
-    inset: -20%;
-    background:
-        radial-gradient(circle at 30% 20%, rgba(201, 165, 106, 0.28), transparent 42%),
-        radial-gradient(circle at 80% 70%, rgba(201, 165, 106, 0.12), transparent 35%);
-    animation: introDrift 8s ease-in-out infinite alternate;
+    display: none;
 }
 
 .intro-splash.is-swipe-up {
@@ -501,6 +515,84 @@ a {
 .home-hero-spacer {
     flex: 1;
     min-height: clamp(180px, 28vh, 360px);
+}
+
+
+/* Dedicated home backdrop — perspective runway, not the shared photo shell */
+.home-shell {
+    position: relative;
+    isolation: isolate;
+    background: #09090b !important;
+    background-image: none !important;
+}
+
+.home-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.home-bg-wash {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(201,165,106,0.22), transparent 55%),
+        linear-gradient(180deg, #121018 0%, #09090b 45%, #050507 100%);
+}
+
+.home-bg-runway {
+    position: absolute;
+    left: 50%;
+    bottom: -8%;
+    width: 140%;
+    height: 72%;
+    transform: translateX(-50%) perspective(700px) rotateX(58deg);
+    transform-origin: center top;
+    background:
+        linear-gradient(90deg, transparent 0%, rgba(244,239,230,0.08) 46%, rgba(244,239,230,0.22) 50%, rgba(244,239,230,0.08) 54%, transparent 100%),
+        repeating-linear-gradient(
+            90deg,
+            rgba(201,165,106,0.0) 0 46%,
+            rgba(201,165,106,0.35) 46% 54%,
+            rgba(201,165,106,0.0) 54% 100%
+        );
+    background-size: 100% 100%, 18% 100%;
+    opacity: 0.55;
+    animation: homeRunwayRush 7s linear infinite;
+}
+
+.home-bg-beams {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(118deg, transparent 40%, rgba(201,165,106,0.12) 50%, transparent 60%),
+        linear-gradient(62deg, transparent 42%, rgba(255,255,255,0.05) 50%, transparent 58%);
+    mix-blend-mode: screen;
+    animation: homeBeamSway 9s ease-in-out infinite alternate;
+}
+
+.home-bg-grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.home-shell > *:not(.home-bg) {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes homeRunwayRush {
+    from { background-position: 0 0, 0 0; }
+    to { background-position: 0 0, 18% 0; }
+}
+
+@keyframes homeBeamSway {
+    from { opacity: 0.55; transform: translateX(-2%); }
+    to { opacity: 0.9; transform: translateX(2%); }
 }
 
 /* Home composition */
@@ -1048,9 +1140,9 @@ a {
 }
 
 .map-card.locked {
-    opacity: 0.45;
-    filter: grayscale(0.35);
-    cursor: not-allowed;
+    opacity: 0.72;
+    filter: none;
+    cursor: pointer;
 }
 
 #gameWrapper::after {

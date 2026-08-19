@@ -107,6 +107,7 @@
     let height = 0;
     let dpr = 1;
     let running = false;
+    let runLive = false;
     let gameOver = false;
     let levelComplete = false;
     let dying = false;
@@ -565,18 +566,18 @@
     }
 
     function setLane(next) {
-        if (dying || paused || gameOver || levelComplete) return;
+        if (!runLive || dying || paused || gameOver || levelComplete) return;
         targetLane = Math.max(0, Math.min(LANES - 1, next));
     }
 
     function jump() {
-        if (isJumping || isSliding || gameOver || levelComplete || dying || paused) return;
+        if (!runLive || isJumping || isSliding || gameOver || levelComplete || dying || paused) return;
         isJumping = true;
         jumpT = 0;
     }
 
     function slide() {
-        if (isJumping || isSliding || gameOver || levelComplete || dying || paused) return;
+        if (!runLive || isJumping || isSliding || gameOver || levelComplete || dying || paused) return;
         isSliding = true;
         slideT = 0;
     }
@@ -698,7 +699,7 @@
             jumpT += dt;
             const dur = 0.55;
             const p = Math.min(1, jumpT / dur);
-            playerYOffset = Math.sin(p * Math.PI) * Math.min(72, height * 0.09) * jumpMult;
+            playerYOffset = Math.sin(p * Math.PI) * Math.min(48, height * 0.06) * jumpMult;
             if (p >= 1) {
                 isJumping = false;
                 playerYOffset = 0;
@@ -731,11 +732,11 @@
     }
 
     function playerHitbox() {
-        const footY = height * 0.92 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15);
+        const footY = height * 0.90 - (isJumping ? playerYOffset * 0.8 : playerYOffset * 0.12);
         const scale = isSliding ? 0.55 : 1;
-        const mag = (boost().magnet || 0) * height * 0.03;
-        const ph = height * 0.30 * scale;
-        const pw = ph * 0.55 + mag;
+        const mag = (boost().magnet || 0) * height * 0.02;
+        const ph = height * 0.20 * scale;
+        const pw = ph * 0.52 + mag;
         return {
             x: laneX - pw / 2,
             y: footY - ph,
@@ -924,10 +925,19 @@
         hidePauseMenu();
         if (rafId) cancelAnimationFrame(rafId);
         resetRun();
+        runLive = false;
         lastTs = 0;
         running = true;
         paused = false;
         rafId = requestAnimationFrame(loop);
+        const root = document.getElementById('gameRoot');
+        if (window.RunwayCinematic) {
+            RunwayCinematic.runwayCountdown(root, avatar3d && avatar3d.avatar).then(() => {
+                runLive = true;
+            });
+        } else {
+            runLive = true;
+        }
     }
 
     function exitToMenu() {
@@ -1677,11 +1687,11 @@
         const deathProg = dying ? Math.min(1, deathT / 1.15) : 0;
         const tumbleY = dying ? Math.sin(deathProg * Math.PI) * 40 - deathProg * 70 : 0;
         const tumbleX = dying ? Math.sin(deathT * 14) * 18 * deathProg : 0;
-        // Stable near-field size — large enough to read, small enough to jump safely
-        const footY = height * 0.92 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15) + tumbleY;
-        const pulse = 1 + dressPulse * 0.08;
-        const ph = height * (isSliding && !dying ? 0.26 : 0.38) * pulse;
-        const pw = ph * (isSliding && !dying ? 0.72 : 0.55);
+        // Sized relative to near audience — readable but not towering over the house
+        const footY = height * 0.90 - (isJumping ? playerYOffset * 0.8 : playerYOffset * 0.12) + tumbleY;
+        const pulse = 1 + dressPulse * 0.06;
+        const ph = height * (isSliding && !dying ? 0.16 : 0.24) * pulse;
+        const pw = ph * (isSliding && !dying ? 0.7 : 0.52);
         const x = laneX + tumbleX;
         const lean = curveDeriv(0) * width * 0.08;
 
@@ -1701,16 +1711,24 @@
         }
 
         if (avatar3d && avatarCanvas) {
-            if (show) avatar3d.avatar.applyPieceColors(show.pieces, ownedSlots);
-            avatar3d.setCameraMode(cameraMode);
-            avatar3d.avatar.update(lastFrameDt, {
-                jumping: isJumping && !dying,
-                sliding: isSliding && !dying,
-                dressing: dressAnimT,
-                dying,
-                deathT
-            });
-            avatar3d.render();
+            try {
+                if (show) avatar3d.avatar.applyPieceColors(show.pieces, ownedSlots);
+                // Only reconfigure the 3D cam when mode changes (jump freeze fix)
+                if (avatar3d._lastCam !== cameraMode) {
+                    avatar3d.setCameraMode(cameraMode);
+                    avatar3d._lastCam = cameraMode;
+                }
+                avatar3d.avatar.update(lastFrameDt, {
+                    jumping: isJumping && !dying,
+                    sliding: isSliding && !dying,
+                    dressing: dressAnimT,
+                    dying,
+                    deathT
+                });
+                avatar3d.render();
+            } catch (err) {
+                console.warn('avatar render skipped', err);
+            }
             if (dying) {
                 ctx.save();
                 ctx.translate(x, footY - ph * 0.5);
@@ -1721,8 +1739,7 @@
             } else {
                 ctx.save();
                 ctx.translate(x, footY);
-                ctx.rotate(lean * 0.15);
-                // Feet at footY — image bottom sits on the runway
+                ctx.rotate(lean * 0.12);
                 ctx.drawImage(avatarCanvas, -pw / 2, -ph + 4, pw, ph);
                 ctx.restore();
             }
@@ -1848,7 +1865,7 @@
 
         if (dying) {
             updateDeath(dt);
-        } else if (!gameOver && !levelComplete && !paused) {
+        } else if (!gameOver && !levelComplete && !paused && runLive) {
             updatePlayer(dt);
             updateEntities(dt);
         }
@@ -1857,7 +1874,7 @@
     }
 
     function onSwipe(dx, dy) {
-        if (gameOver || levelComplete || dying || paused) return;
+        if (!runLive || gameOver || levelComplete || dying || paused) return;
         const ax = Math.abs(dx);
         const ay = Math.abs(dy);
         if (ax < 24 && ay < 24) return;
@@ -1903,7 +1920,7 @@
                 togglePauseMenu();
                 return;
             }
-            if (gameOver || levelComplete || dying || paused) return;
+            if (!runLive || gameOver || levelComplete || dying || paused) return;
             if (e.key === 'ArrowLeft' || e.key === 'a') setLane(targetLane - 1);
             if (e.key === 'ArrowRight' || e.key === 'd') setLane(targetLane + 1);
             if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') {
@@ -1952,7 +1969,7 @@
         if (window.THREE && window.Runway3D && avatarCanvas) {
             const characterId = localStorage.getItem('selectedCharacter') || 'female';
             avatar3d = Runway3D.createRenderer(avatarCanvas, THREE, { characterId });
-            avatar3d.resize(360, 540);
+            avatar3d.resize(180, 260);
             if (show) avatar3d.avatar.applyPieceColors(show.pieces, { base: true });
         }
 
@@ -1960,15 +1977,22 @@
         window.addEventListener('resize', resize);
         setupInput();
         resetRun();
+        runLive = false;
 
         const root = document.getElementById('gameRoot');
         if (window.RunwayCinematic) {
             await RunwayCinematic.levelOpening(root, cityId, characterName);
+            running = true;
+            lastTs = 0;
+            rafId = requestAnimationFrame(loop);
+            await RunwayCinematic.runwayCountdown(root, avatar3d && avatar3d.avatar);
+            runLive = true;
+        } else {
+            running = true;
+            runLive = true;
+            lastTs = 0;
+            rafId = requestAnimationFrame(loop);
         }
-
-        running = true;
-        lastTs = 0;
-        rafId = requestAnimationFrame(loop);
     }
 
     document.addEventListener('DOMContentLoaded', init);

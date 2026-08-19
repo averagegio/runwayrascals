@@ -1,5 +1,5 @@
 /**
- * Opening / closing cinematic overlays when levels unlock or complete.
+ * Opening / closing cinematic overlays + pre-run beg & countdown.
  */
 (function (global) {
     const LEVEL_NAMES = {
@@ -37,29 +37,45 @@
             .cinematic-overlay.closing .cinematic-curtain.bottom { transform: translateY(0); }
             .cinematic-copy {
                 position: relative; z-index: 2; text-align: center; color: #fff;
-                font-family: 'Fredoka One', cursive; padding: 16px;
+                font-family: Helvetica, Arial, sans-serif; padding: 16px;
                 transform: scale(0.85); opacity: 0;
                 transition: transform 0.5s ease, opacity 0.5s ease;
             }
             .cinematic-overlay.show .cinematic-copy { transform: scale(1); opacity: 1; }
             .cinematic-copy h2 {
-                font-size: 28px; margin-bottom: 8px;
-                text-shadow: 0 0 18px rgba(255,215,0,0.55);
+                font-size: 26px; font-weight: 700; letter-spacing: 0.08em;
+                text-transform: uppercase; margin-bottom: 8px;
             }
-            .cinematic-copy p { font-size: 14px; opacity: 0.9; margin-bottom: 6px; }
+            .cinematic-copy p { font-size: 13px; opacity: 0.85; margin-bottom: 6px; letter-spacing: 0.12em; text-transform: uppercase; }
             .cinematic-copy .tag {
                 display: inline-block; margin-top: 10px; padding: 6px 14px;
-                border-radius: 999px; background: linear-gradient(45deg,#FFD700,#FFA500);
-                color: #111; font-size: 12px; letter-spacing: 0.06em;
+                border: 1px solid rgba(201,165,106,0.7); color: #c9a56a;
+                font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
             }
-            .cinematic-sparks span {
-                position: absolute; width: 6px; height: 6px; border-radius: 50%;
-                background: #fbbf24; opacity: 0.9;
-                animation: sparkFly 1.1s ease-out forwards;
+            .countdown-overlay {
+                position: absolute; inset: 0; z-index: 85;
+                display: flex; align-items: center; justify-content: center;
+                flex-direction: column; pointer-events: none;
+                background: rgba(0,0,0,0.25);
             }
-            @keyframes sparkFly {
-                0% { transform: translate(0,0) scale(1); opacity: 1; }
-                100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+            .countdown-num {
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: clamp(4rem, 22vw, 7rem);
+                font-weight: 700; color: #fff;
+                letter-spacing: -0.04em;
+                text-shadow: 0 0 40px rgba(201,165,106,0.55);
+                animation: countPop 0.85s cubic-bezier(.2,.8,.2,1) both;
+            }
+            .countdown-caption {
+                margin-top: 12px;
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 0.75rem; letter-spacing: 0.35em;
+                text-transform: uppercase; color: #c9a56a;
+            }
+            @keyframes countPop {
+                0% { transform: scale(0.4); opacity: 0; }
+                35% { transform: scale(1.12); opacity: 1; }
+                100% { transform: scale(1); opacity: 0; }
             }
         `;
         document.head.appendChild(style);
@@ -73,7 +89,6 @@
             overlay.innerHTML = `
                 <div class="cinematic-curtain top"></div>
                 <div class="cinematic-curtain bottom"></div>
-                <div class="cinematic-sparks"></div>
                 <div class="cinematic-copy">
                     <h2>${title}</h2>
                     <p>${subtitle || ''}</p>
@@ -82,18 +97,6 @@
             `;
             (root || document.body).appendChild(overlay);
 
-            const sparks = overlay.querySelector('.cinematic-sparks');
-            for (let i = 0; i < 16; i++) {
-                const s = document.createElement('span');
-                const ang = (i / 16) * Math.PI * 2;
-                s.style.setProperty('--dx', `${Math.cos(ang) * (60 + Math.random() * 80)}px`);
-                s.style.setProperty('--dy', `${Math.sin(ang) * (60 + Math.random() * 80)}px`);
-                s.style.left = '50%';
-                s.style.top = '45%';
-                s.style.animationDelay = `${Math.random() * 0.25}s`;
-                sparks.appendChild(s);
-            }
-
             requestAnimationFrame(() => {
                 overlay.classList.add('show');
                 if (mode === 'open') {
@@ -101,13 +104,13 @@
                 }
             });
 
-            const hold = mode === 'close' ? 1600 : 2200;
+            const hold = mode === 'close' ? 1400 : 1800;
             setTimeout(() => {
                 overlay.classList.remove('show');
                 setTimeout(() => {
                     overlay.remove();
                     resolve();
-                }, 400);
+                }, 350);
             }, hold);
         });
     }
@@ -134,6 +137,55 @@
         });
     }
 
+    /** Model bows / “begs” the runway, then 3-2-1-GO countdown. */
+    function runwayCountdown(root, avatarApi) {
+        ensureStyles();
+        return new Promise((resolve) => {
+            if (avatarApi && avatarApi.playBeg) {
+                try { avatarApi.playBeg(1.1); } catch (_) { /* ignore */ }
+            }
+
+            const overlay = document.createElement('div');
+            overlay.className = 'countdown-overlay';
+            overlay.innerHTML = `
+                <div class="countdown-num" id="countdownNum">3</div>
+                <div class="countdown-caption" id="countdownCap">Strike a pose</div>
+            `;
+            (root || document.body).appendChild(overlay);
+
+            const steps = [
+                { n: '3', cap: 'Strike a pose', wait: 900 },
+                { n: '2', cap: 'Lights', wait: 850 },
+                { n: '1', cap: 'Camera', wait: 850 },
+                { n: 'GO', cap: 'Walk', wait: 700 }
+            ];
+            let i = 0;
+            const num = () => document.getElementById('countdownNum');
+            const cap = () => document.getElementById('countdownCap');
+
+            function tick() {
+                if (i >= steps.length) {
+                    overlay.remove();
+                    resolve();
+                    return;
+                }
+                const step = steps[i++];
+                const el = num();
+                const c = cap();
+                if (el) {
+                    el.textContent = step.n;
+                    el.style.animation = 'none';
+                    // reflow to restart pop
+                    void el.offsetWidth;
+                    el.style.animation = '';
+                }
+                if (c) c.textContent = step.cap;
+                setTimeout(tick, step.wait);
+            }
+            tick();
+        });
+    }
+
     function levelClosing(root, levelId, won) {
         const name = LEVEL_NAMES[levelId] || levelId;
         return play({
@@ -145,5 +197,11 @@
         });
     }
 
-    global.RunwayCinematic = { levelUnlocked, levelOpening, levelClosing, LEVEL_NAMES };
+    global.RunwayCinematic = {
+        levelUnlocked,
+        levelOpening,
+        levelClosing,
+        runwayCountdown,
+        LEVEL_NAMES
+    };
 })(window);
