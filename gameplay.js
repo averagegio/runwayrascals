@@ -386,10 +386,10 @@
         spawnPiece(360, 0, pickCommonPiece(), false);
         spawnFashionPickup(450, 2);
         spawnPiece(520, 2, pickCommonPiece(), false);
-        spawnObstacle(640, 0, 'barrier');
-        spawnObstacle(820, 2, 'paparazzi');
+        spawnObstacle(900, 0, 'barrier');
+        spawnObstacle(1100, 2, 'paparazzi');
         // Brief runway entrance shield so the first beats read clearly
-        shieldTimer = 2.2;
+        shieldTimer = 3.5;
     }
 
     function pickCommonPiece() {
