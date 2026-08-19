@@ -76,10 +76,14 @@
     let readyToSwipe = false;
     let dismissing = false;
     let flashLevel = 0;
-    let nextFlashAt = 0;
+    let flashHold = 0;
+    // Timed paparazzi pops (ms from start) — dense opening burst
+    const FLASH_BEATS = [0, 70, 140, 240, 360, 480, 620, 780, 1100, 1600, 2400, 3200, 4200];
+    let flashBeatIdx = 0;
 
-    function triggerFlash(strength) {
+    function triggerFlash(strength, holdFrames) {
         flashLevel = Math.max(flashLevel, strength);
+        flashHold = Math.max(flashHold, holdFrames || 2);
         if (flashEl) {
             flashEl.style.opacity = String(flashLevel);
             flashEl.classList.add('is-on');
@@ -87,7 +91,12 @@
     }
 
     function decayFlash() {
-        if (flashLevel <= 0.01) {
+        if (flashHold > 0) {
+            flashHold -= 1;
+            if (flashEl) flashEl.style.opacity = String(flashLevel);
+            return;
+        }
+        if (flashLevel <= 0.02) {
             flashLevel = 0;
             if (flashEl) {
                 flashEl.style.opacity = '0';
@@ -95,23 +104,15 @@
             }
             return;
         }
-        flashLevel *= 0.78;
+        flashLevel *= 0.62;
         if (flashEl) flashEl.style.opacity = String(flashLevel);
     }
 
     function scheduleBursts(elapsed) {
-        // Opening paparazzi burst — several pops before / as writing starts
-        if (elapsed < FLASH_INTRO_MS) {
-            if (elapsed >= nextFlashAt) {
-                triggerFlash(0.55 + Math.random() * 0.4);
-                nextFlashAt = elapsed + 90 + Math.random() * 160;
-            }
-            return;
-        }
-        // Occasional flashes while writing
-        if (elapsed >= nextFlashAt && Math.random() < 0.035) {
-            triggerFlash(0.35 + Math.random() * 0.35);
-            nextFlashAt = elapsed + 220 + Math.random() * 400;
+        while (flashBeatIdx < FLASH_BEATS.length && elapsed >= FLASH_BEATS[flashBeatIdx]) {
+            const early = FLASH_BEATS[flashBeatIdx] < 900;
+            triggerFlash(early ? 0.95 : 0.55 + Math.random() * 0.3, early ? 3 : 2);
+            flashBeatIdx += 1;
         }
     }
 
@@ -148,9 +149,6 @@
     }
 
     const t0 = performance.now();
-    // Kick a first flash immediately
-    triggerFlash(0.85);
-    nextFlashAt = 120;
 
     function frame(now) {
         const elapsed = now - t0;
@@ -164,7 +162,7 @@
         const doneAt = writeREnd + HOLD_MS;
 
         if (elapsed < writeStart) {
-            // Flashes only — keep paths hidden
+            // Opening flashes only — keep paths hidden
             requestAnimationFrame(frame);
             return;
         }

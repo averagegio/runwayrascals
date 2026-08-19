@@ -135,16 +135,10 @@ a {
 .intro-flash {
     position: absolute;
     inset: 0;
-    z-index: 4;
+    z-index: 10;
     pointer-events: none;
-    background: #fff;
+    background: #ffffff;
     opacity: 0;
-    mix-blend-mode: screen;
-    transition: none;
-}
-
-.intro-flash.is-on {
-    /* hard paparazzi pop — no soft fade-in */
 }
 
 .intro-canvas {
