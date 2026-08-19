@@ -612,16 +612,40 @@ a {
 
 .character-display {
     height: auto;
-    min-height: 180px;
+    min-height: 0;
+    max-height: min(28vh, 200px);
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0.5rem 0 1rem;
+    margin: 0.25rem 0 0.75rem;
+    flex-shrink: 0;
 }
 
 .character-display img {
-    max-height: 220px;
+    max-height: min(28vh, 200px);
+    width: auto;
     object-fit: contain;
+}
+
+.wardrobe-select-bg {
+    justify-content: flex-start;
+}
+
+.wardrobe-selection {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.wardrobe-select-bg .game-footer {
+    position: sticky;
+    bottom: 0;
+    padding-top: 0.75rem;
+    padding-bottom: 0.25rem;
+    background: linear-gradient(180deg, transparent, rgba(7, 7, 8, 0.92) 35%);
+    z-index: 5;
 }
 
 /* Gameplay full bleed */

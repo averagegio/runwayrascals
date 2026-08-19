@@ -45,14 +45,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (enterGameBtn) {
         enterGameBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            if (!RunwayAuth.getToken()) {
-                window.location.href = 'login.html';
-                return;
-            }
             const hasCharacter = localStorage.getItem('selectedCharacter');
             const hasOutfit = localStorage.getItem('selectedOutfit');
             const hasName = localStorage.getItem('characterName') || (user && user.characterName);
-            if (!hasName) {
+
+            // Guests can play the full-bleed runner; account pages stay optional.
+            if (RunwayAuth.getToken() && !hasName) {
                 window.location.href = 'profile-setup.html';
                 return;
             }

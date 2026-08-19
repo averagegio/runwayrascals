@@ -61,6 +61,10 @@
       if (!splash) return;
       var seen = false;
       try {
+        var params = new URLSearchParams(location.search);
+        if (params.get("intro") === "1") {
+          sessionStorage.removeItem("rr_intro_seen");
+        }
         seen = sessionStorage.getItem("rr_intro_seen") === "1";
       } catch (e) {}
       if (seen) {
