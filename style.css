@@ -124,12 +124,43 @@ a {
     z-index: 1000;
     display: grid;
     place-items: center;
-    background:
-        radial-gradient(ellipse 70% 50% at 50% 38%, rgba(201, 165, 106, 0.12), transparent 70%),
-        #070708;
-    transition: opacity 0.75s var(--ease), transform 0.75s var(--ease), visibility 0.75s;
+    background: #070708;
+    transition: opacity 0.9s var(--ease), transform 0.9s var(--ease), visibility 0.9s, background 1.4s var(--ease);
     will-change: transform, opacity;
     overflow: hidden;
+}
+
+.intro-splash.has-runway {
+    background: #09090b;
+}
+
+.intro-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.8s var(--ease);
+}
+
+.intro-bg.is-in {
+    opacity: 1;
+}
+
+.intro-bg .home-bg-runway {
+    /* Warmer brown deck for intro reveal */
+    opacity: 0.7;
+    background:
+        linear-gradient(180deg, rgba(62, 42, 28, 0.15) 0%, rgba(90, 58, 36, 0.55) 40%, rgba(42, 28, 18, 0.85) 100%),
+        linear-gradient(90deg, transparent 0%, rgba(244,239,230,0.1) 46%, rgba(244,239,230,0.28) 50%, rgba(244,239,230,0.1) 54%, transparent 100%),
+        repeating-linear-gradient(
+            90deg,
+            rgba(201,165,106,0.0) 0 46%,
+            rgba(201,165,106,0.4) 46% 54%,
+            rgba(201,165,106,0.0) 54% 100%
+        );
+    background-size: 100% 100%, 100% 100%, 18% 100%;
 }
 
 .intro-flash {
@@ -141,33 +172,38 @@ a {
     opacity: 0;
 }
 
-.intro-splash.is-flashing {
-    background: #ffffff !important;
+.intro-splash.is-flashing .intro-mark {
+    opacity: 0.35;
 }
 
-.intro-splash.is-flashing .intro-mark {
-    visibility: hidden;
+.intro-swipe-veil {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    pointer-events: none;
+    opacity: 0;
+    background:
+        linear-gradient(180deg,
+            rgba(9, 9, 11, 0) 0%,
+            rgba(42, 28, 18, 0.35) 35%,
+            rgba(9, 9, 11, 0.85) 70%,
+            #09090b 100%);
+    transition: opacity 0.55s var(--ease);
+}
+
+.intro-swipe-veil.is-on {
+    opacity: 1;
 }
 
 .intro-canvas {
     display: none;
 }
 
-.intro-splash::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.06), transparent 28%),
-        radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.05), transparent 24%);
-    pointer-events: none;
-    z-index: 0;
-}
-
 .intro-splash.is-swipe-up {
     transform: translateY(-110%);
-    opacity: 0.35;
+    opacity: 0;
     pointer-events: none;
+    transition: opacity 0.9s var(--ease), transform 0.95s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.95s;
 }
 
 .intro-splash.is-leaving {
@@ -189,50 +225,70 @@ a {
     width: min(520px, 92vw);
 }
 
-.intro-write-stage {
+.intro-rr {
     position: relative;
-    width: min(300px, 78vw);
+    display: inline-block;
     margin: 0 auto;
-    aspect-ratio: 320 / 220;
+    opacity: 0;
+    transform: scale(0.96);
+    filter: brightness(0.55);
 }
 
-.intro-rr-svg {
-    width: 100%;
-    height: 100%;
+.intro-rr.is-glinting {
+    animation: introRrGlint 2.2s var(--ease) forwards;
+}
+
+.intro-rr-text {
     display: block;
-    overflow: visible;
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-variation-settings: "opsz" 96;
+    font-size: clamp(4.8rem, 22vw, 8.5rem);
+    font-weight: 700;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    line-height: 0.9;
+    color: var(--ivory);
+    text-shadow:
+        0 0 40px rgba(201, 165, 106, 0.25),
+        0 2px 0 rgba(0, 0, 0, 0.35);
 }
 
-.rr-stroke {
-    fill: none;
-    /* Tall, high-contrast Vogue / Didot feel */
-    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.08))
-            drop-shadow(0 0 18px rgba(201, 165, 106, 0.18));
+.intro-rr-glint {
+    position: absolute;
+    inset: -10% -20%;
+    background: linear-gradient(
+        105deg,
+        transparent 35%,
+        rgba(255, 255, 255, 0.55) 48%,
+        rgba(201, 165, 106, 0.35) 52%,
+        transparent 65%
+    );
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+.intro-rr.is-glinting .intro-rr-glint {
+    animation: introGlintSweep 2.2s var(--ease) forwards;
+}
+
+@keyframes introRrGlint {
+    0% { opacity: 0; transform: scale(0.96); filter: brightness(0.4); }
+    45% { opacity: 0.85; filter: brightness(0.85); }
+    70% { opacity: 1; transform: scale(1); filter: brightness(1.15); }
+    100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes introGlintSweep {
+    0% { transform: translateX(-120%); opacity: 0; }
+    25% { opacity: 1; }
+    100% { transform: translateX(120%); opacity: 0; }
 }
 
 .intro-pen {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 44px;
-    height: 44px;
-    margin-left: -6px;
-    margin-top: -32px;
-    pointer-events: none;
-    opacity: 0;
-    transform: rotate(-22deg);
-    transition: opacity 0.2s ease;
-    z-index: 3;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
-}
-
-.intro-pen.is-writing {
-    opacity: 1;
-}
-
-.intro-pen.is-done {
-    opacity: 0;
-    transition: opacity 0.5s ease;
+    display: none;
 }
 
 .intro-rule {

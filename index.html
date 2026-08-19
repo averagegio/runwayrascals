@@ -15,41 +15,18 @@
 </head>
 <body>
   <div class="intro-splash" id="introSplash" aria-hidden="false">
+    <div class="intro-bg" id="introBg" aria-hidden="true">
+      <div class="home-bg-wash"></div>
+      <div class="home-bg-runway"></div>
+      <div class="home-bg-beams"></div>
+      <div class="home-bg-grain"></div>
+    </div>
     <div class="intro-flash" id="introFlash" aria-hidden="true"></div>
+    <div class="intro-swipe-veil" id="introSwipeVeil" aria-hidden="true"></div>
     <div class="intro-mark">
-      <div class="intro-write-stage" id="introWriteStage">
-        <!-- Vogue / Didot-inspired interlocking RR, written stroke by stroke -->
-        <svg id="rrMonogramSvg" class="intro-rr-svg" viewBox="0 0 320 220" aria-label="RR">
-          <defs>
-            <linearGradient id="rrStrokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#f7f2ea" />
-              <stop offset="45%" stop-color="#f4efe6" />
-              <stop offset="100%" stop-color="#c9a56a" />
-            </linearGradient>
-          </defs>
-          <!-- Left R — tall condensed Bodoni stem + bowl + leg -->
-          <path id="rrPathL" class="rr-stroke" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="11" stroke-linecap="butt" stroke-linejoin="miter"
-            d="M 58 22
-               L 58 198
-               M 58 22
-               L 132 22
-               C 178 22, 198 48, 198 84
-               C 198 120, 178 144, 132 144
-               L 58 144
-               M 132 144
-               L 198 198" />
-          <!-- Right R — interlocking overlap, Vogue monogram spacing -->
-          <path id="rrPathR" class="rr-stroke" fill="none" stroke="url(#rrStrokeGrad)" stroke-width="11" stroke-linecap="butt" stroke-linejoin="miter"
-            d="M 104 22
-               L 104 198
-               M 104 22
-               L 178 22
-               C 224 22, 244 48, 244 84
-               C 244 120, 224 144, 178 144
-               L 104 144
-               M 178 144
-               L 244 198" />
-        </svg>
+      <div class="intro-rr" id="introRR" aria-label="RR">
+        <span class="intro-rr-text">RR</span>
+        <span class="intro-rr-glint" aria-hidden="true"></span>
       </div>
       <p class="intro-rule" aria-hidden="true"></p>
       <p class="brand">Runway Rascals</p>
@@ -102,6 +79,6 @@
 
   <script src="auth-client.js"></script>
   <script src="script.js"></script>
-  <script src="intro.js?v=15"></script>
+  <script src="intro.js?v=16"></script>
 </body>
 </html>

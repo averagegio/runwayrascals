@@ -195,38 +195,36 @@
         mouth.scale.set(1, 0.75, 1);
         root.add(mouth);
 
-        // Face cards — larger for chibi head
+        // Face cards kept but hidden — front cam uses sculpted features, not the library PNG
         const faceGeo = new THREE.PlaneGeometry(0.72, 0.78);
         const faceMat = new THREE.MeshBasicMaterial({
             transparent: true,
             opacity: 0,
             depthWrite: false,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            visible: false
         });
         const faceFront = new THREE.Mesh(faceGeo, faceMat);
         faceFront.position.set(0, 1.58, 0.42);
         faceFront.name = 'faceFront';
+        faceFront.visible = false;
         root.add(faceFront);
         const faceBack = new THREE.Mesh(faceGeo.clone(), faceMat.clone());
         faceBack.position.set(0, 1.58, -0.42);
         faceBack.rotation.y = Math.PI;
         faceBack.name = 'faceBack';
+        faceBack.visible = false;
         root.add(faceBack);
 
         const loader = new THREE.TextureLoader();
         loader.load(profile.src, (tex) => {
-            tex.minFilter = THREE.LinearFilter;
-            tex.magFilter = THREE.LinearFilter;
-            [faceFront, faceBack].forEach((f) => {
-                f.material.map = tex;
-                f.material.opacity = 1;
-                f.material.needsUpdate = true;
-            });
+            // Pull palette from character art without pasting the full pic onto the head
             mats.hair.color.setHex(profile.hair);
             mats.skin.color.setHex(profile.skin);
             browMat.color.setHex(profile.hair);
+            faceFront.visible = false;
+            faceBack.visible = false;
         }, undefined, () => {
-            // Keep procedural features if library art fails
             faceFront.visible = false;
             faceBack.visible = false;
         });
@@ -377,11 +375,8 @@
         }
 
         function setCameraFacing(mode) {
-            const hasFace = !!faceFront.material.map;
-            // Front cam: face toward lens. Back cam: hair/outfit from behind.
-            faceFront.position.set(0, 1.58, 0.42);
-            faceFront.rotation.y = 0;
-            faceFront.visible = mode === 'front' && hasFace;
+            // Always use sculpted 3D face — never the library PNG billboard
+            faceFront.visible = false;
             faceBack.visible = false;
         }
 

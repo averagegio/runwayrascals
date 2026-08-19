@@ -1228,93 +1228,104 @@
     }
 
     function drawGuest(x, y, scale, side, seed) {
-        const s = Math.max(18, scale * height * 0.072);
+        const s = Math.max(26, scale * height * 0.11);
         const skins = ['#f0c8a8', '#d4a07a', '#ffdbac', '#a0673a', '#ffc8a0', '#c68642'];
         const dresses = ['#111', '#fff0e8', '#9f1239', '#1e3a8a', '#f59e0b', '#7c3aed', theme.accent || '#c9a56a', '#ec4899'];
         const skin = skins[seed % skins.length];
         const dress = dresses[seed % dresses.length];
+        const seat = theme.seat || '#fff8e8';
+        const seatEdge = theme.seatEdge || '#c4b8a4';
 
         ctx.save();
         ctx.translate(x, y);
         ctx.scale(side < 0 ? 1 : -1, 1);
 
-        ctx.fillStyle = theme.seat || '#fff8e8';
-        ctx.fillRect(-s * 0.42, s * 0.28, s * 0.84, s * 0.18);
-        ctx.fillStyle = theme.seatEdge || '#ddd';
-        ctx.fillRect(-s * 0.45, s * 0.2, s * 0.12, s * 0.38);
+        // Chair — seat pad, backrest, legs (guest sits on it)
+        ctx.fillStyle = seatEdge;
+        ctx.fillRect(-s * 0.38, s * 0.52, s * 0.1, s * 0.28);
+        ctx.fillRect(s * 0.28, s * 0.52, s * 0.1, s * 0.28);
+        ctx.fillStyle = seat;
+        ctx.fillRect(-s * 0.48, s * 0.32, s * 0.96, s * 0.22);
+        ctx.fillStyle = seatEdge;
+        ctx.fillRect(-s * 0.5, s * 0.08, s * 0.14, s * 0.48);
+        ctx.fillStyle = seat;
+        ctx.fillRect(-s * 0.48, s * 0.1, s * 0.1, s * 0.42);
 
+        // Seated torso (hips on seat)
         ctx.fillStyle = dress;
         ctx.beginPath();
-        ctx.ellipse(0, s * 0.1, s * 0.3, s * 0.34, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, s * 0.12, s * 0.34, s * 0.36, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillRect(-s * 0.28, s * 0.26, s * 0.56, s * 0.14);
+        ctx.fillRect(-s * 0.3, s * 0.28, s * 0.6, s * 0.16);
 
+        // Legs dangling over seat front
+        ctx.fillStyle = skin;
+        ctx.fillRect(-s * 0.22, s * 0.48, s * 0.14, s * 0.28);
+        ctx.fillRect(s * 0.08, s * 0.48, s * 0.14, s * 0.28);
+        ctx.fillStyle = seed % 2 ? '#1a1a1a' : '#3b2f2a';
+        ctx.fillRect(-s * 0.24, s * 0.72, s * 0.18, s * 0.08);
+        ctx.fillRect(s * 0.06, s * 0.72, s * 0.18, s * 0.08);
+
+        // Head + face
         ctx.fillStyle = skin;
         ctx.beginPath();
-        ctx.arc(0, -s * 0.26, s * 0.2, 0, Math.PI * 2);
+        ctx.arc(0, -s * 0.28, s * 0.24, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = seed % 3 === 0 ? '#1a1a1a' : seed % 3 === 1 ? '#4a2c1a' : '#8B4513';
         ctx.beginPath();
-        ctx.ellipse(0, -s * 0.36, s * 0.22, s * 0.14, 0, Math.PI, Math.PI * 2);
+        ctx.ellipse(0, -s * 0.4, s * 0.26, s * 0.16, 0, Math.PI, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = '#1a1a1a';
         ctx.beginPath();
-        ctx.ellipse(-s * 0.07, -s * 0.28, s * 0.03, s * 0.04, 0, 0, Math.PI * 2);
-        ctx.ellipse(s * 0.07, -s * 0.28, s * 0.03, s * 0.04, 0, 0, Math.PI * 2);
+        ctx.ellipse(-s * 0.08, -s * 0.3, s * 0.035, s * 0.045, 0, 0, Math.PI * 2);
+        ctx.ellipse(s * 0.08, -s * 0.3, s * 0.035, s * 0.045, 0, 0, Math.PI * 2);
         ctx.fill();
 
         if (seed % 3 !== 2) {
             ctx.fillStyle = '#111';
-            ctx.fillRect(s * 0.12, -s * 0.58, s * 0.14, s * 0.22);
+            ctx.fillRect(s * 0.14, -s * 0.62, s * 0.16, s * 0.24);
             ctx.fillStyle = theme.accent || '#fff';
             ctx.globalAlpha = 0.65;
-            ctx.fillRect(s * 0.14, -s * 0.54, s * 0.1, s * 0.1);
+            ctx.fillRect(s * 0.16, -s * 0.58, s * 0.12, s * 0.1);
             ctx.globalAlpha = 1;
         }
         ctx.restore();
     }
 
     function drawAudienceBanks() {
-        // Pack seats from runway edge out to the screen margins
-        const seatSpacing = 34;
-        const rows = 8;
-        const ahead = 32;
-        const startSlot = Math.floor(distance / seatSpacing) - 1;
+        // Continuous scrolling seats + guests (same modular world as the runway)
+        const seatSpacing = 36;
+        const rows = 7;
+        const ahead = 36;
+        const startSlot = Math.floor(distance / seatSpacing) - 2;
+        const scroll = distance % seatSpacing;
 
-        for (let row = 0; row < rows; row++) {
-            for (let side = -1; side <= 1; side += 2) {
-                const near = project(8, side < 0 ? 0 : 2);
-                const far = project(480, side < 0 ? 0 : 2);
-                const latN = (52 + row * 14) * (0.6 + 0.4 * near.t);
-                const latF = (52 + row * 14) * (0.6 + 0.4 * far.t);
-                ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
-                ctx.beginPath();
-                ctx.moveTo(near.x + side * latN * 0.75, near.y + 5);
-                ctx.lineTo(far.x + side * latF * 0.75, far.y + 2);
-                ctx.lineTo(far.x + side * (latF + 20), far.y + 2);
-                ctx.lineTo(near.x + side * (latN + 32), near.y + 7);
-                ctx.closePath();
-                ctx.fill();
-            }
-        }
-
+        // Per-slot seat banks so chairs and people scroll together
         for (let slot = startSlot; slot < startSlot + ahead; slot++) {
-            const worldZ = slot * seatSpacing - (distance % seatSpacing);
-            if (worldZ < -40 || worldZ > 520) continue;
+            const worldZ = slot * seatSpacing - scroll;
+            if (worldZ < -50 || worldZ > 540) continue;
             for (let row = 0; row < rows; row++) {
                 for (let side = -1; side <= 1; side += 2) {
-                    const stagger = ((slot + row * 2) % 3) * 6;
-                    const p = project(Math.max(0, worldZ + row * 4 + stagger), side < 0 ? 0 : 2);
-                    const lateral = (58 + row * 14) * (0.62 + 0.38 * p.t);
+                    const stagger = ((slot + row * 2) % 3) * 5;
+                    const p = project(Math.max(0, worldZ + row * 3.5 + stagger), side < 0 ? 0 : 2);
+                    const lateral = (54 + row * 15) * (0.62 + 0.38 * p.t);
                     const x = p.x + side * lateral;
-                    const y = p.y + 1 + row * 1.5;
-                    if (y < height * 0.40 || y > height * 0.97) continue;
-                    // Keep near-edge seats filled; only rare gaps in back rows
+                    const y = p.y + 2 + row * 1.2;
+                    if (y < height * 0.38 || y > height * 0.98) continue;
+
+                    // Continuous seat strip segment under each guest
+                    const sw = Math.max(10, p.scale * height * 0.055);
+                    ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
+                    ctx.globalAlpha = 0.55;
+                    ctx.fillRect(x - sw * 0.7, y + sw * 0.15, sw * 1.4, sw * 0.35);
+                    ctx.globalAlpha = 1;
+
                     const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
-                    if (row > 4 && seed % 7 === 0) continue;
-                    drawGuest(x, y, p.scale * (1.08 - row * 0.035), side, seed);
+                    // Rare gaps only in far rows — keep near edge continuous
+                    if (row > 4 && seed % 9 === 0) continue;
+                    drawGuest(x, y, p.scale * (1.12 - row * 0.03), side, seed);
                 }
             }
         }

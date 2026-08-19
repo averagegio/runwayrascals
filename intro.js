@@ -1,5 +1,5 @@
 /**
- * Intro: dark hold → Vogue RR write-out → delayed single flash (Disney+-style) → brand → swipe up.
+ * Intro: paparazzi snaps → Bodoni RR glint → brown runway fade → swipe with gradient veil.
  */
 (function () {
     const splash = document.getElementById('introSplash');
@@ -18,60 +18,46 @@
         return;
     }
 
-    const pathL = document.getElementById('rrPathL');
-    const pathR = document.getElementById('rrPathR');
     const brand = splash.querySelector('.brand');
     const sub = splash.querySelector('.sub');
     const rule = splash.querySelector('.intro-rule');
     const swipeHint = document.getElementById('introSwipeHint');
     const flashEl = document.getElementById('introFlash');
+    const rrEl = document.getElementById('introRR');
+    const bgEl = document.getElementById('introBg');
+    const veilEl = document.getElementById('introSwipeVeil');
 
-    function pathLen(el) {
-        try { return el.getTotalLength(); } catch (_) { return 600; }
-    }
-
-    function preparePath(el) {
-        if (!el) return 0;
-        const len = pathLen(el);
-        el.style.strokeDasharray = String(len);
-        el.style.strokeDashoffset = String(len);
-        return len;
-    }
-
-    const lenL = preparePath(pathL);
-    const lenR = preparePath(pathR);
-
-    // Disney+-style: long dark void → draw RR → beat → one delayed flash → title
-    const VOID_MS = 1700;
-    const WRITE_L_MS = 1500;
-    const GAP_MS = 160;
-    const WRITE_R_MS = 1500;
-    const POST_WRITE_BEAT_MS = 620;
-    const FLASH_HOLD_MS = 100;
-    const POST_FLASH_MS = 380;
-
-    const WRITE_START = VOID_MS;
-    const WRITE_L_END = WRITE_START + WRITE_L_MS;
-    const WRITE_R_START = WRITE_L_END + GAP_MS;
-    const WRITE_R_END = WRITE_R_START + WRITE_R_MS;
-    const FLASH_AT_MS = WRITE_R_END + POST_WRITE_BEAT_MS;
-    const REVEAL_AT_MS = FLASH_AT_MS + FLASH_HOLD_MS + POST_FLASH_MS;
+    // Paparazzi burst → RR glint → runway bg → brand → swipe
+    const PAPARAZZI = [
+        { at: 180, strength: 0.88, hold: 55 },
+        { at: 340, strength: 0.72, hold: 40 },
+        { at: 520, strength: 0.95, hold: 60 },
+        { at: 720, strength: 0.65, hold: 35 },
+        { at: 910, strength: 0.9, hold: 50 }
+    ];
+    const GLINT_START = 1100;
+    const GLINT_MS = 2200;
+    const BG_START = 2400;
+    const BRAND_AT = 3200;
+    const READY_AT = 3800;
 
     let readyToSwipe = false;
     let dismissing = false;
     let flashLevel = 0;
     let flashHoldMs = 0;
-    let flashFired = false;
+    let flashIdx = 0;
     let lastTick = 0;
+    let brandShown = false;
 
     function triggerFlash(strength, holdMs) {
         flashLevel = Math.max(flashLevel, strength);
-        flashHoldMs = Math.max(flashHoldMs, holdMs || 80);
+        flashHoldMs = Math.max(flashHoldMs, holdMs || 40);
         if (flashEl) {
             flashEl.style.opacity = String(flashLevel);
             flashEl.classList.add('is-on');
         }
-        if (strength >= 0.8) splash.classList.add('is-flashing');
+        // Soft paparazzi — don't nuke the whole mark unless very bright
+        if (strength >= 0.92) splash.classList.add('is-flashing');
     }
 
     function decayFlash(dtMs) {
@@ -89,13 +75,19 @@
             }
             return;
         }
-        flashLevel *= Math.pow(0.5, dtMs / 55);
+        flashLevel *= Math.pow(0.5, dtMs / 40);
         if (flashEl) flashEl.style.opacity = String(flashLevel);
     }
 
-    function finishWrite() {
-        if (pathL) pathL.style.strokeDashoffset = '0';
-        if (pathR) pathR.style.strokeDashoffset = '0';
+    function schedulePaparazzi(elapsed) {
+        while (flashIdx < PAPARAZZI.length && elapsed >= PAPARAZZI[flashIdx].at) {
+            const beat = PAPARAZZI[flashIdx];
+            triggerFlash(beat.strength, beat.hold);
+            flashIdx += 1;
+        }
+    }
+
+    function finishReveal() {
         if (brand) brand.classList.add('is-in');
         if (sub) sub.classList.add('is-in');
         if (rule) rule.classList.add('is-in');
@@ -108,16 +100,13 @@
         if (!readyToSwipe || dismissing) return;
         dismissing = true;
         splash.classList.add('is-swipe-up');
+        if (veilEl) veilEl.classList.add('is-on');
         if (swipeHint) swipeHint.classList.remove('is-visible');
         window.setTimeout(function () {
             splash.classList.add('is-done');
             splash.setAttribute('aria-hidden', 'true');
             try { sessionStorage.setItem('rr_intro_seen', '1'); } catch (_) { /* ignore */ }
-        }, 780);
-    }
-
-    function easeOutCubic(t) {
-        return 1 - Math.pow(1 - t, 3);
+        }, 900);
     }
 
     const t0 = performance.now();
@@ -128,50 +117,38 @@
         const dt = Math.min(50, now - lastTick);
         lastTick = now;
 
-        // Delayed single sting — after void + full RR write + beat
-        if (!flashFired && elapsed >= FLASH_AT_MS) {
-            flashFired = true;
-            triggerFlash(0.9, FLASH_HOLD_MS);
-        }
+        schedulePaparazzi(elapsed);
         decayFlash(dt);
 
-        if (elapsed < WRITE_START) {
-            // Dark void — nothing drawn yet
-            requestAnimationFrame(frame);
-            return;
+        // RR slowly glints into view
+        if (elapsed >= GLINT_START && rrEl && !rrEl.classList.contains('is-glinting')) {
+            rrEl.classList.add('is-glinting');
         }
 
-        if (elapsed < WRITE_L_END) {
-            const t = easeOutCubic((elapsed - WRITE_START) / WRITE_L_MS);
-            if (pathL) pathL.style.strokeDashoffset = String(lenL * (1 - t));
-            requestAnimationFrame(frame);
-            return;
+        // Brown runway background fades in under the mark
+        if (elapsed >= BG_START && bgEl && !bgEl.classList.contains('is-in')) {
+            bgEl.classList.add('is-in');
+            splash.classList.add('has-runway');
         }
 
-        if (pathL) pathL.style.strokeDashoffset = '0';
-
-        if (elapsed < WRITE_R_START) {
-            requestAnimationFrame(frame);
-            return;
+        if (elapsed >= BRAND_AT && !brandShown) {
+            brandShown = true;
+            if (brand) brand.classList.add('is-in');
+            if (sub) sub.classList.add('is-in');
+            if (rule) rule.classList.add('is-in');
         }
 
-        if (elapsed < WRITE_R_END) {
-            const t = easeOutCubic((elapsed - WRITE_R_START) / WRITE_R_MS);
-            if (pathR) pathR.style.strokeDashoffset = String(lenR * (1 - t));
-            requestAnimationFrame(frame);
-            return;
+        if (elapsed >= READY_AT && !readyToSwipe) {
+            if (swipeHint) swipeHint.classList.add('is-visible');
+            splash.classList.add('intro-ready');
+            readyToSwipe = true;
         }
 
-        if (pathR) pathR.style.strokeDashoffset = '0';
-
-        if (elapsed < REVEAL_AT_MS) {
-            // Post-write beat + flash + settle
+        if (!dismissing && (!readyToSwipe || flashLevel > 0 || flashHoldMs > 0)) {
             requestAnimationFrame(frame);
-            return;
+        } else if (!dismissing && readyToSwipe && flashLevel <= 0) {
+            // keep idle — no loop needed
         }
-
-        if (!readyToSwipe) finishWrite();
-        if ((flashLevel > 0 || flashHoldMs > 0) && !dismissing) requestAnimationFrame(frame);
     }
 
     let touchY0 = null;
