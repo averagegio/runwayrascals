@@ -49,10 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const gaits = [
-        { id: 'strut', name: 'Strut', blurb: 'Classic runway pace' },
-        { id: 'model', name: 'Model Walk', blurb: 'Slow, hip-led glide' },
-        { id: 'power', name: 'Power Walk', blurb: 'Fast, sharp swing' },
-        { id: 'sashay', name: 'Sashay', blurb: 'Bounce with sway' }
+        { id: 'strut', name: 'Strut', blurb: 'Classic runway pace + knee drive' },
+        { id: 'model', name: 'Model Walk', blurb: 'Slow hip-led glide' },
+        { id: 'power', name: 'Power Walk', blurb: 'Fast sharp arm swing' },
+        { id: 'sashay', name: 'Sashay', blurb: 'Bounce, sway & skirt swish' }
     ];
 
     function createOutfitElement(outfit) {
