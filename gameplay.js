@@ -1840,7 +1840,7 @@
                 }
                 avatar3d.avatar.update(lastFrameDt, {
                     jumping: isJumping && !dying,
-                    jumpProgress: isJumping ? Math.min(1, jumpT / 0.55) : 0,
+                    jumpProgress: isJumping ? Math.min(1, jumpT / 0.65) : 0,
                     sliding: isSliding && !dying,
                     dressing: dressAnimT,
                     dressSlot: dressAnimPiece && dressAnimPiece.slot,
