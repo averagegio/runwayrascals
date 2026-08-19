@@ -161,8 +161,12 @@ document.addEventListener('DOMContentLoaded', () => {
         ensureWalkPreview();
         if (!walkPreview) return;
         characterDisplay.hidden = true;
+        characterDisplay.style.display = 'none';
         walkCanvas.hidden = false;
+        walkCanvas.style.display = 'block';
         if (walkLabel) walkLabel.hidden = false;
+        if (selectedOutfit && selectedOutfit.pieces) applyWalkOutfit(selectedOutfit);
+        else if (designerSets[0]) applyWalkOutfit(designerSets[0]);
         cancelAnimationFrame(walkRaf);
         lastWalkTs = performance.now();
 
@@ -191,7 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelAnimationFrame(walkRaf);
         walkRaf = 0;
         characterDisplay.hidden = false;
-        if (walkCanvas) walkCanvas.hidden = true;
+        characterDisplay.style.display = '';
+        if (walkCanvas) {
+            walkCanvas.hidden = true;
+            walkCanvas.style.display = 'none';
+        }
         if (walkLabel) walkLabel.hidden = true;
     }
 
