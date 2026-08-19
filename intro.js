@@ -101,6 +101,7 @@
             flashEl.style.opacity = String(flashLevel);
             flashEl.classList.add('is-on');
         }
+        if (strength >= 0.85) splash.classList.add('is-flashing');
     }
 
     function decayFlash(dtMs) {
@@ -109,6 +110,7 @@
             if (flashEl) flashEl.style.opacity = String(flashLevel);
             return;
         }
+        splash.classList.remove('is-flashing');
         if (flashLevel <= 0.02) {
             flashLevel = 0;
             if (flashEl) {

@@ -141,6 +141,14 @@ a {
     opacity: 0;
 }
 
+.intro-splash.is-flashing {
+    background: #ffffff !important;
+}
+
+.intro-splash.is-flashing .intro-mark {
+    visibility: hidden;
+}
+
 .intro-canvas {
     display: none;
 }
