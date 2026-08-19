@@ -1268,23 +1268,24 @@
     }
 
     function drawAudienceBanks() {
-        const seatSpacing = 42;
-        const rows = 6;
-        const ahead = 28;
+        // Pack seats from runway edge out to the screen margins
+        const seatSpacing = 34;
+        const rows = 8;
+        const ahead = 32;
         const startSlot = Math.floor(distance / seatSpacing) - 1;
 
         for (let row = 0; row < rows; row++) {
             for (let side = -1; side <= 1; side += 2) {
-                const near = project(12, side < 0 ? 0 : 2);
-                const far = project(460, side < 0 ? 0 : 2);
-                const latN = (42 + row * 18) * (0.55 + 0.45 * near.t);
-                const latF = (42 + row * 18) * (0.55 + 0.45 * far.t);
+                const near = project(8, side < 0 ? 0 : 2);
+                const far = project(480, side < 0 ? 0 : 2);
+                const latN = (36 + row * 16) * (0.6 + 0.4 * near.t);
+                const latF = (36 + row * 16) * (0.6 + 0.4 * far.t);
                 ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
                 ctx.beginPath();
-                ctx.moveTo(near.x + side * latN * 0.8, near.y + 6);
-                ctx.lineTo(far.x + side * latF * 0.8, far.y + 3);
-                ctx.lineTo(far.x + side * (latF + 18), far.y + 3);
-                ctx.lineTo(near.x + side * (latN + 28), near.y + 8);
+                ctx.moveTo(near.x + side * latN * 0.75, near.y + 5);
+                ctx.lineTo(far.x + side * latF * 0.75, far.y + 2);
+                ctx.lineTo(far.x + side * (latF + 20), far.y + 2);
+                ctx.lineTo(near.x + side * (latN + 32), near.y + 7);
                 ctx.closePath();
                 ctx.fill();
             }
@@ -1292,18 +1293,19 @@
 
         for (let slot = startSlot; slot < startSlot + ahead; slot++) {
             const worldZ = slot * seatSpacing - (distance % seatSpacing);
-            if (worldZ < -30 || worldZ > 500) continue;
+            if (worldZ < -40 || worldZ > 520) continue;
             for (let row = 0; row < rows; row++) {
                 for (let side = -1; side <= 1; side += 2) {
-                    const stagger = ((slot + row * 3) % 2) * 10;
-                    const p = project(Math.max(0, worldZ + row * 5 + stagger), side < 0 ? 0 : 2);
-                    const lateral = (48 + row * 17) * (0.55 + 0.45 * p.t);
+                    const stagger = ((slot + row * 2) % 3) * 6;
+                    const p = project(Math.max(0, worldZ + row * 4 + stagger), side < 0 ? 0 : 2);
+                    const lateral = (40 + row * 15) * (0.62 + 0.38 * p.t);
                     const x = p.x + side * lateral;
-                    const y = p.y + 2 + row * 2;
-                    if (y < height * 0.42 || y > height * 0.97) continue;
+                    const y = p.y + 1 + row * 1.5;
+                    if (y < height * 0.44 || y > height * 0.98) continue;
+                    // Keep near-edge seats filled; only rare gaps in back rows
                     const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
-                    if (seed % 8 === 0) continue;
-                    drawGuest(x, y, p.scale * (1.05 - row * 0.04), side, seed);
+                    if (row > 4 && seed % 7 === 0) continue;
+                    drawGuest(x, y, p.scale * (1.08 - row * 0.035), side, seed);
                 }
             }
         }
