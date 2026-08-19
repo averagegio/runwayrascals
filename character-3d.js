@@ -810,9 +810,10 @@
                 camera.lookAt(0, 1.0, 0);
                 avatar.root.rotation.y = 0;
             } else if (mode === 'side') {
-                camera.position.set(2.55, 1.05, 0.35);
-                camera.lookAt(0, 1.0, 0);
-                avatar.root.rotation.y = -Math.PI / 2;
+                // Camera on +X, character faces +Z → clear side silhouette for gait
+                camera.position.set(3.05, 1.08, 0);
+                camera.lookAt(0, 1.02, 0);
+                avatar.root.rotation.y = 0;
             } else {
                 camera.position.set(0, 1.05, 2.75);
                 camera.lookAt(0, 1.0, 0);
