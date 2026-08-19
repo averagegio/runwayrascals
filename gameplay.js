@@ -1620,11 +1620,11 @@
         const deathProg = dying ? Math.min(1, deathT / 1.15) : 0;
         const tumbleY = dying ? Math.sin(deathProg * Math.PI) * 40 - deathProg * 70 : 0;
         const tumbleX = dying ? Math.sin(deathT * 14) * 18 * deathProg : 0;
-        // Large near-field model — ~38% of viewport height (Subway Surfers scale)
-        const footY = height * 0.94 - (isJumping ? playerYOffset * 0.9 : playerYOffset * 0.15) + tumbleY;
+        // ~52% of viewport — full-body blit from the 3D canvas
+        const footY = height * 0.95 - (isJumping ? playerYOffset * 0.9 : playerYOffset * 0.15) + tumbleY;
         const pulse = 1 + dressPulse * 0.12;
-        const ph = height * (isSliding && !dying ? 0.28 : 0.48) * pulse;
-        const pw = ph * (isSliding && !dying ? 0.75 : 0.58);
+        const ph = height * (isSliding && !dying ? 0.32 : 0.52) * pulse;
+        const pw = ph * (isSliding && !dying ? 0.78 : 0.6);
         const x = laneX + tumbleX;
         const lean = curveDeriv(0) * width * 0.08;
 

@@ -372,7 +372,7 @@
         }
 
         let walkT = 0;
-        const BASE_SCALE = 1.55;
+        const BASE_SCALE = 1.0;
         function update(dt, state) {
             state = state || {};
             const { jumping, sliding, dressing, dying, deathT } = state;
@@ -473,14 +473,15 @@
             avatar.setCameraFacing(mode);
             if (mode === 'front') {
                 avatar.root.rotation.y = 0;
-                camera.position.set(0, 1.7, 1.15);
-                camera.lookAt(0, 1.68, 0);
-                camera.fov = 38;
+                camera.position.set(0, 1.55, 1.55);
+                camera.lookAt(0, 1.55, 0);
+                camera.fov = 34;
             } else {
+                // Full-body chase framing — feet to hair fill the offscreen canvas
                 avatar.root.rotation.y = 0;
-                camera.position.set(0, 0.95, 1.75);
-                camera.lookAt(0, 0.95, 0);
-                camera.fov = 48;
+                camera.position.set(0, 1.05, 3.05);
+                camera.lookAt(0, 1.0, 0);
+                camera.fov = 36;
             }
             camera.updateProjectionMatrix();
         }
