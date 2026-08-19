@@ -151,25 +151,72 @@ a {
 .intro-mark {
     position: relative;
     text-align: center;
-    animation: introRise 1.1s var(--ease) both;
     padding: 0 1.5rem;
+    z-index: 1;
+}
+
+/* Vogue masthead Didone monogram */
+.intro-monogram {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-variation-settings: "opsz" 96;
+    font-weight: 600;
+    font-style: normal;
+    font-size: clamp(6.5rem, 32vw, 15rem);
+    line-height: 0.82;
+    letter-spacing: -0.08em;
+    color: var(--ivory);
+    text-transform: uppercase;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0;
+    user-select: none;
+}
+
+.intro-monogram .intro-r {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.12em);
+    animation: introWriteR 1.05s var(--ease) forwards;
+    animation-delay: calc(0.18s + (var(--i, 0) * 0.22s));
+}
+
+.intro-rule {
+    width: min(12rem, 42vw);
+    height: 1px;
+    margin: 1.1rem auto 0.95rem;
+    background: linear-gradient(90deg, transparent, var(--champagne), transparent);
+    opacity: 0;
+    transform: scaleX(0.4);
+    animation: introRuleIn 0.9s var(--ease) 0.55s forwards;
 }
 
 .intro-mark .brand {
     font-family: var(--font-display);
-    font-size: clamp(2.8rem, 8vw, 5.5rem);
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    line-height: 1.02;
+    font-optical-sizing: auto;
+    font-variation-settings: "opsz" 48;
+    font-size: clamp(1.05rem, 2.8vw, 1.55rem);
+    font-weight: 500;
+    font-style: italic;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    line-height: 1.2;
     color: var(--ivory);
+    opacity: 0;
+    animation: introRise 0.9s var(--ease) 0.7s forwards;
 }
 
 .intro-mark .sub {
-    margin-top: 0.75rem;
-    font-size: 0.78rem;
-    letter-spacing: 0.35em;
+    margin-top: 0.65rem;
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    letter-spacing: 0.42em;
     text-transform: uppercase;
     color: var(--champagne);
+    opacity: 0;
+    animation: introRise 0.9s var(--ease) 0.9s forwards;
 }
 
 .page-nav-spacer {
@@ -182,8 +229,32 @@ a {
 }
 
 @keyframes introRise {
-    from { opacity: 0; transform: translateY(18px); }
+    from { opacity: 0; transform: translateY(14px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes introWriteR {
+    0% {
+        opacity: 0;
+        transform: translateY(0.18em) scale(0.96);
+        filter: blur(2px);
+    }
+    55% {
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes introRuleIn {
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+    }
 }
 
 /* —— Typography —— */
