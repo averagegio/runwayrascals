@@ -4,99 +4,99 @@
     const MAP_THEMES = {
         newyork: {
             name: 'New York Fashion Week',
-            wallTop: '#fff4d6',
-            wallBot: '#f0c96a',
+            wallTop: '#ffe9a0',
+            wallBot: '#e8b020',
             floor: '#1f1a12',
             catwalk: '#1a1410',
-            catwalkSheen: 'rgba(255,220,120,0.22)',
+            catwalkSheen: 'rgba(255,220,120,0.28)',
             seat: '#fff8e8',
             seatEdge: '#f0d89a',
             crowd: '#2a2a2a',
             accent: '#F4C430',
-            light: 'rgba(255,230,140,0.55)',
-            wash: 'rgba(244,196,48,0.18)',
+            light: 'rgba(255,230,140,0.65)',
+            wash: 'rgba(244,196,48,0.3)',
             city: 'ny',
             skyline: 'ny'
         },
         milan: {
             name: 'Milan Fashion Week',
-            wallTop: '#ffe8e0',
-            wallBot: '#e8a090',
+            wallTop: '#ffc8b8',
+            wallBot: '#e07060',
             floor: '#221816',
             catwalk: '#1c1210',
-            catwalkSheen: 'rgba(220,80,60,0.2)',
+            catwalkSheen: 'rgba(220,80,60,0.25)',
             seat: '#fff5f0',
             seatEdge: '#f0c8b8',
             crowd: '#292524',
             accent: '#C41E3A',
-            light: 'rgba(255,200,180,0.5)',
-            wash: 'rgba(196,30,58,0.16)',
+            light: 'rgba(255,190,170,0.6)',
+            wash: 'rgba(196,30,58,0.28)',
             city: 'milan',
             skyline: 'milan'
         },
         paris: {
             name: 'Paris Fashion Week',
-            wallTop: '#e8f0ff',
-            wallBot: '#a8c4f0',
+            wallTop: '#b8d4ff',
+            wallBot: '#6a9ae8',
             floor: '#141820',
             catwalk: '#10141c',
-            catwalkSheen: 'rgba(120,170,255,0.22)',
+            catwalkSheen: 'rgba(120,170,255,0.28)',
             seat: '#f4f8ff',
             seatEdge: '#c8d8f5',
             crowd: '#292524',
             accent: '#3B82F6',
-            light: 'rgba(200,220,255,0.55)',
-            wash: 'rgba(59,130,246,0.16)',
+            light: 'rgba(180,210,255,0.65)',
+            wash: 'rgba(59,130,246,0.32)',
             city: 'paris',
             skyline: 'paris',
             backdrop: 'eiffel-tower.jpg'
         },
         london: {
             name: 'London Fashion Week',
-            wallTop: '#ffe4e8',
-            wallBot: '#e8a0a8',
+            wallTop: '#ffb8c8',
+            wallBot: '#e05070',
             floor: '#1a1214',
             catwalk: '#161012',
-            catwalkSheen: 'rgba(220,40,70,0.2)',
+            catwalkSheen: 'rgba(220,40,70,0.25)',
             seat: '#fff0f2',
             seatEdge: '#f0c0c8',
             crowd: '#27272a',
             accent: '#E11D48',
-            light: 'rgba(255,200,210,0.48)',
-            wash: 'rgba(200,16,46,0.16)',
+            light: 'rgba(255,180,195,0.6)',
+            wash: 'rgba(200,16,46,0.28)',
             city: 'london',
             skyline: 'london',
             wet: true
         },
         berlin: {
             name: 'Berlin Fashion Week',
-            wallTop: '#e4ffe8',
-            wallBot: '#88d4a0',
+            wallTop: '#b8ffc8',
+            wallBot: '#40c070',
             floor: '#101612',
             catwalk: '#0c1410',
-            catwalkSheen: 'rgba(80,220,140,0.2)',
+            catwalkSheen: 'rgba(80,220,140,0.25)',
             seat: '#f0fff4',
             seatEdge: '#b8e8c8',
             crowd: '#171717',
             accent: '#22C55E',
-            light: 'rgba(180,255,210,0.48)',
-            wash: 'rgba(46,204,113,0.16)',
+            light: 'rgba(160,255,200,0.6)',
+            wash: 'rgba(46,204,113,0.28)',
             city: 'berlin',
             skyline: 'berlin'
         },
         miami: {
             name: 'Miami Fashion Week',
-            wallTop: '#ffe8f8',
-            wallBot: '#ff9ed0',
+            wallTop: '#ffc0e8',
+            wallBot: '#ff60b8',
             floor: '#1a1030',
             catwalk: '#161028',
-            catwalkSheen: 'rgba(255,120,200,0.25)',
+            catwalkSheen: 'rgba(255,120,200,0.3)',
             seat: '#fff0fa',
             seatEdge: '#ffc0e0',
             crowd: '#4c1d95',
             accent: '#FF4DB8',
-            light: 'rgba(255,180,230,0.55)',
-            wash: 'rgba(255,110,199,0.2)',
+            light: 'rgba(255,160,220,0.65)',
+            wash: 'rgba(255,110,199,0.32)',
             city: 'miami',
             skyline: 'miami'
         }
@@ -324,16 +324,16 @@
 
     function project(z, laneIndex) {
         // Close chase cam — steep falloff so near field fills the frame
-        const near = 1.05;
-        const far = 0.28;
-        const t = 1 / (1 + z * 0.0072);
+        const near = 1.2;
+        const far = 0.35;
+        const t = 1 / (1 + z * 0.0095);
         const scale = near * t + far * (1 - t);
-        const horizonY = height * 0.46;
-        const groundY = height * 0.94;
-        const y = horizonY + (groundY - horizonY) * (1 - Math.pow(1 - t, 1.2));
-        const center = width / 2 + curveAt(z) * width * 0.38 * (0.25 + 0.75 * t);
+        const horizonY = height * 0.50;
+        const groundY = height * 0.95;
+        const y = horizonY + (groundY - horizonY) * (1 - Math.pow(1 - t, 1.1));
+        const center = width / 2 + curveAt(z) * width * 0.32 * (0.3 + 0.7 * t);
         const laneXWorld = laneCenterX(laneIndex, z);
-        const x = center + (laneXWorld - center) * (0.3 + 0.7 * t);
+        const x = center + (laneXWorld - center) * (0.35 + 0.65 * t);
         return { x, y, scale, t, curve: curveAt(z) };
     }
 
@@ -729,11 +729,11 @@
     }
 
     function playerHitbox() {
-        const footY = height * 0.93 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15);
+        const footY = height * 0.94 - (isJumping ? playerYOffset * 0.9 : playerYOffset * 0.15);
         const scale = isSliding ? 0.55 : 1;
-        const mag = (boost().magnet || 0) * 0.5;
-        const pw = 110 + mag;
-        const ph = 200 * scale;
+        const mag = (boost().magnet || 0) * height * 0.04;
+        const ph = height * 0.36 * scale;
+        const pw = ph * 0.55 + mag;
         return {
             x: laneX - pw / 2,
             y: footY - ph,
@@ -1008,49 +1008,50 @@
     }
 
     function drawShowroomWalls() {
-        // Vibrant fashion-show room — saturated walls + colored wash
-        const wall = ctx.createLinearGradient(0, 0, 0, height * 0.52);
+        // Vibrant fashion-show room — saturated walls fill the upper frame
+        const wall = ctx.createLinearGradient(0, 0, 0, height * 0.5);
         wall.addColorStop(0, theme.wallTop || '#fff4d6');
-        wall.addColorStop(0.55, theme.wallBot || '#f0c96a');
-        wall.addColorStop(1, theme.floor || '#1a1a1a');
+        wall.addColorStop(0.7, theme.wallBot || '#f0c96a');
+        wall.addColorStop(1, theme.wallBot || '#f0c96a');
         ctx.fillStyle = wall;
-        ctx.fillRect(0, 0, width, height * 0.52);
+        ctx.fillRect(0, 0, width, height * 0.5);
 
         // City accent wash across the walls
-        const wash = ctx.createRadialGradient(width * 0.5, height * 0.1, 10, width * 0.5, height * 0.25, width * 0.7);
-        wash.addColorStop(0, theme.wash || 'rgba(255,200,100,0.2)');
+        const wash = ctx.createRadialGradient(width * 0.5, height * 0.12, 10, width * 0.5, height * 0.28, width * 0.75);
+        wash.addColorStop(0, theme.wash || 'rgba(255,200,100,0.28)');
         wash.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = wash;
         ctx.fillRect(0, 0, width, height * 0.5);
 
         // Soft ceiling glow
-        const ceil = ctx.createLinearGradient(0, 0, 0, height * 0.2);
-        ceil.addColorStop(0, 'rgba(255,255,255,0.5)');
+        const ceil = ctx.createLinearGradient(0, 0, 0, height * 0.22);
+        ceil.addColorStop(0, 'rgba(255,255,255,0.55)');
         ceil.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = ceil;
-        ctx.fillRect(0, 0, width, height * 0.2);
+        ctx.fillRect(0, 0, width, height * 0.22);
 
         // Side curtains / drapes for venue depth
         for (let side = -1; side <= 1; side += 2) {
-            const gx = side < 0 ? 0 : width * 0.82;
-            const drape = ctx.createLinearGradient(gx, 0, gx + width * 0.18, 0);
-            drape.addColorStop(0, side < 0 ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0)');
-            drape.addColorStop(0.5, theme.wash || 'rgba(255,200,100,0.12)');
-            drape.addColorStop(1, side < 0 ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.28)');
+            const gx = side < 0 ? 0 : width * 0.8;
+            const drape = ctx.createLinearGradient(gx, 0, gx + width * 0.2, 0);
+            drape.addColorStop(0, side < 0 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0)');
+            drape.addColorStop(0.5, theme.wash || 'rgba(255,200,100,0.18)');
+            drape.addColorStop(1, side < 0 ? 'rgba(0,0,0,0)' : 'rgba(0,0,0,0.22)');
             ctx.fillStyle = drape;
-            ctx.fillRect(gx, 0, width * 0.18, height * 0.48);
+            ctx.fillRect(gx, 0, width * 0.2, height * 0.5);
         }
 
-        // Floor flanking the runway
-        const floorGrad = ctx.createLinearGradient(0, height * 0.45, 0, height);
+        // Floor flanking the runway (starts at horizon so walls stay colorful)
+        const floorTop = height * 0.50;
+        const floorGrad = ctx.createLinearGradient(0, floorTop, 0, height);
         floorGrad.addColorStop(0, theme.floor || '#161616');
         floorGrad.addColorStop(1, '#050505');
         ctx.fillStyle = floorGrad;
-        ctx.fillRect(0, height * 0.45, width, height * 0.55);
+        ctx.fillRect(0, floorTop, width, height - floorTop);
     }
 
     function drawFarBackdrop() {
-        const horizon = height * 0.46;
+        const horizon = height * 0.50;
         const portalW = width * 0.55;
         const portalX = width / 2 - portalW / 2;
         const portalH = height * 0.28;
@@ -1139,7 +1140,7 @@
     }
 
     function drawGuest(x, y, scale, side, seed) {
-        const s = Math.max(16, scale * 58);
+        const s = Math.max(22, scale * height * 0.085);
         const skins = ['#f0c8a8', '#d4a07a', '#ffdbac', '#a0673a', '#ffc8a0', '#c68642'];
         const dresses = ['#111', '#fff0e8', '#9f1239', '#1e3a8a', '#f59e0b', '#7c3aed', theme.accent || '#c9a56a', '#ec4899'];
         const skin = skins[seed % skins.length];
@@ -1219,8 +1220,8 @@
         // Bench platforms first (cohesive blocks, not floating dots)
         for (let row = 0; row < rows; row++) {
             for (let side = -1; side <= 1; side += 2) {
-                const near = project(40, side < 0 ? 0 : 2);
-                const far = project(700, side < 0 ? 0 : 2);
+                const near = project(20, side < 0 ? 0 : 2);
+                const far = project(420, side < 0 ? 0 : 2);
                 const latN = (58 + row * 26) * (0.5 + 0.5 * near.t);
                 const latF = (58 + row * 26) * (0.5 + 0.5 * far.t);
                 ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
@@ -1236,7 +1237,7 @@
 
         for (let slot = startSlot; slot < startSlot + ahead; slot++) {
             const worldZ = slot * seatSpacing - (distance % seatSpacing);
-            if (worldZ < -20 || worldZ > 760) continue;
+            if (worldZ < -20 || worldZ > 480) continue;
             for (let row = 0; row < rows; row++) {
                 for (let side = -1; side <= 1; side += 2) {
                     const p = project(Math.max(0, worldZ + row * 8), side < 0 ? 0 : 2);
@@ -1279,27 +1280,27 @@
     }
 
     function catwalkEdgeX(z, side) {
-        const t = 1 / (1 + z * 0.0072);
-        const halfNear = width * 0.38;
-        const halfFar = width * 0.12;
+        const t = 1 / (1 + z * 0.0095);
+        const halfNear = width * 0.42;
+        const halfFar = width * 0.16;
         const half = halfFar + (halfNear - halfFar) * t;
-        const bend = curveAt(z) * width * 0.38 * (0.22 + 0.78 * t);
-        const bank = curveDeriv(z) * width * 0.28 * side * t;
+        const bend = curveAt(z) * width * 0.32 * (0.25 + 0.75 * t);
+        const bank = curveDeriv(z) * width * 0.22 * side * t;
         const cx = width / 2 + bend;
         return cx + side * half + bank * 0.12;
     }
 
     function drawCatwalk() {
         // Wide polished runway — fills the near field so the player feels close
-        const topY = height * 0.46;
+        const topY = height * 0.50;
         const botY = height * 0.99;
-        const steps = 44;
+        const steps = 36;
 
         const left = [];
         const right = [];
         for (let i = 0; i <= steps; i++) {
             const u = i / steps;
-            const z = (1 - u) * 720;
+            const z = (1 - u) * 520;
             const y = topY + (botY - topY) * u;
             left.push({ x: catwalkEdgeX(z, -1), y, z });
             right.push({ x: catwalkEdgeX(z, 1), y, z });
@@ -1347,9 +1348,9 @@
         // Panel seams
         ctx.strokeStyle = 'rgba(255,255,255,0.07)';
         ctx.lineWidth = 1;
-        for (let i = 0; i < 10; i++) {
-            const t = ((i / 10) + (distance * 0.004) % 1) % 1;
-            const z = (1 - t) * 720;
+        for (let i = 0; i < 8; i++) {
+            const t = ((i / 8) + (distance * 0.004) % 1) % 1;
+            const z = (1 - t) * 520;
             const y = topY + (botY - topY) * t;
             ctx.beginPath();
             ctx.moveTo(catwalkEdgeX(z, -1) + 2, y);
@@ -1597,11 +1598,11 @@
         const deathProg = dying ? Math.min(1, deathT / 1.15) : 0;
         const tumbleY = dying ? Math.sin(deathProg * Math.PI) * 40 - deathProg * 70 : 0;
         const tumbleX = dying ? Math.sin(deathT * 14) * 18 * deathProg : 0;
-        // Feet planted on near catwalk surface (Subway Surfers–style grounding)
-        const footY = height * 0.93 - (isJumping ? playerYOffset * 0.85 : playerYOffset * 0.15) + tumbleY;
+        // Large near-field model — ~38% of viewport height (Subway Surfers scale)
+        const footY = height * 0.94 - (isJumping ? playerYOffset * 0.9 : playerYOffset * 0.15) + tumbleY;
         const pulse = 1 + dressPulse * 0.12;
-        const pw = (isSliding && !dying ? 168 : 148) * pulse;
-        const ph = (isSliding && !dying ? 108 : 268) * pulse;
+        const ph = height * (isSliding && !dying ? 0.24 : 0.40) * pulse;
+        const pw = ph * (isSliding && !dying ? 0.72 : 0.56);
         const x = laneX + tumbleX;
         const lean = curveDeriv(0) * width * 0.08;
 

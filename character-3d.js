@@ -462,18 +462,18 @@
 
         function setCameraMode(mode) {
             avatar.setCameraFacing(mode);
+            // Fill the offscreen blit so gameplay drawImage isn't mostly empty padding
+            avatar.root.scale.set(1.25, 1.25, 1.25);
             if (mode === 'front') {
-                // Tight selfie framing — face fills the blit
                 avatar.root.rotation.y = 0;
-                camera.position.set(0, 1.68, 1.75);
-                camera.lookAt(0, 1.68, 0);
-                camera.fov = 34;
+                camera.position.set(0, 1.72, 1.35);
+                camera.lookAt(0, 1.7, 0);
+                camera.fov = 36;
             } else {
-                // Close chase cam — full body readable
                 avatar.root.rotation.y = 0;
-                camera.position.set(0, 1.2, 2.9);
-                camera.lookAt(0, 1.15, 0);
-                camera.fov = 40;
+                camera.position.set(0, 1.05, 2.15);
+                camera.lookAt(0, 1.05, 0);
+                camera.fov = 46;
             }
             camera.updateProjectionMatrix();
         }
