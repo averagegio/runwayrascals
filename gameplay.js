@@ -324,17 +324,17 @@
     }
 
     function project(z, laneIndex) {
-        // Close chase cam — steep falloff so near field fills the frame
-        const near = 1.2;
-        const far = 0.35;
-        const t = 1 / (1 + z * 0.0095);
+        // Subway Surfers–style chase: low horizon, steep near field
+        const near = 1.15;
+        const far = 0.22;
+        const t = 1 / (1 + z * 0.0088);
         const scale = near * t + far * (1 - t);
-        const horizonY = height * 0.50;
-        const groundY = height * 0.95;
-        const y = horizonY + (groundY - horizonY) * (1 - Math.pow(1 - t, 1.1));
-        const center = width / 2 + curveAt(z) * width * 0.32 * (0.3 + 0.7 * t);
+        const horizonY = height * 0.38;
+        const groundY = height * 0.92;
+        const y = horizonY + (groundY - horizonY) * (1 - Math.pow(1 - t, 1.15));
+        const center = width / 2 + curveAt(z) * width * 0.28 * (0.25 + 0.75 * t);
         const laneXWorld = laneCenterX(laneIndex, z);
-        const x = center + (laneXWorld - center) * (0.35 + 0.65 * t);
+        const x = center + (laneXWorld - center) * (0.4 + 0.6 * t);
         return { x, y, scale, t, curve: curveAt(z) };
     }
 
@@ -1020,13 +1020,12 @@
     }
 
     function drawShowroomWalls() {
-        // Vibrant fashion-show room — saturated walls fill the upper frame
-        const wall = ctx.createLinearGradient(0, 0, 0, height * 0.5);
-        wall.addColorStop(0, theme.wallTop || '#fff4d6');
-        wall.addColorStop(0.7, theme.wallBot || '#f0c96a');
-        wall.addColorStop(1, theme.wallBot || '#f0c96a');
-        ctx.fillStyle = wall;
-        ctx.fillRect(0, 0, width, height * 0.5);
+        // Soft sky band above the horizon (SS sunny depth)
+        const sky = ctx.createLinearGradient(0, 0, 0, height * 0.38);
+        sky.addColorStop(0, theme.wallTop || '#fff4d6');
+        sky.addColorStop(1, theme.wallBot || '#f0c96a');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, width, height * 0.38);
 
         // City accent wash across the walls
         const wash = ctx.createRadialGradient(width * 0.5, height * 0.12, 10, width * 0.5, height * 0.28, width * 0.75);
@@ -1054,7 +1053,7 @@
         }
 
         // Floor flanking the runway (starts at horizon so walls stay colorful)
-        const floorTop = height * 0.50;
+        const floorTop = height * 0.38;
         const floorGrad = ctx.createLinearGradient(0, floorTop, 0, height);
         floorGrad.addColorStop(0, theme.floor || '#161616');
         floorGrad.addColorStop(1, '#050505');
@@ -1063,7 +1062,7 @@
     }
 
     function drawFarBackdrop() {
-        const horizon = height * 0.50;
+        const horizon = height * 0.38;
         const portalW = width * 0.55;
         const portalX = width / 2 - portalW / 2;
         const portalH = height * 0.28;
@@ -1288,8 +1287,8 @@
             for (let side = -1; side <= 1; side += 2) {
                 const near = project(8, side < 0 ? 0 : 2);
                 const far = project(480, side < 0 ? 0 : 2);
-                const latN = (36 + row * 16) * (0.6 + 0.4 * near.t);
-                const latF = (36 + row * 16) * (0.6 + 0.4 * far.t);
+                const latN = (52 + row * 14) * (0.6 + 0.4 * near.t);
+                const latF = (52 + row * 14) * (0.6 + 0.4 * far.t);
                 ctx.fillStyle = row % 2 ? (theme.seat || '#f4f1ea') : (theme.seatEdge || '#e5dfd4');
                 ctx.beginPath();
                 ctx.moveTo(near.x + side * latN * 0.75, near.y + 5);
@@ -1308,10 +1307,10 @@
                 for (let side = -1; side <= 1; side += 2) {
                     const stagger = ((slot + row * 2) % 3) * 6;
                     const p = project(Math.max(0, worldZ + row * 4 + stagger), side < 0 ? 0 : 2);
-                    const lateral = (40 + row * 15) * (0.62 + 0.38 * p.t);
+                    const lateral = (58 + row * 14) * (0.62 + 0.38 * p.t);
                     const x = p.x + side * lateral;
                     const y = p.y + 1 + row * 1.5;
-                    if (y < height * 0.44 || y > height * 0.98) continue;
+                    if (y < height * 0.40 || y > height * 0.97) continue;
                     // Keep near-edge seats filled; only rare gaps in back rows
                     const seed = Math.abs((slot * 47 + row * 13 + side * 9) % 97);
                     if (row > 4 && seed % 7 === 0) continue;
@@ -1340,29 +1339,122 @@
         }
     }
 
+    function drawSideRails() {
+        // Fashion-week side barriers (SS-style yellow rails → champagne show rails)
+        const railColor = theme.accent || '#F4C430';
+        const steps = 28;
+        for (let side = -1; side <= 1; side += 2) {
+            const pts = [];
+            for (let i = 0; i <= steps; i++) {
+                const u = i / steps;
+                const z = (1 - u) * 520;
+                const t = 1 / (1 + z * 0.0088);
+                const y = height * 0.38 + (height * 0.92 - height * 0.38) * u;
+                const edge = catwalkEdgeX(z, side);
+                const outward = (22 + 40 * t) * side;
+                pts.push({ x: edge + outward, y, t, z });
+            }
+            // Rail body
+            ctx.fillStyle = railColor;
+            ctx.globalAlpha = 0.92;
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+            for (let i = pts.length - 1; i >= 0; i--) {
+                ctx.lineTo(pts[i].x + side * (10 + 14 * pts[i].t), pts[i].y - (8 + 18 * pts[i].t));
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.globalAlpha = 1;
+
+            // Planter / camera pods along the rail (like SS flower boxes)
+            for (let i = 0; i < 10; i++) {
+                const u = (i + 0.35) / 10;
+                const z = (1 - u) * 480;
+                const t = 1 / (1 + z * 0.0088);
+                const y = height * 0.38 + (height * 0.92 - height * 0.38) * u;
+                const edge = catwalkEdgeX(z, side);
+                const bx = edge + side * (28 + 36 * t);
+                const s = 10 + 22 * t;
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(bx - s * 0.45, y - s * 1.1, s * 0.9, s * 0.55);
+                ctx.fillStyle = i % 2 ? '#ec4899' : '#22c55e';
+                ctx.beginPath();
+                ctx.arc(bx, y - s * 1.25, s * 0.28, 0, Math.PI * 2);
+                ctx.fill();
+                if (i % 3 === 0) {
+                    ctx.fillStyle = '#111';
+                    ctx.fillRect(bx - s * 0.2, y - s * 2.0, s * 0.4, s * 0.7);
+                    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                    ctx.fillRect(bx - s * 0.12, y - s * 1.9, s * 0.24, s * 0.24);
+                }
+            }
+        }
+    }
+
+    function drawLaneMarkers() {
+        // Three clear lanes like Subway Surfers tracks
+        const topY = height * 0.38;
+        const botY = height * 0.96;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+        ctx.lineWidth = 2;
+        for (let lane = 0; lane < 2; lane++) {
+            ctx.beginPath();
+            for (let i = 0; i <= 24; i++) {
+                const u = i / 24;
+                const z = (1 - u) * 520;
+                const y = topY + (botY - topY) * u;
+                const left = catwalkEdgeX(z, -1);
+                const right = catwalkEdgeX(z, 1);
+                const x = left + (right - left) * ((lane + 1) / 3);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+        // Dashed center rush marks
+        ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+        ctx.setLineDash([10, 16]);
+        ctx.beginPath();
+        for (let i = 0; i <= 20; i++) {
+            const u = ((i / 20) + (distance * 0.004) % 1) % 1;
+            const z = (1 - u) * 520;
+            const y = topY + (botY - topY) * u;
+            const x = (catwalkEdgeX(z, -1) + catwalkEdgeX(z, 1)) / 2;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+    }
+
     function drawBackground() {
         drawShowroomWalls();
         drawFarBackdrop();
         drawSpotlights();
         drawCatwalk();
+        drawLaneMarkers();
+        drawSideRails();
         drawAudienceBanks();
     }
 
     function catwalkEdgeX(z, side) {
-        const t = 1 / (1 + z * 0.0095);
-        const halfNear = width * 0.42;
-        const halfFar = width * 0.16;
+        const t = 1 / (1 + z * 0.0088);
+        const halfNear = width * 0.36;
+        const halfFar = width * 0.11;
         const half = halfFar + (halfNear - halfFar) * t;
-        const bend = curveAt(z) * width * 0.32 * (0.25 + 0.75 * t);
-        const bank = curveDeriv(z) * width * 0.22 * side * t;
+        const bend = curveAt(z) * width * 0.28 * (0.25 + 0.75 * t);
+        const bank = curveDeriv(z) * width * 0.18 * side * t;
         const cx = width / 2 + bend;
         return cx + side * half + bank * 0.12;
     }
 
     function drawCatwalk() {
         // Wide polished runway — fills the near field so the player feels close
-        const topY = height * 0.50;
-        const botY = height * 0.99;
+        const topY = height * 0.38;
+        const botY = height * 0.96;
         const steps = 36;
 
         const left = [];
@@ -1375,8 +1467,8 @@
             right.push({ x: catwalkEdgeX(z, 1), y, z });
         }
 
-        // Main dark deck
-        ctx.fillStyle = theme.catwalk || '#121212';
+        // Polished runway deck (city-tinted, still reads as show floor)
+        ctx.fillStyle = theme.catwalk || '#1a1820';
         ctx.beginPath();
         ctx.moveTo(left[0].x, left[0].y);
         for (let i = 1; i <= steps; i++) ctx.lineTo(left[i].x, left[i].y);
@@ -1687,11 +1779,11 @@
         const deathProg = dying ? Math.min(1, deathT / 1.15) : 0;
         const tumbleY = dying ? Math.sin(deathProg * Math.PI) * 40 - deathProg * 70 : 0;
         const tumbleX = dying ? Math.sin(deathT * 14) * 18 * deathProg : 0;
-        // Sized relative to near audience — readable but not towering over the house
-        const footY = height * 0.90 - (isJumping ? playerYOffset * 0.8 : playerYOffset * 0.12) + tumbleY;
-        const pulse = 1 + dressPulse * 0.06;
-        const ph = height * (isSliding && !dying ? 0.16 : 0.24) * pulse;
-        const pw = ph * (isSliding && !dying ? 0.7 : 0.52);
+        // Subway Surfers scale — character in lower third, environment reads around them
+        const footY = height * 0.88 - (isJumping ? playerYOffset * 0.75 : playerYOffset * 0.1) + tumbleY;
+        const pulse = 1 + dressPulse * 0.05;
+        const ph = height * (isSliding && !dying ? 0.14 : 0.20) * pulse;
+        const pw = ph * (isSliding && !dying ? 0.68 : 0.5);
         const x = laneX + tumbleX;
         const lean = curveDeriv(0) * width * 0.08;
 

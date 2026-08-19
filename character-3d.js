@@ -110,93 +110,93 @@
             return m;
         }
 
-        const hips = mesh(new THREE.BoxGeometry(0.55, 0.2, 0.3), mats.street);
-        hips.position.y = 0.85;
+        // Subway Surfers–inspired chibi proportions: big head, short body, chunky shoes
+        const hips = mesh(new THREE.BoxGeometry(0.62, 0.18, 0.34), mats.street);
+        hips.position.y = 0.72;
         root.add(hips);
 
-        const torso = mesh(new THREE.BoxGeometry(0.58, 0.55, 0.32), mats.top);
-        torso.position.y = 1.2;
+        const torso = mesh(new THREE.BoxGeometry(0.62, 0.48, 0.36), mats.top);
+        torso.position.y = 1.02;
         torso.name = 'top';
         root.add(torso);
 
-        // Sleeve cuffs (read as garment volume)
-        const sleeveL = mesh(new THREE.BoxGeometry(0.18, 0.42, 0.18), mats.top);
-        sleeveL.position.set(-0.42, 1.22, 0);
+        const sleeveL = mesh(new THREE.BoxGeometry(0.2, 0.36, 0.2), mats.top);
+        sleeveL.position.set(-0.44, 1.02, 0);
         root.add(sleeveL);
-        const sleeveR = mesh(new THREE.BoxGeometry(0.18, 0.42, 0.18), mats.top);
-        sleeveR.position.set(0.42, 1.22, 0);
+        const sleeveR = mesh(new THREE.BoxGeometry(0.2, 0.36, 0.2), mats.top);
+        sleeveR.position.set(0.44, 1.02, 0);
         root.add(sleeveR);
 
-        const outer = mesh(new THREE.BoxGeometry(0.78, 0.7, 0.42), mats.outer);
-        outer.position.y = 1.16;
+        const outer = mesh(new THREE.BoxGeometry(0.82, 0.58, 0.46), mats.outer);
+        outer.position.y = 1.0;
         outer.visible = false;
         outer.name = 'outer';
         root.add(outer);
 
-        const collar = mesh(new THREE.BoxGeometry(0.5, 0.1, 0.36), mats.outer);
-        collar.position.set(0, 1.48, 0.02);
+        const collar = mesh(new THREE.BoxGeometry(0.52, 0.1, 0.4), mats.outer);
+        collar.position.set(0, 1.28, 0.02);
         collar.visible = false;
         root.add(collar);
 
-        const head = mesh(new THREE.SphereGeometry(0.3, 20, 16), mats.skin);
-        head.position.y = 1.72;
+        // Oversized expressive head
+        const head = mesh(new THREE.SphereGeometry(0.42, 22, 18), mats.skin);
+        head.position.y = 1.58;
         root.add(head);
 
-        const hair = mesh(new THREE.SphereGeometry(0.34, 16, 14), mats.hair);
-        hair.scale.set(1.08, 0.78, 1.12);
-        hair.position.set(0, 1.88, -0.02);
+        const hair = mesh(new THREE.SphereGeometry(0.46, 16, 14), mats.hair);
+        hair.scale.set(1.1, 0.78, 1.12);
+        hair.position.set(0, 1.78, -0.04);
         root.add(hair);
 
-        // Side bangs for silhouette
-        const bangL = mesh(new THREE.SphereGeometry(0.12, 10, 8), mats.hair);
-        bangL.position.set(-0.22, 1.78, 0.12);
-        bangL.scale.set(0.7, 1.1, 0.7);
+        const bangL = mesh(new THREE.SphereGeometry(0.14, 10, 8), mats.hair);
+        bangL.position.set(-0.28, 1.64, 0.18);
+        bangL.scale.set(0.75, 1.15, 0.7);
         root.add(bangL);
-        const bangR = mesh(new THREE.SphereGeometry(0.12, 10, 8), mats.hair);
-        bangR.position.set(0.22, 1.78, 0.12);
-        bangR.scale.set(0.7, 1.1, 0.7);
+        const bangR = mesh(new THREE.SphereGeometry(0.14, 10, 8), mats.hair);
+        bangR.position.set(0.28, 1.64, 0.18);
+        bangR.scale.set(0.75, 1.15, 0.7);
         root.add(bangR);
 
-        // Built-in face features (always readable at gameplay scale)
-        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4 });
-        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35 });
-        const lipMat = new THREE.MeshStandardMaterial({ color: 0xc45c6a, roughness: 0.45 });
+        // Big expressive eyes (SS-style readability)
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.35 });
+        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+        const lipMat = new THREE.MeshStandardMaterial({ color: 0xe06b7a, roughness: 0.4 });
         const browMat = new THREE.MeshStandardMaterial({ color: profile.hair, roughness: 0.9 });
 
-        [[-0.09, 1.74, 0.26], [0.09, 1.74, 0.26]].forEach((pos) => {
-            const white = mesh(new THREE.SphereGeometry(0.045, 10, 8), whiteMat);
+        [[-0.14, 1.6, 0.36], [0.14, 1.6, 0.36]].forEach((pos) => {
+            const white = mesh(new THREE.SphereGeometry(0.09, 12, 10), whiteMat);
             white.position.set(pos[0], pos[1], pos[2]);
-            white.scale.set(1.15, 1, 0.6);
+            white.scale.set(1.15, 1.2, 0.55);
             root.add(white);
-            const pupil = mesh(new THREE.SphereGeometry(0.024, 8, 8), eyeMat);
-            pupil.position.set(pos[0], pos[1], pos[2] + 0.03);
+            const pupil = mesh(new THREE.SphereGeometry(0.045, 10, 8), eyeMat);
+            pupil.position.set(pos[0], pos[1], pos[2] + 0.04);
             root.add(pupil);
-            const shine = mesh(new THREE.SphereGeometry(0.01, 6, 6), whiteMat);
-            shine.position.set(pos[0] - 0.01, pos[1] + 0.01, pos[2] + 0.045);
+            const shine = mesh(new THREE.SphereGeometry(0.018, 6, 6), whiteMat);
+            shine.position.set(pos[0] - 0.02, pos[1] + 0.025, pos[2] + 0.07);
             root.add(shine);
         });
 
-        const browL = mesh(new THREE.BoxGeometry(0.1, 0.018, 0.02), browMat);
-        browL.position.set(-0.09, 1.8, 0.27);
-        browL.rotation.z = 0.12;
+        const browL = mesh(new THREE.BoxGeometry(0.14, 0.025, 0.03), browMat);
+        browL.position.set(-0.14, 1.72, 0.38);
+        browL.rotation.z = 0.15;
         root.add(browL);
-        const browR = mesh(new THREE.BoxGeometry(0.1, 0.018, 0.02), browMat);
-        browR.position.set(0.09, 1.8, 0.27);
-        browR.rotation.z = -0.12;
+        const browR = mesh(new THREE.BoxGeometry(0.14, 0.025, 0.03), browMat);
+        browR.position.set(0.14, 1.72, 0.38);
+        browR.rotation.z = -0.15;
         root.add(browR);
 
-        const nose = mesh(new THREE.SphereGeometry(0.028, 8, 8), mats.skin);
-        nose.position.set(0, 1.7, 0.29);
-        nose.scale.set(0.7, 0.9, 0.8);
+        const nose = mesh(new THREE.SphereGeometry(0.035, 8, 8), mats.skin);
+        nose.position.set(0, 1.52, 0.4);
+        nose.scale.set(0.7, 0.85, 0.75);
         root.add(nose);
 
-        const mouth = mesh(new THREE.BoxGeometry(0.09, 0.025, 0.02), lipMat);
-        mouth.position.set(0, 1.63, 0.28);
-        mouth.scale.set(1, 0.7, 1);
+        const mouth = mesh(new THREE.BoxGeometry(0.12, 0.03, 0.025), lipMat);
+        mouth.position.set(0, 1.42, 0.38);
+        mouth.scale.set(1, 0.75, 1);
         root.add(mouth);
 
-        // Face cards — library art sits over procedural features
-        const faceGeo = new THREE.PlaneGeometry(0.58, 0.66);
+        // Face cards — larger for chibi head
+        const faceGeo = new THREE.PlaneGeometry(0.72, 0.78);
         const faceMat = new THREE.MeshBasicMaterial({
             transparent: true,
             opacity: 0,
@@ -204,11 +204,11 @@
             side: THREE.DoubleSide
         });
         const faceFront = new THREE.Mesh(faceGeo, faceMat);
-        faceFront.position.set(0, 1.74, 0.31);
+        faceFront.position.set(0, 1.58, 0.42);
         faceFront.name = 'faceFront';
         root.add(faceFront);
         const faceBack = new THREE.Mesh(faceGeo.clone(), faceMat.clone());
-        faceBack.position.set(0, 1.74, -0.31);
+        faceBack.position.set(0, 1.58, -0.42);
         faceBack.rotation.y = Math.PI;
         faceBack.name = 'faceBack';
         root.add(faceBack);
@@ -232,54 +232,55 @@
         });
 
         // Extra garment volume that “snaps on” when collected
-        const skirt = mesh(new THREE.CylinderGeometry(0.18, 0.42, 0.45, 10, 1, true), mats.bottoms.clone());
-        skirt.position.y = 0.72;
+        const skirt = mesh(new THREE.CylinderGeometry(0.2, 0.48, 0.4, 10, 1, true), mats.bottoms.clone());
+        skirt.position.y = 0.62;
         skirt.visible = false;
         skirt.name = 'skirt';
         root.add(skirt);
 
         const bagProp = mesh(new THREE.BoxGeometry(0.2, 0.26, 0.08), mats.accent);
-        bagProp.position.set(0.42, 1.05, 0.12);
+        bagProp.position.set(0.46, 0.92, 0.12);
         bagProp.visible = false;
         bagProp.name = 'bagProp';
         root.add(bagProp);
 
-        const armL = mesh(new THREE.BoxGeometry(0.14, 0.5, 0.14), mats.skin);
-        armL.position.set(-0.42, 0.95, 0);
+        const armL = mesh(new THREE.BoxGeometry(0.16, 0.42, 0.16), mats.skin);
+        armL.position.set(-0.44, 0.78, 0);
         root.add(armL);
-        const armR = mesh(new THREE.BoxGeometry(0.14, 0.5, 0.14), mats.skin);
-        armR.position.set(0.42, 0.95, 0);
+        const armR = mesh(new THREE.BoxGeometry(0.16, 0.42, 0.16), mats.skin);
+        armR.position.set(0.44, 0.78, 0);
         root.add(armR);
 
-        const legL = mesh(new THREE.BoxGeometry(0.22, 0.72, 0.24), mats.bottoms);
-        legL.position.set(-0.16, 0.45, 0);
+        const legL = mesh(new THREE.BoxGeometry(0.24, 0.52, 0.26), mats.bottoms);
+        legL.position.set(-0.17, 0.38, 0);
         legL.name = 'bottomsL';
         root.add(legL);
-        const legR = mesh(new THREE.BoxGeometry(0.22, 0.72, 0.24), mats.bottoms);
-        legR.position.set(0.16, 0.45, 0);
+        const legR = mesh(new THREE.BoxGeometry(0.24, 0.52, 0.26), mats.bottoms);
+        legR.position.set(0.17, 0.38, 0);
         legR.name = 'bottomsR';
         root.add(legR);
 
-        const shoeL = mesh(new THREE.BoxGeometry(0.26, 0.16, 0.4), mats.shoes);
-        shoeL.position.set(-0.16, 0.08, 0.05);
+        // Chunky SS-style sneakers
+        const shoeL = mesh(new THREE.BoxGeometry(0.3, 0.2, 0.44), mats.shoes);
+        shoeL.position.set(-0.17, 0.1, 0.06);
         shoeL.name = 'shoesL';
         root.add(shoeL);
-        const shoeR = mesh(new THREE.BoxGeometry(0.26, 0.16, 0.4), mats.shoes);
-        shoeR.position.set(0.16, 0.08, 0.05);
+        const shoeR = mesh(new THREE.BoxGeometry(0.3, 0.2, 0.44), mats.shoes);
+        shoeR.position.set(0.17, 0.1, 0.06);
         shoeR.name = 'shoesR';
         root.add(shoeR);
 
         const heelL = mesh(new THREE.BoxGeometry(0.08, 0.18, 0.08), mats.shoes);
-        heelL.position.set(-0.16, 0.02, -0.12);
+        heelL.position.set(-0.17, 0.02, -0.12);
         heelL.visible = false;
         root.add(heelL);
         const heelR = mesh(new THREE.BoxGeometry(0.08, 0.18, 0.08), mats.shoes);
-        heelR.position.set(0.16, 0.02, -0.12);
+        heelR.position.set(0.17, 0.02, -0.12);
         heelR.visible = false;
         root.add(heelR);
 
         const finale = mesh(new THREE.BoxGeometry(0.4, 0.1, 0.14), mats.accent);
-        finale.position.set(0, 1.42, 0.24);
+        finale.position.set(0, 1.22, 0.28);
         finale.visible = false;
         finale.name = 'finale';
         root.add(finale);
@@ -378,7 +379,7 @@
         function setCameraFacing(mode) {
             const hasFace = !!faceFront.material.map;
             // Front cam: face toward lens. Back cam: hair/outfit from behind.
-            faceFront.position.set(0, 1.74, 0.32);
+            faceFront.position.set(0, 1.58, 0.42);
             faceFront.rotation.y = 0;
             faceFront.visible = mode === 'front' && hasFace;
             faceBack.visible = false;
@@ -516,8 +517,8 @@
             avatar.setCameraFacing(mode);
             // Same distance/fov for both cams so on-screen blit size stays consistent
             camera.fov = 36;
-            camera.position.set(0, 1.08, 3.0);
-            camera.lookAt(0, 1.02, 0);
+            camera.position.set(0, 1.05, 2.75);
+            camera.lookAt(0, 1.0, 0);
             if (mode === 'front') {
                 // Face toward camera (+Z)
                 avatar.root.rotation.y = 0;
