@@ -257,9 +257,17 @@
         laneX = laneCenterX(lane);
     }
 
-    function laneCenterX(laneIndex) {
-        const runwayLeft = width * 0.18;
-        const runwayRight = width * 0.82;
+    function curveAt(worldZ) {
+        // Serpentine fashion runway — turns & S-curves along the walk
+        const w = distance * 0.085 + worldZ * 0.0042;
+        return Math.sin(w) * 0.22 + Math.sin(w * 0.47 + 1.1) * 0.1 + Math.cos(w * 0.23) * 0.05;
+    }
+
+    function laneCenterX(laneIndex, z) {
+        const zz = z == null ? 0 : z;
+        const curve = curveAt(zz);
+        const runwayLeft = width * (0.18 + curve * 0.35);
+        const runwayRight = width * (0.82 + curve * 0.35);
         const runwayW = runwayRight - runwayLeft;
         const laneW = runwayW / LANES;
         return runwayLeft + laneW * (laneIndex + 0.5);
@@ -273,10 +281,10 @@
         const horizonY = height * 0.28;
         const groundY = height * 0.88;
         const y = horizonY + (groundY - horizonY) * (1 - Math.pow(1 - t, 1.35));
-        const center = width / 2;
-        const laneXWorld = laneCenterX(laneIndex);
+        const center = width / 2 + curveAt(z) * width * 0.42 * (0.2 + 0.8 * t);
+        const laneXWorld = laneCenterX(laneIndex, z);
         const x = center + (laneXWorld - center) * (0.25 + 0.75 * t);
-        return { x, y, scale, t };
+        return { x, y, scale, t, curve: curveAt(z) };
     }
 
     function resetRun() {
@@ -660,7 +668,7 @@
         if (mag > 0) {
             for (const e of entities) {
                 if ((e.kind !== 'clothing' && e.kind !== 'pickup') || e.z > 90 || e.z < 0) continue;
-                const dx = laneX - laneCenterX(e.lane);
+                const dx = laneX - laneCenterX(e.lane, e.z);
                 if (Math.abs(dx) < mag + 40 && Math.abs(dx) > 4) {
                     if (Math.abs(dx) < mag + 10 && e.lane !== targetLane && Math.random() < dt * 3) {
                         e.lane = targetLane;
@@ -717,7 +725,7 @@
             }
 
             if (e.z > -10 && e.z < 58 && !e.hit) {
-                const sameLane = e.lane === hit.lane || Math.abs(laneCenterX(e.lane) - laneX) < 28 + (boost().magnet || 0) * 0.25;
+                const sameLane = e.lane === hit.lane || Math.abs(laneCenterX(e.lane, e.z) - laneX) < 28 + (boost().magnet || 0) * 0.25;
                 if (!sameLane) continue;
 
                 if (e.kind === 'clothing') {
@@ -1035,46 +1043,83 @@
         }
     }
 
+    function drawGuest(x, y, scale, side, seed) {
+        // Seated fashion-show guest (infinite loop silhouettes)
+        const s = Math.max(6, scale * 28);
+        const skin = seed % 3 === 0 ? '#e8c4a8' : seed % 3 === 1 ? '#c68c6c' : '#f0d2b4';
+        const dress = [
+            theme.accent || '#c9a56a',
+            '#111',
+            '#f4efe6',
+            '#7c2d12',
+            '#1e3a5f',
+            '#9f1239'
+        ][seed % 6];
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(side < 0 ? -1 : 1, 1);
+
+        ctx.fillStyle = theme.seat || '#111';
+        ctx.fillRect(-s * 0.35, s * 0.15, s * 0.7, s * 0.55);
+        ctx.fillRect(-s * 0.4, -s * 0.1, s * 0.12, s * 0.8);
+
+        ctx.fillStyle = dress;
+        ctx.beginPath();
+        ctx.ellipse(0, s * 0.2, s * 0.32, s * 0.38, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = skin;
+        ctx.beginPath();
+        ctx.arc(0, -s * 0.25, s * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = seed % 2 ? '#1a1a1a' : '#4a3728';
+        ctx.beginPath();
+        ctx.ellipse(0, -s * 0.34, s * 0.22, s * 0.14, 0, Math.PI, Math.PI * 2);
+        ctx.fill();
+
+        if (seed % 4 === 0) {
+            ctx.fillStyle = '#eee';
+            ctx.fillRect(s * 0.12, s * 0.05, s * 0.18, s * 0.22);
+        } else if (seed % 4 === 1) {
+            ctx.fillStyle = '#222';
+            ctx.fillRect(s * 0.15, s * 0.08, s * 0.12, s * 0.2);
+            ctx.fillStyle = theme.accent || '#c9a56a';
+            ctx.fillRect(s * 0.17, s * 0.1, s * 0.08, s * 0.1);
+        }
+
+        ctx.restore();
+    }
+
     function drawAudienceBanks() {
-        // Tiered seating — fashion show, not roadside
-        const drawBank = (left) => {
-            for (let row = 0; row < 5; row++) {
-                const y0 = height * (0.34 + row * 0.1);
-                const inset = width * (0.16 + row * 0.015);
-                ctx.fillStyle = row % 2 ? theme.seat : theme.crowd;
-                ctx.beginPath();
-                if (left) {
-                    ctx.moveTo(0, y0);
-                    ctx.lineTo(inset, y0 + height * 0.08);
-                    ctx.lineTo(0, y0 + height * 0.1);
-                } else {
-                    ctx.moveTo(width, y0);
-                    ctx.lineTo(width - inset, y0 + height * 0.08);
-                    ctx.lineTo(width, y0 + height * 0.1);
-                }
-                ctx.closePath();
-                ctx.fill();
-                // Head dots
-                ctx.fillStyle = 'rgba(244,239,230,0.12)';
-                for (let n = 0; n < 6; n++) {
-                    const t = (n + 0.5) / 6;
-                    const x = left
-                        ? inset * (0.15 + t * 0.7)
-                        : width - inset * (0.15 + t * 0.7);
-                    ctx.beginPath();
-                    ctx.arc(x, y0 + 10, 3, 0, Math.PI * 2);
-                    ctx.fill();
+        // Infinite scrolling guests along both margins of the curved catwalk
+        const loop = 920;
+        const base = distance % loop;
+        const rows = 9;
+
+        for (let row = 0; row < rows; row++) {
+            for (let side = -1; side <= 1; side += 2) {
+                for (let n = 0; n < 7; n++) {
+                    const z = ((n * 130 + row * 40) - base * 1.15 + loop * 3) % loop;
+                    if (z > 780) continue;
+                    const p = project(z, side < 0 ? 0 : 2);
+                    const edge = side < 0 ? -1 : 1;
+                    const x = p.x + edge * (55 + row * 16) * (0.35 + 0.65 * p.t);
+                    const y = p.y - 8 - row * 3;
+                    if (y < height * 0.3 || y > height * 0.92) continue;
+                    const seed = (row * 17 + n * 31 + side + 3 + Math.floor(distance / loop)) & 255;
+                    drawGuest(x, y, p.scale * (1 - row * 0.05), side, seed);
                 }
             }
-        };
-        drawBank(true);
-        drawBank(false);
+        }
     }
 
     function drawSpotlights() {
         const topY = height * 0.1;
         for (let i = 0; i < 3; i++) {
-            const x = width * (0.28 + i * 0.22);
+            const bend = curveAt(i * 120) * width * 0.2;
+            const x = width * (0.28 + i * 0.22) + bend;
             const g = ctx.createRadialGradient(x, topY, 4, x, height * 0.55, height * 0.5);
             g.addColorStop(0, theme.light || 'rgba(255,255,255,0.18)');
             g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1098,84 +1143,103 @@
 
         drawSkyline();
         drawSpotlights();
-        drawAudienceBanks();
         drawCatwalk();
+        drawAudienceBanks();
+    }
+
+    function catwalkEdgeX(z, side) {
+        const t = 1 / (1 + z * 0.0045);
+        const halfNear = width * 0.34;
+        const halfFar = width * 0.1;
+        const half = halfFar + (halfNear - halfFar) * t;
+        const cx = width / 2 + curveAt(z) * width * 0.42 * (0.2 + 0.8 * t);
+        return cx + side * half;
     }
 
     function drawCatwalk() {
-        const topL = width * 0.40;
-        const topR = width * 0.60;
-        const botL = width * 0.16;
-        const botR = width * 0.84;
         const topY = height * 0.28;
         const botY = height * 0.94;
+        const steps = 28;
 
-        // Raised stage thickness (side edge)
+        const left = [];
+        const right = [];
+        for (let i = 0; i <= steps; i++) {
+            const u = i / steps;
+            const z = (1 - u) * 900;
+            const y = topY + (botY - topY) * u;
+            left.push({ x: catwalkEdgeX(z, -1), y });
+            right.push({ x: catwalkEdgeX(z, 1), y });
+        }
+
         ctx.fillStyle = 'rgba(0,0,0,0.35)';
         ctx.beginPath();
-        ctx.moveTo(botL, botY);
-        ctx.lineTo(botR, botY);
-        ctx.lineTo(botR + 10, botY + 14);
-        ctx.lineTo(botL - 10, botY + 14);
+        ctx.moveTo(left[steps].x, left[steps].y);
+        ctx.lineTo(right[steps].x, right[steps].y);
+        ctx.lineTo(right[steps].x + 12, right[steps].y + 16);
+        ctx.lineTo(left[steps].x - 12, left[steps].y + 16);
         ctx.closePath();
         ctx.fill();
 
-        // Glossy catwalk surface
         const deck = ctx.createLinearGradient(0, topY, 0, botY);
         deck.addColorStop(0, theme.catwalk || '#ece7df');
-        deck.addColorStop(0.55, '#fff');
+        deck.addColorStop(0.5, '#ffffff');
         deck.addColorStop(1, theme.catwalk || '#ece7df');
         ctx.fillStyle = deck;
         ctx.beginPath();
-        ctx.moveTo(topL, topY);
-        ctx.lineTo(topR, topY);
-        ctx.lineTo(botR, botY);
-        ctx.lineTo(botL, botY);
+        ctx.moveTo(left[0].x, left[0].y);
+        for (let i = 1; i <= steps; i++) ctx.lineTo(left[i].x, left[i].y);
+        for (let i = steps; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
         ctx.closePath();
         ctx.fill();
 
         if (theme.wet) {
             ctx.fillStyle = 'rgba(120,160,200,0.12)';
+            const mid = project(80, 1);
             ctx.beginPath();
-            ctx.ellipse(width * 0.5, height * 0.7, width * 0.12, 18, 0, 0, Math.PI * 2);
+            ctx.ellipse(mid.x, mid.y, width * 0.1, 14, 0, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Gold / accent binding tape edges (fashion tape, not road curb)
         ctx.strokeStyle = show?.accent || theme.catwalkEdge || theme.accent;
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 3.5;
         ctx.beginPath();
-        ctx.moveTo(topL, topY);
-        ctx.lineTo(botL, botY);
-        ctx.moveTo(topR, topY);
-        ctx.lineTo(botR, botY);
+        ctx.moveTo(left[0].x, left[0].y);
+        for (let i = 1; i <= steps; i++) ctx.lineTo(left[i].x, left[i].y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(right[0].x, right[0].y);
+        for (let i = 1; i <= steps; i++) ctx.lineTo(right[i].x, right[i].y);
         ctx.stroke();
 
-        // Board seams (planks), scrolling — not dashed highway lines
         ctx.strokeStyle = theme.plank || 'rgba(0,0,0,0.08)';
-        ctx.lineWidth = 1.5;
-        const seamCount = 14;
+        ctx.lineWidth = 1.25;
+        const seamCount = 16;
         for (let i = 0; i < seamCount; i++) {
             const t = ((i / seamCount) + (distance * 0.004) % 1) % 1;
+            const z = (1 - t) * 900;
             const y = topY + (botY - topY) * t;
-            const xL = topL + (botL - topL) * t;
-            const xR = topR + (botR - topR) * t;
+            const xL = catwalkEdgeX(z, -1);
+            const xR = catwalkEdgeX(z, 1);
             ctx.beginPath();
-            ctx.moveTo(xL + 4, y);
-            ctx.lineTo(xR - 4, y);
+            ctx.moveTo(xL + 3, y);
+            ctx.lineTo(xR - 3, y);
             ctx.stroke();
         }
 
-        // Soft lane guides (photographer marks), very subtle
-        ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+        ctx.strokeStyle = 'rgba(0,0,0,0.05)';
         ctx.lineWidth = 1;
-        for (let i = 1; i < LANES; i++) {
-            const t = i / LANES;
-            const xTop = topL + (topR - topL) * t;
-            const xBot = botL + (botR - botL) * t;
+        for (let laneI = 1; laneI < LANES; laneI++) {
             ctx.beginPath();
-            ctx.moveTo(xTop, topY);
-            ctx.lineTo(xBot, botY);
+            for (let i = 0; i <= steps; i++) {
+                const u = i / steps;
+                const z = (1 - u) * 900;
+                const y = topY + (botY - topY) * u;
+                const xL = catwalkEdgeX(z, -1);
+                const xR = catwalkEdgeX(z, 1);
+                const x = xL + (xR - xL) * (laneI / LANES);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
             ctx.stroke();
         }
     }
@@ -1657,8 +1721,9 @@
         }
 
         if (window.THREE && window.Runway3D && avatarCanvas) {
-            avatar3d = Runway3D.createRenderer(avatarCanvas, THREE);
-            avatar3d.resize(160, 220);
+            const characterId = localStorage.getItem('selectedCharacter') || 'female';
+            avatar3d = Runway3D.createRenderer(avatarCanvas, THREE, { characterId });
+            avatar3d.resize(200, 280);
             if (show) avatar3d.avatar.applyPieceColors(show.pieces, { base: true });
         }
 
