@@ -357,10 +357,18 @@
         }
 
         function setCameraFacing(mode) {
-            // Face card visible on both cams so features read at gameplay size
-            const showFace = !!faceFront.material.map;
-            faceFront.visible = showFace;
-            faceBack.visible = showFace && mode === 'back';
+            // Library face always faces the gameplay camera so features stay readable
+            const hasFace = !!faceFront.material.map;
+            faceFront.visible = hasFace;
+            faceBack.visible = false;
+            if (mode === 'back') {
+                // Billboard on the rear so chase-cam still sees the face card
+                faceFront.position.set(0, 1.74, -0.34);
+                faceFront.rotation.y = Math.PI;
+            } else {
+                faceFront.position.set(0, 1.74, 0.32);
+                faceFront.rotation.y = 0;
+            }
         }
 
         let walkT = 0;

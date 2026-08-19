@@ -388,6 +388,8 @@
         spawnPiece(520, 2, pickCommonPiece(), false);
         spawnObstacle(640, 0, 'barrier');
         spawnObstacle(820, 2, 'paparazzi');
+        // Brief runway entrance shield so the first beats read clearly
+        shieldTimer = 2.2;
     }
 
     function pickCommonPiece() {
@@ -1378,6 +1380,26 @@
         ctx.moveTo(right[0].x, right[0].y);
         for (let i = 1; i <= steps; i++) ctx.lineTo(right[i].x, right[i].y);
         ctx.stroke();
+
+        // Accent carpet runners between seats and catwalk (venue color)
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = theme.accent || '#F4C430';
+        for (let side = -1; side <= 1; side += 2) {
+            ctx.beginPath();
+            ctx.moveTo(left[0].x + side * 8, left[0].y);
+            for (let i = 1; i <= steps; i++) {
+                const edge = side < 0 ? left[i] : right[i];
+                ctx.lineTo(edge.x + side * (18 + i * 0.4), edge.y);
+            }
+            for (let i = steps; i >= 0; i--) {
+                const edge = side < 0 ? left[i] : right[i];
+                ctx.lineTo(edge.x + side * 4, edge.y);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
     }
 
     function drawFashionShape(ctx, shape, size, color, accent) {
