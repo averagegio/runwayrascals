@@ -1,7 +1,5 @@
 /**
- * Intro cinematic:
- * falling perspective road lines → camera turns onto a line →
- * Helvetica "RR" → slow glint reveal of RUNWAY RASCALS with camera flashes.
+ * Intro: paparazzi flashes from the start → Vogue-style RR written out → brand → swipe up.
  */
 (function () {
     const splash = document.getElementById('introSplash');
@@ -20,166 +18,131 @@
         return;
     }
 
-    const canvas = document.getElementById('introCanvas');
+    const pathL = document.getElementById('rrPathL');
+    const pathR = document.getElementById('rrPathR');
+    const pen = document.getElementById('introPen');
     const brand = splash.querySelector('.brand');
     const sub = splash.querySelector('.sub');
+    const rule = splash.querySelector('.intro-rule');
     const swipeHint = document.getElementById('introSwipeHint');
-    if (!canvas) return;
+    const flashEl = document.getElementById('introFlash');
+    const svg = document.getElementById('rrMonogramSvg');
 
-    const ctx = canvas.getContext('2d');
-    let w = 0;
-    let h = 0;
-    let dpr = 1;
-
-    function resize() {
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
-        w = window.innerWidth;
-        h = window.innerHeight;
-        canvas.width = Math.floor(w * dpr);
-        canvas.height = Math.floor(h * dpr);
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    function pathLen(el) {
+        try { return el.getTotalLength(); } catch (_) { return 600; }
     }
-    resize();
-    window.addEventListener('resize', resize);
 
-    const LINE_COUNT = 18;
-    const lines = [];
-    for (let i = 0; i < LINE_COUNT; i++) {
-        lines.push({
-            x: (i / (LINE_COUNT - 1) - 0.5) * 1.6,
-            z: Math.random() * 1.2,
-            speed: 0.55 + Math.random() * 0.45
-        });
+    function preparePath(el) {
+        if (!el) return 0;
+        const len = pathLen(el);
+        el.style.strokeDasharray = String(len);
+        el.style.strokeDashoffset = String(len);
+        return len;
     }
+
+    const lenL = preparePath(pathL);
+    const lenR = preparePath(pathR);
+
+    function placePen(pathEl, t, len) {
+        if (!pen || !pathEl || !svg) return;
+        const d = Math.max(0, Math.min(1, t)) * len;
+        const pt = pathEl.getPointAtLength(d);
+        const ctm = pathEl.getScreenCTM();
+        const svgCtm = svg.getScreenCTM();
+        if (ctm && svgCtm) {
+            const ptDom = svg.createSVGPoint();
+            ptDom.x = pt.x;
+            ptDom.y = pt.y;
+            const screen = ptDom.matrixTransform(ctm);
+            const local = screen.matrixTransform(svgCtm.inverse());
+            const box = svg.viewBox.baseVal;
+            pen.style.left = (local.x / box.width) * 100 + '%';
+            pen.style.top = (local.y / box.height) * 100 + '%';
+        } else {
+            const box = svg.viewBox.baseVal;
+            pen.style.left = (pt.x / box.width) * 100 + '%';
+            pen.style.top = (pt.y / box.height) * 100 + '%';
+        }
+        pen.classList.add('is-writing');
+    }
+
+    // Timing: longer opening flash run → write left R → write right R → hold → swipe
+    const FLASH_INTRO_MS = 1400;
+    const WRITE_L_MS = 1500;
+    const GAP_MS = 160;
+    const WRITE_R_MS = 1500;
+    const HOLD_MS = 280;
 
     let readyToSwipe = false;
     let dismissing = false;
-    let flash = 0;
-    let phase = 'rush'; // rush | turn | write | reveal | hold
-    let t0 = performance.now();
-    let camYaw = 0;
-    let camPitch = 0.18;
-    let targetYaw = 0;
-    let rrProgress = 0;
-    let titleProgress = 0;
-    let focusLine = 0.12;
+    let flashLevel = 0;
+    let flashHoldMs = 0;
+    let lastTick = 0;
+    // Dense opening paparazzi — long enough holds to read on camera
+    const FLASH_BEATS = [
+        { at: 40, strength: 1, hold: 140 },
+        { at: 220, strength: 0.95, hold: 110 },
+        { at: 400, strength: 1, hold: 130 },
+        { at: 580, strength: 0.9, hold: 100 },
+        { at: 760, strength: 1, hold: 120 },
+        { at: 980, strength: 0.85, hold: 90 },
+        { at: 1200, strength: 0.95, hold: 100 },
+        { at: 2000, strength: 0.7, hold: 80 },
+        { at: 2800, strength: 0.65, hold: 70 },
+        { at: 3600, strength: 0.7, hold: 80 },
+        { at: 4500, strength: 0.85, hold: 100 }
+    ];
+    let flashBeatIdx = 0;
 
-    const WRITE_START = 1600;
-    const TURN_START = 1100;
-    const REVEAL_START = 2800;
-    const HOLD_START = 4200;
-    const DONE_AT = 5200;
-
-    function project(x, z, yaw) {
-        const cos = Math.cos(yaw);
-        const sin = Math.sin(yaw);
-        const rx = x * cos - (z - 0.2) * sin;
-        const rz = x * sin + (z - 0.2) * cos;
-        const depth = Math.max(0.08, rz + 1.15);
-        const scale = 1 / depth;
-        return {
-            x: w * 0.5 + rx * w * 0.55 * scale,
-            y: h * (0.42 + camPitch) + h * 0.55 * (1 - scale * 0.85),
-            s: scale
-        };
+    function triggerFlash(strength, holdMs) {
+        flashLevel = Math.max(flashLevel, strength);
+        flashHoldMs = Math.max(flashHoldMs, holdMs || 80);
+        if (flashEl) {
+            flashEl.style.opacity = String(flashLevel);
+            flashEl.classList.add('is-on');
+        }
+        if (strength >= 0.85) splash.classList.add('is-flashing');
     }
 
-    function drawRoad(now) {
-        const elapsed = now - t0;
-        ctx.fillStyle = '#070708';
-        ctx.fillRect(0, 0, w, h);
-
-        // Atmosphere
-        const glow = ctx.createRadialGradient(w * 0.5, h * 0.35, 10, w * 0.5, h * 0.45, h * 0.7);
-        glow.addColorStop(0, 'rgba(201,165,106,0.18)');
-        glow.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, w, h);
-
-        const yaw = camYaw;
-        // Horizon band
-        ctx.fillStyle = 'rgba(255,255,255,0.04)';
-        ctx.fillRect(0, h * (0.34 + camPitch * 0.4), w, 2);
-
-        for (const line of lines) {
-            if (phase === 'rush' || phase === 'turn') {
-                line.z -= line.speed * 0.016;
-                if (line.z < -0.2) line.z += 1.4;
+    function decayFlash(dtMs) {
+        if (flashHoldMs > 0) {
+            flashHoldMs -= dtMs;
+            if (flashEl) flashEl.style.opacity = String(flashLevel);
+            return;
+        }
+        splash.classList.remove('is-flashing');
+        if (flashLevel <= 0.02) {
+            flashLevel = 0;
+            if (flashEl) {
+                flashEl.style.opacity = '0';
+                flashEl.classList.remove('is-on');
             }
-
-            const a = project(line.x, line.z, yaw);
-            const b = project(line.x, line.z + 0.18, yaw);
-            const isFocus = Math.abs(line.x - focusLine) < 0.05;
-            ctx.strokeStyle = isFocus
-                ? `rgba(244,239,230,${0.55 + a.s * 0.4})`
-                : `rgba(201,165,106,${0.12 + a.s * 0.35})`;
-            ctx.lineWidth = Math.max(1.5, 6 * a.s * (isFocus ? 1.4 : 1));
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
+            return;
         }
+        // ~12ms half-life feel
+        flashLevel *= Math.pow(0.5, dtMs / 45);
+        if (flashEl) flashEl.style.opacity = String(flashLevel);
+    }
 
-        // Vanishing dashes down the center
-        for (let i = 0; i < 12; i++) {
-            const z = ((elapsed * 0.0012) + i / 12) % 1;
-            const p = project(0, z, yaw);
-            ctx.fillStyle = `rgba(255,255,255,${0.08 + p.s * 0.25})`;
-            ctx.fillRect(p.x - 2 * p.s, p.y, 4 * p.s, 10 * p.s);
+    function scheduleBursts(elapsed) {
+        while (flashBeatIdx < FLASH_BEATS.length && elapsed >= FLASH_BEATS[flashBeatIdx].at) {
+            const beat = FLASH_BEATS[flashBeatIdx];
+            triggerFlash(beat.strength, beat.hold);
+            flashBeatIdx += 1;
         }
     }
 
-    function drawRR(progress) {
-        if (progress <= 0) return;
-        const text = 'RR';
-        ctx.save();
-        ctx.font = `700 ${Math.floor(Math.min(w, h) * 0.28)}px Helvetica, Arial, sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.lineWidth = Math.max(2, Math.min(w, h) * 0.008);
-        ctx.strokeStyle = '#f4efe6';
-        ctx.fillStyle = '#f4efe6';
-
-        // Clip reveal left→right for a "written by the road line" feel
-        const tw = ctx.measureText(text).width;
-        const x0 = w * 0.5 - tw * 0.5;
-        ctx.beginPath();
-        ctx.rect(x0 - 8, h * 0.28, (tw + 16) * progress, h * 0.4);
-        ctx.clip();
-        ctx.strokeText(text, w * 0.5, h * 0.42);
-        ctx.globalAlpha = 0.92;
-        ctx.fillText(text, w * 0.5, h * 0.42);
-        ctx.restore();
-    }
-
-    function drawTitle(progress) {
-        if (progress <= 0) return;
-        ctx.save();
-        ctx.globalAlpha = Math.min(1, progress);
-        ctx.fillStyle = '#f4efe6';
-        ctx.textAlign = 'center';
-        ctx.font = `600 ${Math.floor(Math.min(w, h) * 0.045)}px Helvetica, Arial, sans-serif`;
-        ctx.letterSpacing = '0.35em';
-        // letterSpacing may not apply on all browsers — space manually
-        const label = 'RUNWAY RASCALS';
-        ctx.fillText(label, w * 0.5, h * 0.62);
-
-        // Glint sweep
-        const g = ctx.createLinearGradient(0, 0, w, 0);
-        const u = (progress * 1.4) % 1.4;
-        g.addColorStop(Math.max(0, u - 0.12), 'rgba(255,255,255,0)');
-        g.addColorStop(Math.min(1, u), 'rgba(255,255,255,0.35)');
-        g.addColorStop(Math.min(1, u + 0.12), 'rgba(255,255,255,0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(w * 0.18, h * 0.58, w * 0.64, h * 0.08);
-        ctx.restore();
-    }
-
-    function finishIntro() {
+    function finishWrite() {
+        if (pathL) pathL.style.strokeDashoffset = '0';
+        if (pathR) pathR.style.strokeDashoffset = '0';
+        if (pen) {
+            pen.classList.remove('is-writing');
+            pen.classList.add('is-done');
+        }
+        triggerFlash(0.9, 120);
         if (brand) brand.classList.add('is-in');
         if (sub) sub.classList.add('is-in');
+        if (rule) rule.classList.add('is-in');
         if (swipeHint) swipeHint.classList.add('is-visible');
         splash.classList.add('intro-ready');
         readyToSwipe = true;
@@ -197,44 +160,69 @@
         }, 780);
     }
 
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    const t0 = performance.now();
+    lastTick = t0;
+
     function frame(now) {
         const elapsed = now - t0;
+        const dt = Math.min(50, now - lastTick);
+        lastTick = now;
+        scheduleBursts(elapsed);
+        decayFlash(dt);
 
-        if (elapsed < TURN_START) phase = 'rush';
-        else if (elapsed < WRITE_START) phase = 'turn';
-        else if (elapsed < REVEAL_START) phase = 'write';
-        else if (elapsed < HOLD_START) phase = 'reveal';
-        else phase = 'hold';
+        const writeStart = FLASH_INTRO_MS;
+        const writeLEnd = writeStart + WRITE_L_MS;
+        const writeRStart = writeLEnd + GAP_MS;
+        const writeREnd = writeRStart + WRITE_R_MS;
+        const doneAt = writeREnd + HOLD_MS;
 
-        if (phase === 'turn' || phase === 'write') {
-            targetYaw = -0.42;
-            camYaw += (targetYaw - camYaw) * 0.06;
-            camPitch += (0.06 - camPitch) * 0.05;
-        } else if (phase === 'rush') {
-            camYaw *= 0.96;
+        if (elapsed < writeStart) {
+            // Opening flashes only — keep paths hidden
+            requestAnimationFrame(frame);
+            return;
         }
 
-        if (phase === 'write' || phase === 'reveal' || phase === 'hold') {
-            rrProgress = Math.min(1, (elapsed - WRITE_START) / 900);
-        }
-        if (phase === 'reveal' || phase === 'hold') {
-            titleProgress = Math.min(1, (elapsed - REVEAL_START) / 1100);
-            if (Math.random() < 0.045) flash = 0.55;
-        }
-
-        drawRoad(now);
-        drawRR(rrProgress);
-        drawTitle(titleProgress);
-
-        if (flash > 0) {
-            ctx.fillStyle = `rgba(255,255,255,${flash})`;
-            ctx.fillRect(0, 0, w, h);
-            flash *= 0.82;
-            if (flash < 0.02) flash = 0;
+        if (elapsed < writeLEnd) {
+            const t = easeOutCubic((elapsed - writeStart) / WRITE_L_MS);
+            if (pathL) pathL.style.strokeDashoffset = String(lenL * (1 - t));
+            placePen(pathL, t, lenL);
+            requestAnimationFrame(frame);
+            return;
         }
 
-        if (elapsed >= DONE_AT && !readyToSwipe) finishIntro();
-        if (!dismissing) requestAnimationFrame(frame);
+        if (pathL) pathL.style.strokeDashoffset = '0';
+
+        if (elapsed < writeRStart) {
+            requestAnimationFrame(frame);
+            return;
+        }
+
+        if (elapsed < writeREnd) {
+            const t = easeOutCubic((elapsed - writeRStart) / WRITE_R_MS);
+            if (pathR) pathR.style.strokeDashoffset = String(lenR * (1 - t));
+            placePen(pathR, t, lenR);
+            requestAnimationFrame(frame);
+            return;
+        }
+
+        if (pathR) pathR.style.strokeDashoffset = '0';
+
+        if (elapsed < doneAt) {
+            if (pen) {
+                pen.classList.remove('is-writing');
+                pen.classList.add('is-done');
+            }
+            requestAnimationFrame(frame);
+            return;
+        }
+
+        if (!readyToSwipe) finishWrite();
+        // Keep decaying residual flashes a bit after ready
+        if ((flashLevel > 0 || flashHoldMs > 0) && !dismissing) requestAnimationFrame(frame);
     }
 
     let touchY0 = null;
@@ -251,10 +239,22 @@
     splash.addEventListener('wheel', function (e) {
         if (e.deltaY < -20) dismissIntro();
     }, { passive: true });
-    splash.addEventListener('click', function () { dismissIntro(); });
+
+    // Swipe hint button + upward gesture / keys only (not random tap-to-skip mid-write)
+    if (swipeHint) {
+        swipeHint.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dismissIntro();
+        });
+    }
+    splash.addEventListener('click', function () {
+        if (readyToSwipe) dismissIntro();
+    });
     window.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'Enter') dismissIntro();
     });
 
-    requestAnimationFrame(frame);
+    requestAnimationFrame(function () {
+        requestAnimationFrame(frame);
+    });
 })();

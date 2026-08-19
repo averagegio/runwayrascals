@@ -124,33 +124,44 @@ a {
     z-index: 1000;
     display: grid;
     place-items: center;
-    background: #070708;
+    background:
+        radial-gradient(ellipse 70% 50% at 50% 38%, rgba(201, 165, 106, 0.12), transparent 70%),
+        #070708;
     transition: opacity 0.75s var(--ease), transform 0.75s var(--ease), visibility 0.75s;
     will-change: transform, opacity;
     overflow: hidden;
 }
 
-.intro-canvas {
+.intro-flash {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-.intro-mark-overlay {
-    position: relative;
-    z-index: 2;
-    text-align: center;
+    z-index: 10;
     pointer-events: none;
+    background: #ffffff;
+    opacity: 0;
 }
 
-.intro-mark-overlay .intro-swipe-hint {
-    pointer-events: auto;
+.intro-splash.is-flashing {
+    background: #ffffff !important;
+}
+
+.intro-splash.is-flashing .intro-mark {
+    visibility: hidden;
+}
+
+.intro-canvas {
+    display: none;
 }
 
 .intro-splash::before {
-    display: none;
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.06), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.05), transparent 24%);
+    pointer-events: none;
+    z-index: 0;
 }
 
 .intro-splash.is-swipe-up {
@@ -174,13 +185,13 @@ a {
     position: relative;
     text-align: center;
     padding: 0 1.5rem;
-    z-index: 1;
+    z-index: 2;
     width: min(520px, 92vw);
 }
 
 .intro-write-stage {
     position: relative;
-    width: min(340px, 86vw);
+    width: min(300px, 78vw);
     margin: 0 auto;
     aspect-ratio: 320 / 220;
 }
@@ -194,7 +205,9 @@ a {
 
 .rr-stroke {
     fill: none;
-    filter: drop-shadow(0 0 10px rgba(201, 165, 106, 0.22));
+    /* Tall, high-contrast Vogue / Didot feel */
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.08))
+            drop-shadow(0 0 18px rgba(201, 165, 106, 0.18));
 }
 
 .intro-pen {
@@ -238,13 +251,13 @@ a {
 .intro-mark .brand {
     font-family: var(--font-display);
     font-optical-sizing: auto;
-    font-variation-settings: "opsz" 48;
-    font-size: clamp(1.05rem, 2.8vw, 1.55rem);
-    font-weight: 500;
-    font-style: italic;
-    letter-spacing: 0.28em;
+    font-variation-settings: "opsz" 72;
+    font-size: clamp(1.15rem, 3.2vw, 1.75rem);
+    font-weight: 600;
+    font-style: normal;
+    letter-spacing: 0.42em;
     text-transform: uppercase;
-    line-height: 1.2;
+    line-height: 1.15;
     color: var(--ivory);
     opacity: 0;
 }
