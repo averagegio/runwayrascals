@@ -1601,8 +1601,8 @@
         // Large near-field model — ~38% of viewport height (Subway Surfers scale)
         const footY = height * 0.94 - (isJumping ? playerYOffset * 0.9 : playerYOffset * 0.15) + tumbleY;
         const pulse = 1 + dressPulse * 0.12;
-        const ph = height * (isSliding && !dying ? 0.24 : 0.40) * pulse;
-        const pw = ph * (isSliding && !dying ? 0.72 : 0.56);
+        const ph = height * (isSliding && !dying ? 0.28 : 0.48) * pulse;
+        const pw = ph * (isSliding && !dying ? 0.75 : 0.58);
         const x = laneX + tumbleX;
         const lean = curveDeriv(0) * width * 0.08;
 

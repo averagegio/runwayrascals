@@ -96,12 +96,12 @@
         const mats = {
             skin: new THREE.MeshStandardMaterial({ color: profile.skin, roughness: 0.55 }),
             hair: new THREE.MeshStandardMaterial({ color: profile.hair, roughness: 0.85 }),
-            street: new THREE.MeshStandardMaterial({ color: 0x9ca3af, roughness: 0.9 }),
-            bottoms: new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.8 }),
-            top: new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.75 }),
-            shoes: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.45, metalness: 0.15 }),
-            outer: new THREE.MeshStandardMaterial({ color: 0x374151, roughness: 0.65 }),
-            accent: new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.35, metalness: 0.35 })
+            street: new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.85 }),
+            bottoms: new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.75 }),
+            top: new THREE.MeshStandardMaterial({ color: 0x374151, roughness: 0.7 }),
+            shoes: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.4, metalness: 0.2 }),
+            outer: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 }),
+            accent: new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.35, metalness: 0.35 })
         };
 
         function mesh(geo, mat) {
@@ -364,6 +364,7 @@
         }
 
         let walkT = 0;
+        const BASE_SCALE = 1.55;
         function update(dt, state) {
             state = state || {};
             const { jumping, sliding, dressing, dying, deathT } = state;
@@ -373,7 +374,7 @@
                 root.rotation.x = t * 0.9;
                 root.position.y = Math.sin(t * Math.PI) * 0.35 - t * 0.55;
                 root.position.x = Math.sin(t * 10) * 0.08;
-                const s = 1 - t * 0.25;
+                const s = BASE_SCALE * (1 - t * 0.25);
                 root.scale.set(s, s * (1 - t * 0.35), s);
                 return;
             }
@@ -390,10 +391,10 @@
             sleeveR.rotation.x = armR.rotation.x * 0.5;
             if (jumping) root.position.y = 0.25;
             else if (sliding) {
-                root.scale.set(1.15, 0.55, 1.1);
+                root.scale.set(BASE_SCALE * 1.15, BASE_SCALE * 0.55, BASE_SCALE * 1.1);
                 root.position.y = 0;
             } else {
-                root.scale.set(1, 1, 1);
+                root.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
                 root.position.y = 0;
             }
             if (dressing) {
@@ -436,18 +437,18 @@
         camera.position.set(0, 1.15, 2.85);
         camera.lookAt(0, 1.15, 0);
 
-        const hemi = new THREE.HemisphereLight(0xfff8ee, 0x3a3040, 1.45);
+        const hemi = new THREE.HemisphereLight(0xfff4e8, 0x4a4058, 1.15);
         scene.add(hemi);
-        const key = new THREE.DirectionalLight(0xffffff, 1.45);
+        const key = new THREE.DirectionalLight(0xffffff, 1.05);
         key.position.set(2.0, 4.0, 2.8);
         scene.add(key);
-        const rim = new THREE.DirectionalLight(0xffd080, 0.85);
+        const rim = new THREE.DirectionalLight(0xffc060, 0.95);
         rim.position.set(-2.2, 2.4, -1.8);
         scene.add(rim);
-        const fill = new THREE.PointLight(0xffffff, 0.55, 14);
+        const fill = new THREE.PointLight(0xffe8d0, 0.45, 14);
         fill.position.set(0, 2.0, 2.2);
         scene.add(fill);
-        const faceLight = new THREE.PointLight(0xfff0e0, 0.7, 6);
+        const faceLight = new THREE.PointLight(0xfff0e0, 0.55, 6);
         faceLight.position.set(0, 1.75, 1.2);
         scene.add(faceLight);
 
@@ -462,18 +463,16 @@
 
         function setCameraMode(mode) {
             avatar.setCameraFacing(mode);
-            // Fill the offscreen blit so gameplay drawImage isn't mostly empty padding
-            avatar.root.scale.set(1.25, 1.25, 1.25);
             if (mode === 'front') {
                 avatar.root.rotation.y = 0;
-                camera.position.set(0, 1.72, 1.35);
-                camera.lookAt(0, 1.7, 0);
-                camera.fov = 36;
+                camera.position.set(0, 1.7, 1.15);
+                camera.lookAt(0, 1.68, 0);
+                camera.fov = 38;
             } else {
                 avatar.root.rotation.y = 0;
-                camera.position.set(0, 1.05, 2.15);
-                camera.lookAt(0, 1.05, 0);
-                camera.fov = 46;
+                camera.position.set(0, 0.95, 1.75);
+                camera.lookAt(0, 0.95, 0);
+                camera.fov = 48;
             }
             camera.updateProjectionMatrix();
         }
