@@ -36,7 +36,6 @@
         { at: 910, strength: 0.9, hold: 50 }
     ];
     const GLINT_START = 1100;
-    const GLINT_MS = 2200;
     const BG_START = 2400;
     const BRAND_AT = 3200;
     const READY_AT = 3800;
@@ -85,15 +84,6 @@
             triggerFlash(beat.strength, beat.hold);
             flashIdx += 1;
         }
-    }
-
-    function finishReveal() {
-        if (brand) brand.classList.add('is-in');
-        if (sub) sub.classList.add('is-in');
-        if (rule) rule.classList.add('is-in');
-        if (swipeHint) swipeHint.classList.add('is-visible');
-        splash.classList.add('intro-ready');
-        readyToSwipe = true;
     }
 
     function dismissIntro() {

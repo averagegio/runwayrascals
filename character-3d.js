@@ -217,7 +217,7 @@
         root.add(faceBack);
 
         const loader = new THREE.TextureLoader();
-        loader.load(profile.src, (tex) => {
+        loader.load(profile.src, () => {
             // Pull palette from character art without pasting the full pic onto the head
             mats.hair.color.setHex(profile.hair);
             mats.skin.color.setHex(profile.skin);
