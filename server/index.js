@@ -12,6 +12,7 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || '*';
 const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_PUBLISHABLE = process.env.STRIPE_PUBLISHABLE_KEY || '';
 const STRIPE_PAYMENT_LINK = process.env.STRIPE_PAYMENT_LINK || '';
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 
 let stripe = null;
 if (STRIPE_SECRET) {
@@ -21,8 +22,6 @@ if (STRIPE_SECRET) {
         console.warn('Stripe init failed:', err.message);
     }
 }
-
-db.ensureStore();
 
 const STORE_CATALOG = [
     {
@@ -179,19 +178,18 @@ const LEVEL_ORDER = ['newyork', 'milan', 'paris', 'london', 'berlin', 'miami'];
 
 const app = express();
 app.use(cors({ origin: CLIENT_ORIGIN === '*' ? true : CLIENT_ORIGIN, credentials: true }));
-app.use(express.json());
 
 function signToken(user) {
     return jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: '14d' });
 }
 
-function authRequired(req, res, next) {
+async function authRequired(req, res, next) {
     const header = req.headers.authorization || '';
     const token = header.startsWith('Bearer ') ? header.slice(7) : null;
     if (!token) return res.status(401).json({ error: 'Login required' });
     try {
         const payload = jwt.verify(token, JWT_SECRET);
-        const user = db.findUserById(payload.sub);
+        const user = await db.findUserById(payload.sub);
         if (!user) return res.status(401).json({ error: 'Invalid session' });
         req.user = db.publicUser(user);
         req.userId = user.id;
@@ -201,18 +199,73 @@ function authRequired(req, res, next) {
     }
 }
 
+async function grantFromCheckoutSession(session) {
+    const userId = session.metadata && session.metadata.userId;
+    const itemId = session.metadata && session.metadata.itemId;
+    if (!userId || !itemId) {
+        console.warn('Stripe session missing metadata', session.id);
+        return null;
+    }
+    if (session.payment_status && session.payment_status !== 'paid' && session.status !== 'complete') {
+        return null;
+    }
+    return db.addOwnedItem(userId, itemId, { stripeSessionId: session.id });
+}
+
+// Webhook must receive the raw body — register before express.json()
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    if (!stripe) {
+        return res.status(503).json({ error: 'Stripe not configured' });
+    }
+
+    let event = req.body;
+    if (STRIPE_WEBHOOK_SECRET) {
+        const signature = req.headers['stripe-signature'];
+        try {
+            event = stripe.webhooks.constructEvent(req.body, signature, STRIPE_WEBHOOK_SECRET);
+        } catch (err) {
+            console.error('Webhook signature failed:', err.message);
+            return res.status(400).send(`Webhook Error: ${err.message}`);
+        }
+    } else {
+        try {
+            event = typeof req.body === 'string' || Buffer.isBuffer(req.body)
+                ? JSON.parse(req.body.toString('utf8'))
+                : req.body;
+        } catch (_) {
+            return res.status(400).json({ error: 'Invalid JSON' });
+        }
+        console.warn('STRIPE_WEBHOOK_SECRET unset — webhook is unverified (dev only)');
+    }
+
+    try {
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+            await grantFromCheckoutSession(session);
+        }
+        res.json({ received: true });
+    } catch (err) {
+        console.error('Webhook handler error:', err);
+        res.status(500).json({ error: 'Webhook handler failed' });
+    }
+});
+
+app.use(express.json());
+
 app.get('/api/health', (_req, res) => {
     res.json({
         ok: true,
+        db: db.backend(),
         stripeConfigured: Boolean(stripe),
+        stripeWebhookConfigured: Boolean(STRIPE_WEBHOOK_SECRET),
         publishableKey: STRIPE_PUBLISHABLE || null
     });
 });
 
-app.post('/api/signup', (req, res) => {
+app.post('/api/signup', async (req, res) => {
     try {
         const { email, password, displayName, gamerTag } = req.body || {};
-        const user = db.createUser({ email, password, displayName, gamerTag });
+        const user = await db.createUser({ email, password, displayName, gamerTag });
         const token = signToken(user);
         res.status(201).json({ token, user });
     } catch (err) {
@@ -220,10 +273,10 @@ app.post('/api/signup', (req, res) => {
     }
 });
 
-app.post('/api/waitlist', (req, res) => {
+app.post('/api/waitlist', async (req, res) => {
     try {
         const { name, email } = req.body || {};
-        const { entry, alreadyJoined } = db.addWaitlistEntry({ name, email });
+        const { entry, alreadyJoined } = await db.addWaitlistEntry({ name, email });
         res.status(alreadyJoined ? 200 : 201).json({
             ok: true,
             alreadyJoined,
@@ -234,10 +287,10 @@ app.post('/api/waitlist', (req, res) => {
     }
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body || {};
-        const user = db.verifyLogin(email, password);
+        const user = await db.verifyLogin(email, password);
         const token = signToken(user);
         res.json({ token, user });
     } catch (err) {
@@ -249,9 +302,9 @@ app.get('/api/me', authRequired, (req, res) => {
     res.json({ user: req.user });
 });
 
-app.patch('/api/me', authRequired, (req, res) => {
+app.patch('/api/me', authRequired, async (req, res) => {
     try {
-        const user = db.updateProfile(req.userId, req.body || {});
+        const user = await db.updateProfile(req.userId, req.body || {});
         res.json({ user });
     } catch (err) {
         res.status(err.status || 500).json({ error: err.message || 'Update failed' });
@@ -264,7 +317,8 @@ app.get('/api/store', (_req, res) => {
         stripe: {
             configured: Boolean(stripe),
             publishableKey: STRIPE_PUBLISHABLE || null,
-            paymentLink: STRIPE_PAYMENT_LINK || null
+            paymentLink: STRIPE_PAYMENT_LINK || null,
+            webhookConfigured: Boolean(STRIPE_WEBHOOK_SECRET)
         }
     });
 });
@@ -276,12 +330,12 @@ app.post('/api/store/checkout', authRequired, async (req, res) => {
         if (!item) return res.status(404).json({ error: 'Item not found' });
 
         if (item.free || item.priceCents === 0) {
-            const user = db.addOwnedItem(req.userId, item.id);
+            const user = await db.addOwnedItem(req.userId, item.id);
             return res.json({ free: true, user });
         }
 
-        // Prefer Stripe Checkout Session
         if (stripe) {
+            const origin = CLIENT_ORIGIN === '*' ? 'http://127.0.0.1:8765' : CLIENT_ORIGIN;
             const session = await stripe.checkout.sessions.create({
                 mode: 'payment',
                 customer_email: req.user.email,
@@ -300,13 +354,14 @@ app.post('/api/store/checkout', authRequired, async (req, res) => {
                     }
                 ],
                 metadata: { itemId: item.id, userId: req.userId },
-                success_url: successUrl || `${CLIENT_ORIGIN}/store.html?success=1&item=${item.id}`,
-                cancel_url: cancelUrl || `${CLIENT_ORIGIN}/store.html?canceled=1`
+                success_url:
+                    successUrl ||
+                    `${origin}/store.html?success=1&item=${item.id}&session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: cancelUrl || `${origin}/store.html?canceled=1`
             });
             return res.json({ url: session.url, sessionId: session.id });
         }
 
-        // Fallback: shared payment link or confirm checkout page
         if (STRIPE_PAYMENT_LINK) {
             return res.json({
                 url: STRIPE_PAYMENT_LINK,
@@ -323,7 +378,31 @@ app.post('/api/store/checkout', authRequired, async (req, res) => {
     }
 });
 
-app.post('/api/store/confirm-checkout', authRequired, (req, res) => {
+/** Confirm a paid Stripe Checkout Session (success-page backup if webhook is delayed). */
+app.post('/api/store/confirm-session', authRequired, async (req, res) => {
+    try {
+        if (!stripe) {
+            return res.status(400).json({ error: 'Stripe not configured' });
+        }
+        const { sessionId } = req.body || {};
+        if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
+
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        if (session.metadata && session.metadata.userId && session.metadata.userId !== req.userId) {
+            return res.status(403).json({ error: 'Session does not belong to this user' });
+        }
+        if (session.payment_status !== 'paid') {
+            return res.status(402).json({ error: 'Payment not completed', paymentStatus: session.payment_status });
+        }
+        const user = await grantFromCheckoutSession(session);
+        res.json({ user, sessionId: session.id });
+    } catch (err) {
+        console.error(err);
+        res.status(err.status || 500).json({ error: err.message || 'Confirm session failed' });
+    }
+});
+
+app.post('/api/store/confirm-checkout', authRequired, async (req, res) => {
     try {
         const { itemId } = req.body || {};
         const item = STORE_CATALOG.find((i) => i.id === itemId);
@@ -331,15 +410,14 @@ app.post('/api/store/confirm-checkout', authRequired, (req, res) => {
         if (stripe) {
             return res.status(400).json({ error: 'Confirm checkout is only available without Stripe keys' });
         }
-        const user = db.addOwnedItem(req.userId, item.id);
+        const user = await db.addOwnedItem(req.userId, item.id);
         res.json({ user });
     } catch (err) {
         res.status(err.status || 500).json({ error: err.message || 'Confirm failed' });
     }
 });
 
-// Back-compat alias (older clients)
-app.post('/api/store/confirm-demo', authRequired, (req, res) => {
+app.post('/api/store/confirm-demo', authRequired, async (req, res) => {
     try {
         const { itemId } = req.body || {};
         const item = STORE_CATALOG.find((i) => i.id === itemId);
@@ -347,14 +425,14 @@ app.post('/api/store/confirm-demo', authRequired, (req, res) => {
         if (stripe) {
             return res.status(400).json({ error: 'Confirm checkout is only available without Stripe keys' });
         }
-        const user = db.addOwnedItem(req.userId, item.id);
+        const user = await db.addOwnedItem(req.userId, item.id);
         res.json({ user });
     } catch (err) {
         res.status(err.status || 500).json({ error: err.message || 'Confirm failed' });
     }
 });
 
-app.post('/api/levels/unlock-next', authRequired, (req, res) => {
+app.post('/api/levels/unlock-next', authRequired, async (req, res) => {
     try {
         const { completedLevelId } = req.body || {};
         const idx = LEVEL_ORDER.indexOf(completedLevelId);
@@ -363,7 +441,7 @@ app.post('/api/levels/unlock-next', authRequired, (req, res) => {
         if (!next) {
             return res.json({ user: req.user, newlyUnlocked: null, message: 'All Fashion Week cities unlocked' });
         }
-        const result = db.unlockLevel(req.userId, next);
+        const result = await db.unlockLevel(req.userId, next);
         res.json(result);
     } catch (err) {
         res.status(err.status || 500).json({ error: err.message || 'Unlock failed' });
@@ -377,12 +455,23 @@ app.get('/api/levels', authRequired, (req, res) => {
     });
 });
 
-// Stripe webhook (optional) — grants item on completed checkout
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-    res.json({ received: true });
-});
+async function start() {
+    try {
+        await db.ensureStore();
+    } catch (err) {
+        console.error('Database init failed:', err.message);
+        process.exit(1);
+    }
+    app.listen(PORT, () => {
+        console.log(`Runway Rascals API on http://127.0.0.1:${PORT}`);
+        console.log(`DB backend: ${db.backend()}`);
+        console.log(`Stripe Checkout: ${stripe ? 'enabled' : 'confirm-checkout / payment-link mode'}`);
+        console.log(`Stripe Webhook: ${STRIPE_WEBHOOK_SECRET ? 'signed' : 'unsigned / missing secret'}`);
+    });
+}
 
-app.listen(PORT, () => {
-    console.log(`Runway Rascals API on http://127.0.0.1:${PORT}`);
-    console.log(`Stripe Checkout: ${stripe ? 'enabled' : 'confirm-checkout / payment-link mode'}`);
-});
+module.exports = app;
+
+if (require.main === module) {
+    start();
+}

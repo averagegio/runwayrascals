@@ -1,12 +1,20 @@
 (function () {
-  const DEFAULT_API = 'http://127.0.0.1:8787';
+  function defaultApiBase() {
+    try {
+      if (typeof location !== 'undefined' && location.protocol && location.protocol !== 'file:') {
+        const host = location.hostname || '';
+        if (host && host !== 'localhost' && host !== '127.0.0.1') return '';
+      }
+    } catch (_) { /* ignore */ }
+    return 'http://127.0.0.1:8787';
+  }
 
   function apiBase() {
     try {
       const saved = localStorage.getItem('apiBase');
       if (saved) return saved.replace(/\/$/, '');
     } catch (_) { /* ignore */ }
-    return DEFAULT_API;
+    return defaultApiBase();
   }
 
   const form = document.getElementById('waitlistForm');

@@ -1,6 +1,19 @@
 /** Client auth + API helper for Runway Rascals */
 (function (global) {
-    const DEFAULT_API = 'http://127.0.0.1:8787';
+    function defaultApiBase() {
+        try {
+            if (typeof location !== 'undefined' && location.protocol && location.protocol !== 'file:') {
+                const host = location.hostname || '';
+                if (host && host !== 'localhost' && host !== '127.0.0.1') {
+                    // Production: same origin (Vercel serverless /api/*)
+                    return '';
+                }
+            }
+        } catch (_) { /* ignore */ }
+        return 'http://127.0.0.1:8787';
+    }
+
+    const DEFAULT_API = defaultApiBase();
 
     function apiBase() {
         try {
