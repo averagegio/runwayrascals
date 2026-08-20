@@ -637,6 +637,194 @@ a {
     margin-bottom: 1.25rem;
 }
 
+.home-top-nav {
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+.menu-toggle {
+    appearance: none;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--ivory);
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+}
+
+.menu-toggle:hover,
+.menu-toggle:focus-visible {
+    border-color: var(--champagne-soft);
+    background: var(--glass-hover);
+    outline: none;
+}
+
+.menu-toggle-bars,
+.menu-toggle-bars::before,
+.menu-toggle-bars::after {
+    display: block;
+    width: 1.1rem;
+    height: 1.5px;
+    background: var(--ivory);
+    border-radius: 1px;
+    transition: transform 0.25s var(--ease), opacity 0.2s;
+}
+
+.menu-toggle-bars {
+    position: relative;
+}
+
+.menu-toggle-bars::before,
+.menu-toggle-bars::after {
+    content: "";
+    position: absolute;
+    left: 0;
+}
+
+.menu-toggle-bars::before { top: -5px; }
+.menu-toggle-bars::after { top: 5px; }
+
+body.menu-open .menu-toggle-bars {
+    background: transparent;
+}
+
+body.menu-open .menu-toggle-bars::before {
+    top: 0;
+    transform: rotate(45deg);
+}
+
+body.menu-open .menu-toggle-bars::after {
+    top: 0;
+    transform: rotate(-45deg);
+}
+
+.menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(7, 7, 8, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.home-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 50;
+    width: min(320px, 88vw);
+    height: 100dvh;
+    padding: calc(20px + var(--safe-top)) 1.25rem calc(24px + var(--safe-bottom));
+    background: linear-gradient(180deg, #121214 0%, #070708 100%);
+    border-left: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transform: translateX(0);
+    animation: drawerIn 0.35s var(--ease) both;
+    box-shadow: -16px 0 48px rgba(0, 0, 0, 0.45);
+}
+
+.home-drawer[hidden],
+.menu-backdrop[hidden] {
+    display: none !important;
+}
+
+@keyframes drawerIn {
+    from { transform: translateX(100%); opacity: 0.6; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.home-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.home-drawer-title {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-style: italic;
+    color: var(--ivory);
+}
+
+.menu-close {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--ivory-dim);
+    font-size: 1.75rem;
+    line-height: 1;
+    width: 2.5rem;
+    height: 2.5rem;
+    cursor: pointer;
+}
+
+.menu-close:hover,
+.menu-close:focus-visible {
+    color: var(--champagne);
+    outline: none;
+}
+
+.home-drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.drawer-link {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.85rem 0.35rem;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: transparent;
+    color: var(--ivory);
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s var(--ease), padding-left 0.2s var(--ease);
+}
+
+.drawer-link:hover,
+.drawer-link:focus-visible {
+    color: var(--champagne);
+    padding-left: 0.55rem;
+    outline: none;
+}
+
+.drawer-link[hidden] {
+    display: none !important;
+}
+
+.drawer-link-btn {
+    margin-top: 0.5rem;
+    border-bottom: none;
+    color: var(--ivory-dim);
+}
+
+.home-cta-linear {
+    flex-direction: column;
+    align-items: stretch;
+    max-width: 280px;
+}
+
+.home-cta-linear .game-btn {
+    justify-content: center;
+    width: 100%;
+}
+
 .game-footer,
 .home-actions,
 .auth-footer {

@@ -47,10 +47,17 @@
         <div class="home-bg-grain"></div>
       </div>
 
-      <div class="page-nav">
-        <span class="page-nav-spacer" aria-hidden="true"></span>
-        <a class="game-btn" id="loginLink" href="login.html"><span class="btn-text">Account</span></a>
-        <button type="button" class="game-btn" id="logoutBtn" hidden><span class="btn-text">Sign out</span></button>
+      <div class="page-nav home-top-nav">
+        <button
+          type="button"
+          class="menu-toggle"
+          id="menuToggle"
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="homeDrawer"
+        >
+          <span class="menu-toggle-bars" aria-hidden="true"></span>
+        </button>
       </div>
 
       <div class="game-header">
@@ -60,24 +67,34 @@
           <p class="home-name" id="homeName"></p>
           <p class="home-tag" id="homeTag"></p>
         </div>
-        <div class="home-cta-row">
+        <div class="home-cta-row home-cta-linear">
           <a class="game-btn confirm-btn enter-game-btn" id="enterGameBtn" href="character-select.html"><span class="btn-text">Play</span></a>
-          <a class="game-btn" id="waitlistLink" href="waitlist.html"><span class="btn-text">Test pilot</span></a>
           <a class="game-btn" id="signupLink" href="signup.html"><span class="btn-text">Sign up</span></a>
-          <a class="game-btn" id="storeLink" href="store.html" hidden><span class="btn-text">Boutique</span></a>
-          <a class="game-btn" id="profileLink" href="profile-setup.html" hidden><span class="btn-text">Profile</span></a>
-          <a class="game-btn" id="customizeLink" href="wardrobe-select.html" hidden><span class="btn-text">Wardrobe</span></a>
+          <a class="game-btn" id="buyLink" href="store.html"><span class="btn-text">Buy</span></a>
         </div>
       </div>
 
       <div class="home-hero-spacer" aria-hidden="true"></div>
-
-      <div class="game-footer home-actions">
-        <a class="game-btn" href="map-select.html"><span class="btn-text">Fashion Week</span></a>
-        <a class="game-btn" href="pitch.html"><span class="btn-text">Pitch deck</span></a>
-      </div>
     </div>
   </div>
+
+  <div class="menu-backdrop" id="menuBackdrop" hidden></div>
+  <aside class="home-drawer" id="homeDrawer" hidden aria-hidden="true" aria-label="Menu">
+    <div class="home-drawer-head">
+      <p class="home-drawer-title">Menu</p>
+      <button type="button" class="menu-close" id="menuClose" aria-label="Close menu">×</button>
+    </div>
+    <nav class="home-drawer-nav">
+      <a class="drawer-link" id="loginLink" href="login.html">Account</a>
+      <a class="drawer-link" id="profileLink" href="profile-setup.html" hidden>Profile</a>
+      <a class="drawer-link" id="storeLink" href="store.html">Boutique</a>
+      <a class="drawer-link" id="customizeLink" href="wardrobe-select.html" hidden>Wardrobe</a>
+      <a class="drawer-link" id="waitlistLink" href="waitlist.html">Test pilot</a>
+      <a class="drawer-link" href="pitch.html">Pitch deck</a>
+      <a class="drawer-link" href="map-select.html">Fashion Week</a>
+      <button type="button" class="drawer-link drawer-link-btn" id="logoutBtn" hidden>Sign out</button>
+    </nav>
+  </aside>
 
   <script src="auth-client.js"></script>
   <script src="script.js"></script>
