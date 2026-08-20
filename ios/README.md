@@ -1,4 +1,4 @@
-# Runway Rascals — iOS (App Store) wrapper
+# Rascal Runways — iOS (App Store) wrapper
 
 Full-bleed **SwiftUI + WKWebView** shell that loads the production web game. The web UI already uses `viewport-fit=cover`, translucent status bar meta tags, and safe-area CSS — this native host ignores system chrome so the game paints edge-to-edge.
 

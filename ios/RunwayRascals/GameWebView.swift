@@ -1,7 +1,7 @@
 import SwiftUI
 import WebKit
 
-/// Full-bleed WKWebView host for the Runway Rascals web game.
+/// Full-bleed WKWebView host for the Rascal Runways web game.
 /// Optimized for App Store packaging: safe areas ignored so CSS `viewport-fit=cover` owns the chrome.
 struct GameWebView: UIViewRepresentable {
     let url: URL

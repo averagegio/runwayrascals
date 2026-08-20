@@ -1,4 +1,4 @@
-/** Shared Fashion Week show / designer data for Runway Rascals */
+/** Shared Fashion Week show / designer data for Rascal Runways */
 window.RUNWAY_SHOWS = {
     newyork: [
         {

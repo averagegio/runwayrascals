@@ -1,6 +1,6 @@
 /**
  * Stylized fashion runway pickups — inspired by classic show props
- * and designer set pieces. Original silhouettes for Runway Rascals.
+ * and designer set pieces. Original silhouettes for Rascal Runways.
  */
 window.FASHION_ITEMS = [
     {

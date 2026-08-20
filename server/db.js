@@ -1,5 +1,5 @@
 /**
- * Persistence for Runway Rascals.
+ * Persistence for Rascal Runways.
  * - DATABASE_URL set  → Neon / Postgres
  * - otherwise         → local JSON files under server/data/
  */

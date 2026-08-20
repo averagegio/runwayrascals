@@ -1,4 +1,4 @@
-/** Client auth + API helper for Runway Rascals */
+/** Client auth + API helper for Rascal Runways */
 (function (global) {
     function defaultApiBase() {
         try {
