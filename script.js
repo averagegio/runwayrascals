@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const enterGameBtn = document.getElementById('enterGameBtn');
     const loginLink = document.getElementById('loginLink');
     const signupLink = document.getElementById('signupLink');
+    const buyLink = document.getElementById('buyLink');
     const profileLink = document.getElementById('profileLink');
     const storeLink = document.getElementById('storeLink');
     const customizeLink = document.getElementById('customizeLink');
@@ -10,6 +11,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     const homeName = document.getElementById('homeName');
     const homeTag = document.getElementById('homeTag');
     const tagline = document.getElementById('homeTagline');
+    const menuToggle = document.getElementById('menuToggle');
+    const menuClose = document.getElementById('menuClose');
+    const menuBackdrop = document.getElementById('menuBackdrop');
+    const homeDrawer = document.getElementById('homeDrawer');
+
+    function setMenuOpen(open) {
+        if (!homeDrawer || !menuToggle) return;
+        homeDrawer.hidden = !open;
+        homeDrawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (menuBackdrop) menuBackdrop.hidden = !open;
+        menuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        menuToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        document.body.classList.toggle('menu-open', open);
+    }
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            const open = menuToggle.getAttribute('aria-expanded') !== 'true';
+            setMenuOpen(open);
+        });
+    }
+    if (menuClose) menuClose.addEventListener('click', () => setMenuOpen(false));
+    if (menuBackdrop) menuBackdrop.addEventListener('click', () => setMenuOpen(false));
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setMenuOpen(false);
+    });
 
     let user = RunwayAuth.getCachedUser();
     const token = RunwayAuth.getToken();
@@ -23,19 +50,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (user && token) {
-        loginLink.hidden = true;
-        signupLink.hidden = true;
-        profileLink.hidden = false;
-        storeLink.hidden = false;
-        customizeLink.hidden = false;
-        enterGameBtn.hidden = false;
-        logoutBtn.hidden = false;
-        homeProfile.hidden = false;
-        homeName.textContent = user.characterName || user.displayName || 'Model';
-        homeTag.textContent = `@${String(user.gamerTag || 'model').replace(/^@/, '')}`;
-        tagline.textContent = 'Signed in · hit the runway';
+        if (loginLink) loginLink.hidden = true;
+        if (signupLink) signupLink.hidden = true;
+        if (profileLink) profileLink.hidden = false;
+        if (customizeLink) customizeLink.hidden = false;
+        if (logoutBtn) logoutBtn.hidden = false;
+        if (homeProfile) homeProfile.hidden = false;
+        if (homeName) homeName.textContent = user.characterName || user.displayName || 'Model';
+        if (homeTag) homeTag.textContent = `@${String(user.gamerTag || 'model').replace(/^@/, '')}`;
+        if (tagline) tagline.textContent = 'Signed in · hit the runway';
+        if (buyLink) buyLink.hidden = false;
+        if (storeLink) storeLink.hidden = false;
     } else {
-        tagline.textContent = 'Sign up to name your 3D model & shop looks';
+        if (tagline) tagline.textContent = 'Play · sign up · buy the look';
+        if (signupLink) signupLink.hidden = false;
+        if (buyLink) buyLink.hidden = false;
     }
 
     if (logoutBtn) {
