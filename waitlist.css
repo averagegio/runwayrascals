@@ -1,0 +1,217 @@
+/* Test pilot waitlist — brand-first single composition */
+
+.waitlist-page {
+  min-height: 100dvh;
+}
+
+.waitlist-shell {
+  justify-content: flex-start;
+  gap: clamp(28px, 6vh, 48px);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.waitlist-top {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.waitlist-back {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ivory-dim);
+  opacity: 0.85;
+  transition: color 0.25s var(--ease), opacity 0.25s var(--ease);
+}
+
+.waitlist-back:hover,
+.waitlist-back:focus-visible {
+  color: var(--champagne);
+  opacity: 1;
+}
+
+.waitlist-main {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  animation: waitlist-rise 0.7s var(--ease) both;
+}
+
+@keyframes waitlist-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.waitlist-kicker {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--champagne);
+  margin-bottom: 0.75rem;
+  animation: waitlist-fade 0.8s 0.1s var(--ease) both;
+}
+
+.waitlist-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  animation: waitlist-fade 0.85s 0.15s var(--ease) both;
+}
+
+.waitlist-brand .rr-mark {
+  font-family: var(--font-display);
+  font-size: clamp(3.4rem, 14vw, 5.2rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--ivory);
+  background: linear-gradient(135deg, var(--ivory) 0%, var(--champagne) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.waitlist-brand-text {
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 6vw, 2.15rem);
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: var(--ivory);
+  line-height: 1.15;
+}
+
+.waitlist-lede {
+  font-family: var(--font-ui);
+  font-size: clamp(0.95rem, 2.8vw, 1.05rem);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--ivory-dim);
+  max-width: 28ch;
+  margin-bottom: clamp(1.75rem, 4vh, 2.5rem);
+  animation: waitlist-fade 0.9s 0.22s var(--ease) both;
+}
+
+@keyframes waitlist-fade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.waitlist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  animation: waitlist-fade 0.95s 0.28s var(--ease) both;
+}
+
+.waitlist-form .auth-label {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ivory-dim);
+  margin-top: 0.65rem;
+}
+
+.waitlist-form .auth-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--ivory);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+}
+
+.waitlist-form .auth-input::placeholder {
+  color: rgba(244, 239, 230, 0.35);
+}
+
+.waitlist-form .auth-input:focus {
+  border-color: var(--champagne-soft);
+  background: var(--glass-hover);
+}
+
+.waitlist-msg {
+  min-height: 1.25rem;
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.85rem;
+  color: var(--danger);
+}
+
+.waitlist-msg.is-ok {
+  color: var(--ok);
+}
+
+.waitlist-submit {
+  margin-top: 0.85rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.waitlist-submit:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.waitlist-success {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.85rem;
+  animation: waitlist-rise 0.55s var(--ease) both;
+}
+
+.waitlist-success-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 5vw, 2rem);
+  font-weight: 600;
+  color: var(--ivory);
+}
+
+.waitlist-success-copy {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ivory-dim);
+  max-width: 28ch;
+  margin-bottom: 0.5rem;
+}
+
+.waitlist-form[hidden],
+.waitlist-success[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 480px) {
+  .waitlist-shell {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
