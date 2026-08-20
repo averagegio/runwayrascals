@@ -1,0 +1,393 @@
+:root {
+  --ink: #070708;
+  --ink-soft: #121214;
+  --ivory: #f4efe6;
+  --ivory-dim: rgba(244, 239, 230, 0.72);
+  --champagne: #c9a56a;
+  --champagne-soft: rgba(201, 165, 106, 0.35);
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --font-display: "Bodoni Moda", "Playfair Display", Georgia, serif;
+  --font-ui: "Syne", "Avenir Next", system-ui, sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+  background: var(--ink);
+  color: var(--ivory);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  overflow: hidden;
+}
+
+.deck {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(28px, 6vw, 72px) clamp(24px, 8vw, 96px) 88px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(18px);
+  transition: opacity 0.45s var(--ease), transform 0.55s var(--ease), visibility 0.45s;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(201, 165, 106, 0.14), transparent 55%),
+    radial-gradient(900px 500px at 100% 100%, rgba(201, 165, 106, 0.08), transparent 50%),
+    linear-gradient(165deg, #0c0c0e 0%, #070708 45%, #101014 100%);
+  overflow: hidden;
+}
+
+.slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  z-index: 1;
+}
+
+.slide-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(180deg, rgba(7, 7, 8, 0.55) 0%, rgba(7, 7, 8, 0.82) 100%),
+    url("George_Igwe_fashion_runway_in_the_stars_on_rainbow_road_with_a_37414911-5bfc-44a6-a654-b6524844b3c0.png");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.45;
+  pointer-events: none;
+  animation: drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: scale(1.05) translateY(0); }
+  to { transform: scale(1.12) translateY(-2%); }
+}
+
+.kicker {
+  position: relative;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--champagne);
+  margin-bottom: 1rem;
+  animation: rise 0.6s var(--ease) both;
+}
+
+.brand-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.brand-hero.compact .rr {
+  font-size: clamp(2.8rem, 10vw, 4rem);
+}
+
+.rr {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 16vw, 6.5rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, var(--ivory) 0%, var(--champagne) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rise 0.7s 0.05s var(--ease) both;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 5vw, 2.6rem);
+  font-weight: 500;
+  font-style: italic;
+  animation: rise 0.75s 0.1s var(--ease) both;
+}
+
+h2 {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: clamp(1.85rem, 5.5vw, 3rem);
+  font-weight: 500;
+  line-height: 1.15;
+  max-width: 16ch;
+  margin-bottom: 1.5rem;
+  animation: rise 0.65s var(--ease) both;
+}
+
+h2 em {
+  font-style: italic;
+  color: var(--champagne);
+}
+
+h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--champagne);
+  margin-bottom: 0.75rem;
+}
+
+.lede {
+  position: relative;
+  max-width: 34ch;
+  font-size: clamp(1rem, 2.4vw, 1.2rem);
+  line-height: 1.55;
+  color: var(--ivory-dim);
+  margin-bottom: 1.5rem;
+  animation: rise 0.8s 0.15s var(--ease) both;
+}
+
+.meta {
+  position: relative;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: rgba(244, 239, 230, 0.5);
+}
+
+.bullets {
+  position: relative;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 52ch;
+  animation: rise 0.7s 0.08s var(--ease) both;
+}
+
+.bullets li {
+  font-size: clamp(0.95rem, 2vw, 1.08rem);
+  line-height: 1.5;
+  color: var(--ivory-dim);
+  padding-left: 1.1rem;
+  border-left: 2px solid var(--champagne-soft);
+}
+
+.bullets strong {
+  color: var(--ivory);
+  font-weight: 600;
+}
+
+.bullets.tight li {
+  font-size: 0.95rem;
+}
+
+.grid-2 {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  max-width: 900px;
+  animation: rise 0.7s 0.08s var(--ease) both;
+}
+
+.stats {
+  position: relative;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 2rem;
+  margin-bottom: 1.5rem;
+  animation: rise 0.7s 0.08s var(--ease) both;
+}
+
+.stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 140px;
+  font-size: 0.95rem;
+  color: var(--ivory-dim);
+}
+
+.stats span {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  color: var(--ivory);
+  font-weight: 600;
+}
+
+.funnel {
+  position: relative;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-width: 54ch;
+  animation: rise 0.7s 0.08s var(--ease) both;
+}
+
+.funnel li {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: var(--ivory-dim);
+}
+
+.funnel span {
+  font-family: var(--font-display);
+  color: var(--champagne);
+  font-weight: 600;
+}
+
+.callout {
+  position: relative;
+  margin-top: 1.5rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  max-width: 54ch;
+  animation: rise 0.75s 0.12s var(--ease) both;
+}
+
+.callout p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ivory-dim);
+}
+
+.callout strong {
+  color: var(--champagne);
+}
+
+.rounds {
+  position: relative;
+  width: 100%;
+  max-width: 920px;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  animation: rise 0.7s 0.08s var(--ease) both;
+}
+
+.rounds th,
+.rounds td {
+  text-align: left;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+  vertical-align: top;
+  color: var(--ivory-dim);
+}
+
+.rounds th {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--champagne);
+  font-weight: 600;
+}
+
+.rounds td:first-child {
+  color: var(--ivory);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.footnote {
+  position: relative;
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  color: rgba(244, 239, 230, 0.45);
+  max-width: 56ch;
+  line-height: 1.45;
+}
+
+a {
+  color: var(--champagne);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.deck-nav {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--glass-border);
+  background: rgba(7, 7, 8, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.nav-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ivory);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+  transition: color 0.2s var(--ease);
+}
+
+.nav-btn:hover,
+.nav-btn:focus-visible {
+  color: var(--champagne);
+  outline: none;
+}
+
+.progress {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: var(--ivory-dim);
+  min-width: 4.5rem;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .rounds {
+    display: block;
+    overflow-x: auto;
+  }
+
+  h2 {
+    max-width: none;
+  }
+}
+
+@media print {
+  body { overflow: visible; }
+  .deck-nav { display: none; }
+  .slide {
+    position: relative;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    page-break-after: always;
+    height: 100vh;
+  }
+}
