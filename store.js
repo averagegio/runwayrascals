@@ -14,7 +14,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (params.get('success') === '1') {
-        showStatus(`Purchase complete${params.get('item') ? `: ${params.get('item')}` : ''}. Check your wardrobe.`, true);
+        showStatus(`Purchase complete${params.get('item') ? `: ${params.get('item')}` : ''}. Syncing wardrobe…`, true);
+        const sessionId = params.get('session_id');
+        if (sessionId) {
+            try {
+                await RunwayAuth.api('/api/store/confirm-session', {
+                    method: 'POST',
+                    body: JSON.stringify({ sessionId })
+                });
+            } catch (_) {
+                /* webhook may already have granted; refresh below */
+            }
+        }
     } else if (params.get('canceled') === '1') {
         showStatus('Checkout canceled.', false);
     }
@@ -28,6 +39,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         subtitle.textContent = catalog.stripe.configured
             ? 'Member boutique · Stripe Checkout'
             : (catalog.stripe.paymentLink ? 'Member boutique · Payment Link' : 'Member boutique · Checkout');
+        if (params.get('success') === '1') {
+            showStatus(`Purchase complete${params.get('item') ? `: ${params.get('item')}` : ''}. Check your wardrobe.`, true);
+        }
     } catch (ex) {
         showStatus(`Store offline: ${ex.message}. Start the API server in /server`, false);
         return;
@@ -71,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function checkout(item) {
         try {
-            const successUrl = `${location.origin}/store.html?success=1&item=${encodeURIComponent(item.id)}`;
+            const successUrl = `${location.origin}/store.html?success=1&item=${encodeURIComponent(item.id)}&session_id={CHECKOUT_SESSION_ID}`;
             const cancelUrl = `${location.origin}/store.html?canceled=1`;
             const data = await RunwayAuth.api('/api/store/checkout', {
                 method: 'POST',
