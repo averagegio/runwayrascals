@@ -41,3 +41,7 @@ Without Stripe keys, Boutique uses a local confirm checkout that grants the item
 
 Serve the repo root (e.g. `python3 -m http.server 8765`) and open `http://127.0.0.1:8765/`.
 Set `CLIENT_ORIGIN` to that origin (and your production domain when deployed).
+
+## Production (Vercel serverless)
+
+See [`../DEPLOY_VERCEL.md`](../DEPLOY_VERCEL.md). The Express app is exported from this file and mounted at `/api` via `api/index.js` — no Railway required.
