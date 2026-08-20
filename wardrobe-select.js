@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 shopStatus.classList.remove('err');
                 shopStatus.classList.add('ok');
             }
-            const successUrl = `${location.origin}/store.html?success=1&item=${encodeURIComponent(itemId)}`;
+            const successUrl = `${location.origin}/store.html?success=1&item=${encodeURIComponent(itemId)}&session_id={CHECKOUT_SESSION_ID}`;
             const cancelUrl = `${location.origin}/wardrobe-select.html`;
             const data = await RunwayAuth.api('/api/store/checkout', {
                 method: 'POST',
