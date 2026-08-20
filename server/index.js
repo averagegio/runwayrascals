@@ -220,6 +220,20 @@ app.post('/api/signup', (req, res) => {
     }
 });
 
+app.post('/api/waitlist', (req, res) => {
+    try {
+        const { name, email } = req.body || {};
+        const { entry, alreadyJoined } = db.addWaitlistEntry({ name, email });
+        res.status(alreadyJoined ? 200 : 201).json({
+            ok: true,
+            alreadyJoined,
+            entry: { id: entry.id, name: entry.name, email: entry.email, createdAt: entry.createdAt }
+        });
+    } catch (err) {
+        res.status(err.status || 500).json({ error: err.message || 'Waitlist signup failed' });
+    }
+});
+
 app.post('/api/login', (req, res) => {
     try {
         const { email, password } = req.body || {};

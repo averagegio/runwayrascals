@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Join the Runway Rascals test pilot waitlist." />
+  <title>Test Pilot Waitlist — Runway Rascals</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400;1,6..96,600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="waitlist.css" />
+</head>
+<body class="waitlist-page">
+  <div class="phone-frame">
+    <div class="app-container waitlist-shell">
+      <header class="waitlist-top">
+        <a class="waitlist-back" href="index.html">← Home</a>
+      </header>
+
+      <main class="waitlist-main">
+        <p class="waitlist-kicker">Test pilot</p>
+        <h1 class="waitlist-brand">
+          <span class="rr-mark" aria-hidden="true">RR</span>
+          <span class="waitlist-brand-text">Runway Rascals</span>
+        </h1>
+        <p class="waitlist-lede">
+          Be first on the catwalk. Join the early access list for the fashion endless runner.
+        </p>
+
+        <form class="waitlist-form" id="waitlistForm" novalidate>
+          <label class="auth-label" for="waitlistName">Name</label>
+          <input
+            class="auth-input"
+            id="waitlistName"
+            name="name"
+            type="text"
+            autocomplete="name"
+            required
+            maxlength="80"
+            placeholder="Your name"
+          />
+
+          <label class="auth-label" for="waitlistEmail">Email</label>
+          <input
+            class="auth-input"
+            id="waitlistEmail"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            maxlength="160"
+            placeholder="you@email.com"
+          />
+
+          <p class="waitlist-msg" id="waitlistMsg" role="status" aria-live="polite"></p>
+
+          <button class="game-btn confirm-btn waitlist-submit" type="submit" id="waitlistSubmit">
+            <span class="btn-text">Join the waitlist</span>
+          </button>
+        </form>
+
+        <div class="waitlist-success" id="waitlistSuccess" hidden>
+          <p class="waitlist-success-title">You're on the list</p>
+          <p class="waitlist-success-copy">
+            We'll email you when your test pilot invite is ready.
+          </p>
+          <a class="game-btn" href="index.html"><span class="btn-text">Back home</span></a>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="waitlist.js"></script>
+</body>
+</html>

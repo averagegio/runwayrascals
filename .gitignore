@@ -4,4 +4,5 @@ server/node_modules/
 server/.env
 server/data/users.json
 server/data/purchases.json
+server/data/waitlist.json
 server/data/*.tmp

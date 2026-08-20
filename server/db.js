@@ -5,11 +5,13 @@ const bcrypt = require('bcryptjs');
 const DATA_DIR = path.join(__dirname, 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const PURCHASES_FILE = path.join(DATA_DIR, 'purchases.json');
+const WAITLIST_FILE = path.join(DATA_DIR, 'waitlist.json');
 
 function ensureStore() {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
     if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, '[]');
     if (!fs.existsSync(PURCHASES_FILE)) fs.writeFileSync(PURCHASES_FILE, '[]');
+    if (!fs.existsSync(WAITLIST_FILE)) fs.writeFileSync(WAITLIST_FILE, '[]');
 }
 
 function readJson(file) {
@@ -197,6 +199,42 @@ function addOwnedItem(userId, itemId) {
     return publicUser(user);
 }
 
+function addWaitlistEntry({ name, email }) {
+    const nameNorm = String(name || '').trim().slice(0, 80);
+    const emailNorm = String(email || '').trim().toLowerCase().slice(0, 160);
+
+    if (!nameNorm || nameNorm.length < 2) {
+        const err = new Error('Name is required');
+        err.status = 400;
+        throw err;
+    }
+    if (!emailNorm || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
+        const err = new Error('Valid email is required');
+        err.status = 400;
+        throw err;
+    }
+
+    const entries = readJson(WAITLIST_FILE);
+    const existing = entries.find((e) => e.email === emailNorm);
+    if (existing) {
+        return { entry: existing, alreadyJoined: true };
+    }
+
+    const entry = {
+        id: `w_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        name: nameNorm,
+        email: emailNorm,
+        createdAt: new Date().toISOString()
+    };
+    entries.push(entry);
+    writeJson(WAITLIST_FILE, entries);
+    return { entry, alreadyJoined: false };
+}
+
+function listWaitlist() {
+    return readJson(WAITLIST_FILE);
+}
+
 module.exports = {
     ensureStore,
     publicUser,
@@ -206,5 +244,7 @@ module.exports = {
     updateProfile,
     unlockLevel,
     addOwnedItem,
+    addWaitlistEntry,
+    listWaitlist,
     normalizeTag
 };
