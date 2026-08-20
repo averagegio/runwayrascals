@@ -2,10 +2,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const enterGameBtn = document.getElementById('enterGameBtn');
     const loginLink = document.getElementById('loginLink');
     const signupLink = document.getElementById('signupLink');
-    const buyLink = document.getElementById('buyLink');
+    const wardrobeLink = document.getElementById('wardrobeLink');
+    const fashionWeekLink = document.getElementById('fashionWeekLink');
     const profileLink = document.getElementById('profileLink');
     const storeLink = document.getElementById('storeLink');
-    const customizeLink = document.getElementById('customizeLink');
     const logoutBtn = document.getElementById('logoutBtn');
     const homeProfile = document.getElementById('homeProfile');
     const homeName = document.getElementById('homeName');
@@ -53,18 +53,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (loginLink) loginLink.hidden = true;
         if (signupLink) signupLink.hidden = true;
         if (profileLink) profileLink.hidden = false;
-        if (customizeLink) customizeLink.hidden = false;
         if (logoutBtn) logoutBtn.hidden = false;
         if (homeProfile) homeProfile.hidden = false;
         if (homeName) homeName.textContent = user.characterName || user.displayName || 'Model';
         if (homeTag) homeTag.textContent = `@${String(user.gamerTag || 'model').replace(/^@/, '')}`;
         if (tagline) tagline.textContent = 'Signed in · hit the runway';
-        if (buyLink) buyLink.hidden = false;
+        if (wardrobeLink) wardrobeLink.hidden = false;
+        if (fashionWeekLink) fashionWeekLink.hidden = false;
         if (storeLink) storeLink.hidden = false;
     } else {
-        if (tagline) tagline.textContent = 'Play · sign up · buy the look';
+        if (tagline) tagline.textContent = 'Play · sign up · wardrobe · Fashion Week';
         if (signupLink) signupLink.hidden = false;
-        if (buyLink) buyLink.hidden = false;
+        if (wardrobeLink) wardrobeLink.hidden = false;
+        if (fashionWeekLink) fashionWeekLink.hidden = false;
     }
 
     if (logoutBtn) {

@@ -1,4 +1,4 @@
-# Runway Rascals API
+# Rascal Runways API
 
 Auth, Neon Postgres (or local JSON), waitlist, level unlocks, and Stripe checkout.
 

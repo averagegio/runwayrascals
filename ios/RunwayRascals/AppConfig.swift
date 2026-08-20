@@ -16,5 +16,5 @@ enum AppConfig {
         return URL(string: "https://runnwayrascals.vercel.app/")!
     }
 
-    static let bundleDisplayName = "Runway Rascals"
+    static let bundleDisplayName = "Rascal Runways"
 }

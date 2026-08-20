@@ -27,7 +27,7 @@ const STORE_CATALOG = [
     {
         id: 'street-basics',
         name: 'Nameless Street Pack',
-        designer: 'Runway Rascals',
+        designer: 'Rascal Runways',
         priceCents: 0,
         currency: 'usd',
         description: 'Starter street clothes — free with every account.',
@@ -463,7 +463,7 @@ async function start() {
         process.exit(1);
     }
     app.listen(PORT, () => {
-        console.log(`Runway Rascals API on http://127.0.0.1:${PORT}`);
+        console.log(`Rascal Runways API on http://127.0.0.1:${PORT}`);
         console.log(`DB backend: ${db.backend()}`);
         console.log(`Stripe Checkout: ${stripe ? 'enabled' : 'confirm-checkout / payment-link mode'}`);
         console.log(`Stripe Webhook: ${STRIPE_WEBHOOK_SECRET ? 'signed' : 'unsigned / missing secret'}`);
