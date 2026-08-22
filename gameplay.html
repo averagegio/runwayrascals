@@ -29,10 +29,20 @@
                     <div id="goalDisplay" class="hud-goal">RARE: 0/3</div>
                     <div id="collectDisplay" class="hud-collect">Looks: 0</div>
                 </div>
-                <button type="button" id="cameraToggleBtn" class="game-btn camera-toggle-btn" aria-label="Flip camera">
-                    <span class="btn-text" id="cameraToggleLabel">Front Cam</span>
-                    <span class="btn-shine"></span>
-                </button>
+                <div class="hud-right-actions">
+                    <button type="button" id="screenshotBtn" class="game-btn clip-hud-btn" aria-label="Screenshot and share">
+                        <span class="btn-text">Shot</span>
+                        <span class="btn-shine"></span>
+                    </button>
+                    <button type="button" id="cameraToggleBtn" class="game-btn camera-toggle-btn" aria-label="Flip camera">
+                        <span class="btn-text" id="cameraToggleLabel">Front Cam</span>
+                        <span class="btn-shine"></span>
+                    </button>
+                </div>
+            </div>
+            <div id="clipRecBadge" class="clip-rec-badge" hidden aria-live="polite">
+                <span class="clip-rec-dot" aria-hidden="true"></span>
+                <span>REC</span>
             </div>
             <div class="outfit-hud">
                 <div id="boostDisplay" class="hud-boost">Boost</div>
@@ -61,6 +71,7 @@
     <script src="fashion-items.js?v=logo1"></script>
     <script src="character-3d.js?v=create1"></script>
     <script src="level-cinematic.js?v=look1"></script>
-    <script src="gameplay.js?v=logo1"></script>
+    <script src="clip-share.js?v=clip1"></script>
+    <script src="gameplay.js?v=clip1"></script>
 </body>
 </html>

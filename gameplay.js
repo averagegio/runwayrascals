@@ -892,6 +892,8 @@
         gameOver = true;
         running = false;
         updateHud();
+        setRecBadge(false);
+        if (window.RunwayClipShare) RunwayClipShare.pauseRecording();
         showOverlay(false);
     }
 
@@ -906,6 +908,8 @@
         running = false;
         score += 500;
         updateHud();
+        setRecBadge(false);
+        if (window.RunwayClipShare) RunwayClipShare.pauseRecording();
         const root = document.getElementById('gameRoot');
 
         const finish = async () => {
@@ -933,6 +937,65 @@
         }
     }
 
+    function shareMeta(won) {
+        const lookName = show?.pieces[Math.min(outfitStage, show.pieces.length - 1)]?.name || 'Street';
+        return {
+            tag: gamerTag,
+            character: characterName,
+            score,
+            look: lookName,
+            designer: show?.designer || '',
+            city: theme?.name || cityId,
+            won: !!won,
+            difficulty: (difficulty && difficulty.label) || 'Medium'
+        };
+    }
+
+    function setRecBadge(on) {
+        const badge = document.getElementById('clipRecBadge');
+        if (!badge) return;
+        if (on) badge.removeAttribute('hidden');
+        else badge.setAttribute('hidden', '');
+    }
+
+    function beginClipCapture() {
+        if (!window.RunwayClipShare || !RunwayClipShare.canRecord()) {
+            setRecBadge(false);
+            return;
+        }
+        const ok = RunwayClipShare.startRecording();
+        setRecBadge(!!ok);
+    }
+
+    async function onScreenshotShare() {
+        if (!window.RunwayClipShare) return;
+        const root = document.getElementById('gameRoot');
+        const shouldPause = runLive && !paused && !gameOver && !levelComplete && !dying;
+        if (shouldPause) {
+            paused = true;
+            running = false;
+            if (window.RunwayClipShare) RunwayClipShare.pauseRecording();
+            setRecBadge(false);
+        }
+        try {
+            await RunwayClipShare.captureAndShare(root, shareMeta(levelComplete));
+        } catch (_) {
+            /* canvas may be busy */
+        }
+    }
+
+    async function onShareRun(won) {
+        if (!window.RunwayClipShare) return;
+        const root = document.getElementById('gameRoot');
+        try {
+            await RunwayClipShare.finalizeRunShare(root, shareMeta(won), { includeClip: true });
+        } catch (_) {
+            try {
+                await RunwayClipShare.captureAndShare(root, shareMeta(won));
+            } catch (__) { /* ignore */ }
+        }
+    }
+
     function hideOverlay() {
         const el = document.querySelector('.game-over-screen');
         if (el) el.remove();
@@ -946,6 +1009,11 @@
     function restartRun() {
         hideOverlay();
         hidePauseMenu();
+        if (window.RunwayClipShare) {
+            RunwayClipShare.closeShareSheet(document.getElementById('gameRoot'));
+            RunwayClipShare.stopRecording(true);
+        }
+        setRecBadge(false);
         if (rafId) cancelAnimationFrame(rafId);
         resetRun();
         runLive = false;
@@ -957,15 +1025,22 @@
         if (window.RunwayCinematic) {
             RunwayCinematic.runwayCountdown(root, avatar3d && avatar3d.avatar).then(() => {
                 runLive = true;
+                beginClipCapture();
             });
         } else {
             runLive = true;
+            beginClipCapture();
         }
     }
 
     function exitToMenu() {
         hideOverlay();
         hidePauseMenu();
+        if (window.RunwayClipShare) {
+            RunwayClipShare.closeShareSheet(document.getElementById('gameRoot'));
+            RunwayClipShare.stopRecording(true);
+            RunwayClipShare.detach();
+        }
         running = false;
         paused = false;
         window.location.href = 'show-select.html';
@@ -979,6 +1054,8 @@
         }
         paused = true;
         running = false;
+        if (window.RunwayClipShare) RunwayClipShare.pauseRecording();
+        setRecBadge(false);
         hidePauseMenu();
         const menu = document.createElement('div');
         menu.id = 'pauseMenu';
@@ -987,11 +1064,15 @@
             <h2>Paused</h2>
             <p class="game-over-meta">Exit mid-walk or keep going</p>
             <button id="resumeBtn" class="game-btn">Resume</button>
+            <button id="pauseShotBtn" class="game-btn" style="margin-top:10px;">Screenshot &amp; Share</button>
             <button id="pauseRestartBtn" class="game-btn restart-btn" style="margin-top:10px;">Restart</button>
             <button id="pauseExitBtn" class="game-btn exit-btn" style="margin-top:10px;">Exit to Menu</button>
         `;
         document.getElementById('gameRoot').appendChild(menu);
         document.getElementById('resumeBtn').addEventListener('click', resumeGame);
+        document.getElementById('pauseShotBtn').addEventListener('click', () => {
+            onScreenshotShare();
+        });
         document.getElementById('pauseRestartBtn').addEventListener('click', restartRun);
         document.getElementById('pauseExitBtn').addEventListener('click', exitToMenu);
     }
@@ -1002,18 +1083,30 @@
         paused = false;
         running = true;
         lastTs = 0;
+        if (window.RunwayClipShare) {
+            RunwayClipShare.resumeRecording();
+            if (!RunwayClipShare.isRecording()) beginClipCapture();
+            else setRecBadge(true);
+        }
         rafId = requestAnimationFrame(loop);
     }
 
     function showOverlay(won, newlyUnlocked) {
         hideOverlay();
         hidePauseMenu();
+        if (window.RunwayClipShare) {
+            RunwayClipShare.closeShareSheet(document.getElementById('gameRoot'));
+        }
         const screen = document.createElement('div');
         screen.className = 'game-over-screen';
         const lookName = show?.pieces[Math.min(outfitStage, show.pieces.length - 1)]?.name || 'Street';
         const unlockLine = newlyUnlocked
             ? `<p class="game-over-meta unlock-line">Unlocked: ${RunwayCinematic.LEVEL_NAMES[newlyUnlocked] || newlyUnlocked}</p>`
             : '';
+        const shareBlock = `
+                <div class="game-over-share-row">
+                    <button type="button" id="shareRunBtn" class="game-btn">Share to X · TikTok · IG</button>
+                </div>`;
         if (won) {
             screen.innerHTML = `
                 <h2>Show Complete</h2>
@@ -1024,6 +1117,7 @@
                 ${unlockLine}
                 <p>Score: ${Math.floor(score)}</p>
                 <p class="game-over-meta">Difficulty: ${(difficulty && difficulty.label) || 'Medium'}</p>
+                ${shareBlock}
                 <button id="restartBtn" class="game-btn restart-btn">Restart</button>
                 <a href="show-select.html" class="game-btn exit-btn" style="margin-top:10px;display:inline-block;">Exit to Menu</a>
             `;
@@ -1034,12 +1128,15 @@
                 <p>Score: ${Math.floor(score)}</p>
                 <p class="game-over-meta">${show ? show.designer : 'Show'}: ${rareCollected}/${show?.rareGoal?.target || 0} rares</p>
                 <p class="game-over-meta">Dressed: ${lookName}</p>
+                ${shareBlock}
                 <button id="restartBtn" class="game-btn restart-btn">Restart</button>
                 <a href="show-select.html" class="game-btn exit-btn" style="margin-top:10px;display:inline-block;">Exit to Menu</a>
             `;
         }
         document.getElementById('gameRoot').appendChild(screen);
         document.getElementById('restartBtn').addEventListener('click', restartRun);
+        const shareBtn = document.getElementById('shareRunBtn');
+        if (shareBtn) shareBtn.addEventListener('click', () => onShareRun(won));
     }
 
     function drawShowroomWalls() {
@@ -2173,6 +2270,10 @@
                 slide();
             }
             if (e.key === 'c' || e.key === 'C') toggleCamera();
+            if (e.key === 'p' || e.key === 'P') {
+                e.preventDefault();
+                onScreenshotShare();
+            }
         });
 
         const bind = (id, fn) => {
@@ -2185,6 +2286,10 @@
         bind('downArrow', () => { if (!dying && !paused && !gameOver) slide(); });
         bind('cameraToggleBtn', toggleCamera);
         bind('exitGameBtn', togglePauseMenu);
+        bind('screenshotBtn', () => {
+            if (dying) return;
+            onScreenshotShare();
+        });
 
         surface.addEventListener('pointerdown', () => {
             const hint = document.getElementById('swipeHint');
@@ -2237,7 +2342,17 @@
         resetRun();
         runLive = false;
 
+        if (window.RunwayClipShare) {
+            RunwayClipShare.attach(canvas);
+        }
+
         const root = document.getElementById('gameRoot');
+        root.addEventListener('clip-share-closed', () => {
+            if (paused && !gameOver && !levelComplete && !dying && !document.getElementById('pauseMenu')) {
+                resumeGame();
+            }
+        });
+
         if (window.RunwayCinematic) {
             await RunwayCinematic.levelOpening(root, cityId, characterName);
             running = true;
@@ -2245,11 +2360,13 @@
             rafId = requestAnimationFrame(loop);
             await RunwayCinematic.runwayCountdown(root, avatar3d && avatar3d.avatar);
             runLive = true;
+            beginClipCapture();
         } else {
             running = true;
             runLive = true;
             lastTs = 0;
             rafId = requestAnimationFrame(loop);
+            beginClipCapture();
         }
     }
 
