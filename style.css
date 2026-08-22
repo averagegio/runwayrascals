@@ -1698,10 +1698,10 @@ body.menu-open .menu-toggle-bars::after {
 .clip-share-panel {
     position: relative;
     width: min(400px, 94vw);
-    max-height: min(88dvh, 720px);
+    max-height: min(92dvh, 760px);
     overflow: auto;
     margin: 0 auto;
-    padding: 1.35rem 1.2rem 1.25rem;
+    padding: 1.35rem 1.2rem 1.1rem;
     border-radius: 22px 22px 18px 18px;
     background:
         linear-gradient(180deg, rgba(28, 24, 20, 0.94) 0%, rgba(10, 10, 12, 0.96) 100%);

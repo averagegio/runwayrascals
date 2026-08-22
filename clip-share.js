@@ -482,7 +482,7 @@
                         : ''}
                     <button type="button" class="game-btn clip-share-save" data-share="download">Save ${hasVideo ? 'clip' : 'photo'}</button>
                 </div>
-                <p class="clip-share-hint" id="clipShareHint">On phone, pick IG / TikTok / X from the share sheet. Desktop saves the file first.</p>
+                <p class="clip-share-hint" id="clipShareHint">Phone: use Share sheet for IG / TikTok / X. Desktop saves the file first.</p>
             </div>
         `;
 
