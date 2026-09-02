@@ -1,0 +1,253 @@
+RASCAL RUNWAYS — INVESTOR OUTREACH PACK
+Founder: George Igwe
+Send-from: George Igwe <founder@rascalrunways.com>
+Product: https://www.rascalrunways.com
+Deck: https://www.rascalrunways.com/pitch.html (14 slides, public)
+Attachment: rascal-runways-investor-ad.png (square key art)
+Do not send from this pack. Copy only.
+Do not use runwayrascals.com (wrong kids-wear site).
+Do not invent waitlist counts, revenue, luxury-house licenses, or a live App Store listing.
+
+========================================================================
+0) HARD FACTS (use these; do not embellish)
+========================================================================
+
+- Product: fashion endless runner, live as a progressive web game.
+- Tagline: Race the runway. Dodge paparazzi. Dress the look.
+- Live now: auth, character create, wardrobe, 3D characters/gaits, designer sets, Stripe boutique, test-pilot waitlist.
+- Next (not claimed as shipped): iOS wrapper is in-repo; App Store is planned, not live. Android/PWA install push, seasonal Fashion Week live-ops, and licensed brand-collab drop seasons are roadmap.
+- Boutique: Stripe for packs, sets, and member looks. Current boutique uses inspired designer-named SKUs for product vision; licensed partnerships are required before commercial brand use. Outreach starts with emerging designers.
+- Ask: angel / pre-seed conversations. Planning range $250–500k. Illustrative, not a priced round. Not an offer to sell securities.
+- Use of funds (from public deck): pilot polish, creators, legal IP hygiene.
+- Opt-out line (required on every outbound): Not for you? Reply PASS.
+
+========================================================================
+1) FIRST-TOUCH EMAIL BODY (HTML-friendly plain text)
+========================================================================
+
+Paste into an HTML compose window as-is (Gmail/Superhuman/Mailbutler).
+Links are raw URLs so they also survive a plain-text send.
+Replace {{FirstName}} {{CustomIntro}} {{Firm}} per row.
+Attach: rascal-runways-investor-ad.png
+
+----- COPY FROM NEXT LINE -----
+Hi {{FirstName}},<br>
+<br>
+{{CustomIntro}}<br>
+<br>
+I'm George Igwe, founder of Rascal Runways — a fashion endless runner live at https://www.rascalrunways.com. Tagline: Race the runway. Dodge paparazzi. Dress the look.<br>
+<br>
+You can play it on the web today: character create, wardrobe, 3D gaits, city Fashion Week runs, and a Stripe boutique for packs, sets, and member looks. A test-pilot waitlist is open. iOS is an in-repo wrapper, not an App Store listing yet. Boutique SKUs are original / inspired for product vision; we do not have luxury-house licenses.<br>
+<br>
+Public 14-slide deck (discussion only, not a priced round): https://www.rascalrunways.com/pitch.html<br>
+Square key art is attached as rascal-runways-investor-ad.png.<br>
+<br>
+I'm opening angel / pre-seed conversations with {{Firm}}. Planning range is $250–500k, illustrative, for pilot polish, creator seeding, and legal IP hygiene. Happy to do 15 minutes if this sits in your consumer / games / culture lane.<br>
+<br>
+Not for you? Reply PASS.<br>
+<br>
+George Igwe<br>
+Founder, Rascal Runways<br>
+founder@rascalrunways.com<br>
+https://www.rascalrunways.com
+----- COPY THROUGH PREVIOUS LINE -----
+
+PLAIN-TEXT TWIN (same words, blank lines instead of br tags — use if the client strips HTML):
+
+----- COPY FROM NEXT LINE -----
+Hi {{FirstName}},
+
+{{CustomIntro}}
+
+I'm George Igwe, founder of Rascal Runways — a fashion endless runner live at https://www.rascalrunways.com. Tagline: Race the runway. Dodge paparazzi. Dress the look.
+
+You can play it on the web today: character create, wardrobe, 3D gaits, city Fashion Week runs, and a Stripe boutique for packs, sets, and member looks. A test-pilot waitlist is open. iOS is an in-repo wrapper, not an App Store listing yet. Boutique SKUs are original / inspired for product vision; we do not have luxury-house licenses.
+
+Public 14-slide deck (discussion only, not a priced round): https://www.rascalrunways.com/pitch.html
+Square key art is attached as rascal-runways-investor-ad.png.
+
+I'm opening angel / pre-seed conversations with {{Firm}}. Planning range is $250–500k, illustrative, for pilot polish, creator seeding, and legal IP hygiene. Happy to do 15 minutes if this sits in your consumer / games / culture lane.
+
+Not for you? Reply PASS.
+
+George Igwe
+Founder, Rascal Runways
+founder@rascalrunways.com
+https://www.rascalrunways.com
+----- COPY THROUGH PREVIOUS LINE -----
+
+========================================================================
+2) SUBJECT LINES (pick one per send; rotate, do not stack)
+========================================================================
+
+A. Rascal Runways — fashion endless runner, live on the web
+B. Angel/pre-seed intro (not a priced round) — Rascal Runways
+C. Race the runway. Dodge paparazzi. Dress the look.
+
+========================================================================
+3) {{CustomIntro}} LIBRARY (one sentence each; paste into {{CustomIntro}})
+========================================================================
+
+a16z Games:
+a16z Games has been clear that the next consumer hits sit where culture, UGC, and live-ops meet — Rascal Runways is that bet as a fashion endless runner you can play on the web, with a Stripe boutique instead of a disposable brand ad-game.
+
+Benchmark:
+Benchmark's early consumer bets tend to start with a sharp new loop you can feel — ours is Fashion Week runs, wardrobe, and paparazzi dodges, live today at rascalrunways.com, not a mockup.
+
+Index Ventures:
+Index has backed cultural consumer products that turn fandom into a habit; I'm writing because fashion fans binge runway content and still have nowhere to play the fantasy — dress the look, race the show.
+
+Accel:
+Accel has a long record on consumer companies that own a cultural moment — Rascal Runways is the playable layer for Fashion Week (web-live now; iOS wrapper in-repo, not on the App Store yet).
+
+Sequoia:
+Sequoia's seed lens is whether a new habit already has a real product — Rascal Runways is live as a fashion endless runner with character create, 3D wardrobe, and a boutique, and I'm opening angel/pre-seed conversations, not a priced round.
+
+Fashion-retail angel:
+You already know how a boutique converts — Rascal Runways is a fashion endless runner with a Stripe shop for packs and member looks, and brand path starts with emerging designers (no luxury-house licenses claimed; inspired SKUs are product vision only).
+
+Mobile-games angel:
+You know why endless runners work and where they die without live-ops — Rascal Runways is that loop in fashion (city Fashion Week runs, gaits, designer sets) with seasons and a Fashion Week pass as the retention plan, not a one-shot ad game.
+
+Creator-economy fund:
+Your thesis is that short-form creators need interactive IP, not another like button — Rascal Runways is built for 15s runway-fail/fit clips and shareable look moments, with a planned seed of 50–100 micro fashion + gaming creators and a test-pilot waitlist as the land page.
+
+========================================================================
+4) FOLLOW-UP 1 (day 6) AND BREAKUP (day 13)
+========================================================================
+
+Same From, same thread (reply in-thread). No new attachment unless the first-touch key art bounced. Skip if a reply of any class already landed. If the calendar day falls on Sat/Sun, send the next Monday. Never same-person same calendar day as a prior send.
+
+----- FOLLOW-UP 1 / DAY 6 / COPY FROM NEXT LINE -----
+Hi {{FirstName}} — bumping this once.<br>
+<br>
+Rascal Runways is the fashion endless runner at https://www.rascalrunways.com (Race the runway. Dodge paparazzi. Dress the look.). 14-slide deck: https://www.rascalrunways.com/pitch.html. Still opening angel / pre-seed conversations with {{Firm}}; planning range $250–500k, illustrative, not a priced round.<br>
+<br>
+If a 15-minute look is useful, I can work around your calendar. If not, reply PASS and I'll close the thread.<br>
+<br>
+George
+----- COPY THROUGH PREVIOUS LINE -----
+
+PLAIN-TEXT TWIN — FOLLOW-UP 1:
+
+----- COPY FROM NEXT LINE -----
+Hi {{FirstName}} — bumping this once.
+
+Rascal Runways is the fashion endless runner at https://www.rascalrunways.com (Race the runway. Dodge paparazzi. Dress the look.). 14-slide deck: https://www.rascalrunways.com/pitch.html. Still opening angel / pre-seed conversations with {{Firm}}; planning range $250–500k, illustrative, not a priced round.
+
+If a 15-minute look is useful, I can work around your calendar. If not, reply PASS and I'll close the thread.
+
+George
+----- COPY THROUGH PREVIOUS LINE -----
+
+----- BREAKUP / DAY 13 / COPY FROM NEXT LINE -----
+{{FirstName}} — last note from me so this doesn't linger.<br>
+<br>
+I'll assume timing is off for {{Firm}} on Rascal Runways (fashion endless runner, https://www.rascalrunways.com · deck https://www.rascalrunways.com/pitch.html). If an angel / pre-seed conversation opens later, I'm at founder@rascalrunways.com.<br>
+<br>
+Otherwise reply PASS and I won't follow up.<br>
+<br>
+George Igwe
+----- COPY THROUGH PREVIOUS LINE -----
+
+PLAIN-TEXT TWIN — BREAKUP:
+
+----- COPY FROM NEXT LINE -----
+{{FirstName}} — last note from me so this doesn't linger.
+
+I'll assume timing is off for {{Firm}} on Rascal Runways (fashion endless runner, https://www.rascalrunways.com · deck https://www.rascalrunways.com/pitch.html). If an angel / pre-seed conversation opens later, I'm at founder@rascalrunways.com.
+
+Otherwise reply PASS and I won't follow up.
+
+George Igwe
+----- COPY THROUGH PREVIOUS LINE -----
+
+========================================================================
+5) REPLY-TRACKING BOT SOP
+========================================================================
+
+Do not send mail from the bot. The bot classifies inbound and writes CSV. Humans (or a separate approved sender) send.
+
+STATUSES (single value per row; overwrite, do not stack):
+NEW              — imported, not yet first-touched
+QUEUED           — first-touch queued for a weekday send slot
+SENT_1           — first-touch sent
+SENT_2           — day-6 follow-up sent
+SENT_3           — day-13 breakup sent
+OOO              — auto-reply detected; hold sequence
+BOUNCE           — undeliverable; DNC this address
+REPLIED_MEETING  — human asked to talk / proposed time
+REPLIED_REFERRAL — human pointed to another person / offered intro
+REPLIED_PASS     — explicit or implied no
+REPLIED_OTHER    — human reply that is not meeting / referral / pass (founder reads)
+EXHAUSTED        — 3 touches complete, no reply
+DNC              — do not contact (PASS, bounce, unsubscribe, legal, hostile)
+HOLD             — founder paused (e.g. warm intro incoming)
+
+HOW TO CLASSIFY REPLIES (first matching rule wins; case-insensitive):
+
+bounce
+  From looks like Mailer-Daemon / postmaster / MAILER-DAEMON
+  OR subject/body contains: undeliverable, delivery status notification, 550, 5.1.1, user unknown, mailbox not found, address rejected
+  Action: status=BOUNCE, DNC=yes, stop sequence, do not retry a guessed address.
+
+ooo
+  Body looks like an auto-reply AND contains: out of office, out-of-office, OOO, away until, on leave, automatic reply, vacation
+  AND does not also contain a clear PASS / not a fit
+  Action: status=OOO. Parse a return date if present; set next_touch_at to the next weekday on or after return+1. Do not increment touches. Do not send while OOO. If no date, hold 10 weekdays then resume remaining touches.
+
+pass
+  Exact token PASS as its own reply
+  OR body/subject contains: pass, not a fit, not investing, too early, unsubscribe, remove me, stop emailing, no longer investing, not in our thesis, decline
+  Action: status=REPLIED_PASS, DNC=yes, stop sequence. Do not argue.
+
+meeting
+  Human (not auto-reply) AND any of: let's chat, let's talk, intro call, hop on, grab time, calendar, Calendly, here's my availability, next week works, I'm free, send times, 15 min, 20 min, happy to meet, book a slot
+  OR they propose a clock time / date
+  Action: status=REPLIED_MEETING, stop sequence, notify founder. Do not auto-send a calendar hold.
+
+referral
+  Human AND any of: intro you to, connecting you, cc'ing, looping in, talk to [Name], better sent to, our games partner, forward this to, reach out to
+  Action: status=REPLIED_REFERRAL, stop sequence on THIS address, notify founder. New person becomes a NEW row (do not first-touch them the same day as the referral reply).
+
+else
+  status=REPLIED_OTHER, stop sequence, notify founder to read.
+
+THREAD RULES:
+- Replies in-thread inherit the original row (match In-Reply-To / References / normalized subject minus Re:/Fwd:).
+- One status per person-email. Firm is metadata, not a unique key.
+- Never auto-send on a classified human reply.
+- Founder-only send-from: founder@rascalrunways.com.
+
+CSV — header row, then 2 example rows. Import as CSV (quoted fields). Do not paste into a markdown table.
+
+email,first_name,firm,firm_type,custom_intro,status,touches,last_touch_at,next_touch_at,reply_class,thread_id,dnc,notes
+"partner@example-a16z-games.com","Alex","a16z Games","vc_games","a16z Games has been clear that the next consumer hits sit where culture, UGC, and live-ops meet — Rascal Runways is that bet as a fashion endless runner you can play on the web, with a Stripe boutique instead of a disposable brand ad-game.","SENT_1","1","2026-09-08","2026-09-14","","rr-2026-09-08-alex-a16z","0","First-touch Mon. Attach rascal-runways-investor-ad.png. No waitlist count in body."
+"jordan@example-fashion-angel.com","Jordan","Independent (fashion retail)","angel_fashion","You already know how a boutique converts — Rascal Runways is a fashion endless runner with a Stripe shop for packs and member looks, and brand path starts with emerging designers (no luxury-house licenses claimed; inspired SKUs are product vision only).","REPLIED_PASS","1","2026-09-08","","pass","rr-2026-09-08-jordan-retail","1","Reply was PASS. Sequence stopped. Do not re-open."
+
+========================================================================
+6) DAILY MORNING SEND RULES
+========================================================================
+
+Run these checks every weekday morning before any queue is released. The bot does not send.
+
+1. Cap: max 25 NEW first-touches per calendar day (SENT_1 count that day). Follow-ups (SENT_2 / SENT_3) do not use this cap, but still obey rules 2–5.
+2. Never re-email the same person (same email address) on the same calendar day, including follow-ups, forwards, or “just adding the deck.”
+3. Skip weekends. Do not send Saturday or Sunday. If day-6 or day-13 lands on a weekend, slide to the next Monday. If a Monday is a US market holiday, slide to the next weekday.
+4. Stop after 3 touches: first-touch (day 0) + follow-up 1 (day 6) + breakup (day 13). No fourth email. No “circling back in a month” unless the founder personally reopens the row.
+5. Do not first-touch a row that is DNC, BOUNCE, REPLIED_*, OOO (until resume date), HOLD, or EXHAUSTED.
+6. Send-from is only George Igwe <founder@rascalrunways.com>. Product URL is only https://www.rascalrunways.com. Deck URL is only https://www.rascalrunways.com/pitch.html. Never runwayrascals.com.
+7. Every outbound includes the opt-out line: Not for you? Reply PASS. (Breakup may use the shorter “Otherwise reply PASS…”)
+8. Attach rascal-runways-investor-ad.png on first-touch only.
+9. Do not insert waitlist counts, revenue, luxury-house licenses, or “on the App Store.”
+10. Morning window: release the day’s queue after founder review, not as an overnight drip.
+
+SEQUENCE CLOCK (weekdays only):
+Day 0  = SENT_1 first-touch
+Day 6  = SENT_2 follow-up 1 (or next Monday if weekend)
+Day 13 = SENT_3 breakup (or next Monday if weekend)
+No reply after SENT_3 → EXHAUSTED
+
+========================================================================
+END OF PACK
+========================================================================
