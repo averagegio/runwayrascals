@@ -3,7 +3,8 @@ Founder: George Igwe
 Send-from: George Igwe <founder@rascalrunways.com>
 Product: https://www.rascalrunways.com
 Deck: https://www.rascalrunways.com/pitch.html (14 slides, public)
-Attachment: rascal-runways-investor-ad.png (square key art)
+Attachment: rascal-runways-investor-ad.png (square key art) until /opt/cursor/artifacts/rascal-runways-email-ad-30s.mp4 exists; then attach the 30s clip instead.
+Cadence: 10 first-touch emails per weekday at 6:00 AM Mountain Time (Sep 2026 = MDT, UTC-6 → 12:00 UTC). Skip Sat/Sun. Timer name: rascal-vc-outreach-6am-mt (cron 0 12 * * *).
 Do not send from this pack. Copy only.
 Do not use runwayrascals.com (wrong kids-wear site).
 Do not invent waitlist counts, revenue, luxury-house licenses, or a live App Store listing.
@@ -28,7 +29,7 @@ Do not invent waitlist counts, revenue, luxury-house licenses, or a live App Sto
 Paste into an HTML compose window as-is (Gmail/Superhuman/Mailbutler).
 Links are raw URLs so they also survive a plain-text send.
 Replace {{FirstName}} {{CustomIntro}} {{Firm}} per row.
-Attach: rascal-runways-investor-ad.png
+Attach: rascal-runways-investor-ad.png (or rascal-runways-email-ad-30s.mp4 when that file exists).
 
 ----- COPY FROM NEXT LINE -----
 Hi {{FirstName}},<br>
@@ -40,7 +41,7 @@ I'm George Igwe, founder of Rascal Runways — a fashion endless runner live at 
 You can play it on the web today: character create, wardrobe, 3D gaits, city Fashion Week runs, and a Stripe boutique for packs, sets, and member looks. A test-pilot waitlist is open. iOS is an in-repo wrapper, not an App Store listing yet. Boutique SKUs are original / inspired for product vision; we do not have luxury-house licenses.<br>
 <br>
 Public 14-slide deck (discussion only, not a priced round): https://www.rascalrunways.com/pitch.html<br>
-Square key art is attached as rascal-runways-investor-ad.png.<br>
+Square key art is attached as rascal-runways-investor-ad.png. A 30-second playable clip is on the site / play flow at https://www.rascalrunways.com.<br>
 <br>
 I'm opening angel / pre-seed conversations with {{Firm}}. Planning range is $250–500k, illustrative, for pilot polish, creator seeding, and legal IP hygiene. Happy to do 15 minutes if this sits in your consumer / games / culture lane.<br>
 <br>
@@ -64,7 +65,7 @@ I'm George Igwe, founder of Rascal Runways — a fashion endless runner live at 
 You can play it on the web today: character create, wardrobe, 3D gaits, city Fashion Week runs, and a Stripe boutique for packs, sets, and member looks. A test-pilot waitlist is open. iOS is an in-repo wrapper, not an App Store listing yet. Boutique SKUs are original / inspired for product vision; we do not have luxury-house licenses.
 
 Public 14-slide deck (discussion only, not a priced round): https://www.rascalrunways.com/pitch.html
-Square key art is attached as rascal-runways-investor-ad.png.
+Square key art is attached as rascal-runways-investor-ad.png. A 30-second playable clip is on the site / play flow at https://www.rascalrunways.com.
 
 I'm opening angel / pre-seed conversations with {{Firm}}. Planning range is $250–500k, illustrative, for pilot polish, creator seeding, and legal IP hygiene. Happy to do 15 minutes if this sits in your consumer / games / culture lane.
 
@@ -231,16 +232,16 @@ email,first_name,firm,firm_type,custom_intro,status,touches,last_touch_at,next_t
 
 Run these checks every weekday morning before any queue is released. The bot does not send.
 
-1. Cap: max 25 NEW first-touches per calendar day (SENT_1 count that day). Follow-ups (SENT_2 / SENT_3) do not use this cap, but still obey rules 2–5.
+1. Cap: max 10 NEW first-touches per calendar day (SENT_1 count that day). Follow-ups (SENT_2 / SENT_3) do not use this cap, but still obey rules 2–5.
 2. Never re-email the same person (same email address) on the same calendar day, including follow-ups, forwards, or “just adding the deck.”
 3. Skip weekends. Do not send Saturday or Sunday. If day-6 or day-13 lands on a weekend, slide to the next Monday. If a Monday is a US market holiday, slide to the next weekday.
 4. Stop after 3 touches: first-touch (day 0) + follow-up 1 (day 6) + breakup (day 13). No fourth email. No “circling back in a month” unless the founder personally reopens the row.
-5. Do not first-touch a row that is DNC, BOUNCE, REPLIED_*, OOO (until resume date), HOLD, or EXHAUSTED.
+5. Do not first-touch a row that is DNC, BOUNCE, REPLIED_*, OOO (until resume date), HOLD, or EXHAUSTED. Also skip PASS / bounce / human reply mid-sequence.
 6. Send-from is only George Igwe <founder@rascalrunways.com>. Product URL is only https://www.rascalrunways.com. Deck URL is only https://www.rascalrunways.com/pitch.html. Never runwayrascals.com.
-7. Every outbound includes the opt-out line: Not for you? Reply PASS. (Breakup may use the shorter “Otherwise reply PASS…”)
-8. Attach rascal-runways-investor-ad.png on first-touch only.
+7. Every outbound includes: (a) the row’s custom short intro, (b) https://www.rascalrunways.com, (c) https://www.rascalrunways.com/pitch.html, (d) Not for you? Reply PASS. (Breakup may use the shorter “Otherwise reply PASS…”)
+8. First-touch attachment: if /opt/cursor/artifacts/rascal-runways-email-ad-30s.mp4 exists, attach that 30s clip and mention/link it. Otherwise attach rascal-runways-investor-ad.png and say a 30s playable clip is on the site / play flow. First-touch only.
 9. Do not insert waitlist counts, revenue, luxury-house licenses, or “on the App Store.”
-10. Morning window: release the day’s queue after founder review, not as an overnight drip.
+10. Morning window: 6:00 AM Mountain Time (MDT in Sep 2026 = 12:00 UTC). Recurring timer rascal-vc-outreach-6am-mt, cron `0 12 * * *`. If Zoho for founder@rascalrunways.com is not authenticated, do not guess passwords and do not send; leave the day’s 10 as READY_FOR_SEND.
 
 SEQUENCE CLOCK (weekdays only):
 Day 0  = SENT_1 first-touch
