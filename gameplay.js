@@ -390,8 +390,11 @@
         spawnPiece(520, 2, pickCommonPiece(), false);
         spawnObstacle(900, 0, 'barrier');
         spawnObstacle(1100, 2, 'paparazzi');
-        // Brief runway entrance shield so the first beats read clearly
-        shieldTimer = 3.5;
+        // Brief runway entrance shield so the first beats read clearly.
+        // Quick Run / first-win path gets a longer shield (retention: finish under ~2 min).
+        let quick = false;
+        try { quick = localStorage.getItem('rr_quick_run') === '1'; } catch (_) { /* ok */ }
+        shieldTimer = quick ? 5 : 3.5;
     }
 
     function pickCommonPiece() {
@@ -1065,7 +1068,7 @@
             <p class="game-over-meta">Exit mid-walk or keep going</p>
             <button id="resumeBtn" class="game-btn">Resume</button>
             <button id="pauseShotBtn" class="game-btn" style="margin-top:10px;">Screenshot &amp; Share</button>
-            <button id="pauseRestartBtn" class="game-btn restart-btn" style="margin-top:10px;">Restart</button>
+            <button id="pauseRestartBtn" class="game-btn restart-btn" style="margin-top:10px;">Rematch</button>
             <button id="pauseExitBtn" class="game-btn exit-btn" style="margin-top:10px;">Exit to Menu</button>
         `;
         document.getElementById('gameRoot').appendChild(menu);
@@ -1118,7 +1121,7 @@
                 <p>Score: ${Math.floor(score)}</p>
                 <p class="game-over-meta">Difficulty: ${(difficulty && difficulty.label) || 'Medium'}</p>
                 ${shareBlock}
-                <button id="restartBtn" class="game-btn restart-btn">Restart</button>
+                <button id="restartBtn" class="game-btn restart-btn">Rematch</button>
                 <a href="show-select.html" class="game-btn exit-btn" style="margin-top:10px;display:inline-block;">Exit to Menu</a>
             `;
         } else {
@@ -1129,7 +1132,7 @@
                 <p class="game-over-meta">${show ? show.designer : 'Show'}: ${rareCollected}/${show?.rareGoal?.target || 0} rares</p>
                 <p class="game-over-meta">Dressed: ${lookName}</p>
                 ${shareBlock}
-                <button id="restartBtn" class="game-btn restart-btn">Restart</button>
+                <button id="restartBtn" class="game-btn restart-btn">Rematch</button>
                 <a href="show-select.html" class="game-btn exit-btn" style="margin-top:10px;display:inline-block;">Exit to Menu</a>
             `;
         }

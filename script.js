@@ -72,6 +72,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         logoutBtn.addEventListener('click', () => RunwayAuth.logout());
     }
 
+    const quickRunBtn = document.getElementById('quickRunBtn');
+    if (quickRunBtn) {
+        quickRunBtn.addEventListener('click', () => {
+            if (window.RascalQuickRun) RascalQuickRun.go();
+            else window.location.href = 'gameplay.html';
+        });
+    }
+
     if (enterGameBtn) {
         enterGameBtn.addEventListener('click', (e) => {
             e.preventDefault();
