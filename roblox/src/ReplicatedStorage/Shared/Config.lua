@@ -32,6 +32,8 @@ Config.DATASTORE_NAME = "RascalRunways_Player_v2"
 Config.RECEIPT_STORE_NAME = "RascalRunways_Receipts_v1"
 Config.REMOTES_FOLDER = "RascalRemotes"
 Config.ARENA_NAME = "RascalArena"
+-- Creator Dashboard place id. 0 until published. Keep in sync with roblox-play.js.
+Config.PlaceId = 0
 
 Config.Policy = {
 	cosmeticVipOnly = true,

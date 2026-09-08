@@ -325,4 +325,16 @@ describe('Monetization policy 2026', () => {
         assert.match(gameplay, /Theme → dress → runway → vote/);
         assert.match(gameplay, /one vote per player/);
     });
+
+    it('web home links Play on Roblox and shares PlaceId with Luau config', () => {
+        const config = read('src/ReplicatedStorage/Shared/Config.lua');
+        const play = readFileSync(path.join(repo, 'roblox-play.js'), 'utf8');
+        const home = readFileSync(path.join(repo, 'index.html'), 'utf8');
+        const landing = readFileSync(path.join(repo, 'roblox.html'), 'utf8');
+        assert.match(config, /Config\.PlaceId = 0/);
+        assert.match(play, /const PLACE_ID = 0/);
+        assert.match(home, /id="robloxPlayLink"/);
+        assert.match(home, /roblox-play.js/);
+        assert.match(landing, /Play on Roblox/);
+    });
 });

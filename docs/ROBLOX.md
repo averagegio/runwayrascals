@@ -26,6 +26,8 @@ Inspected on `main` (Fashion Week runner + clip-share PRs already merged).
 
 This folder is the incremental path: a **playable Open Cast vertical slice** George can sync into Studio, plus docs for IDs, live-ops, Share Links, and DevEx. Funnel is **theme → dress → runway → vote**; monetization is cosmetic VIP + Style Points (see [`MONETIZATION.md`](MONETIZATION.md)).
 
+The HTML/JS home screen includes **Play on Roblox** (`roblox.html` / `roblox-play.js`). Paste the published place id into `Config.PlaceId` and `PLACE_ID` so that button opens `roblox.com/games/{id}`.
+
 ## Open in Roblox Studio (first hour)
 
 Full toolchain (Rokit, Wally, sourcemap, Cursor MCP): **[`../SETUP.md`](../SETUP.md)**.

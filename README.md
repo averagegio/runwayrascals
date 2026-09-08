@@ -2,20 +2,20 @@
 
 Fashion endless runner — dress the look, dodge paparazzi, race Fashion Week.
 
-Live web game: [rascalrunways.com](https://rascalrunways.com) · this repo also scaffolds the **Roblox** experience.
+Live web game: [rascalrunways.com](https://rascalrunways.com) · Roblox place in [`roblox/`](roblox/) · [Play on Roblox](roblox.html) from the home screen.
 
 ## What’s in this repo
 
 | Track | Stack | Status |
 | --- | --- | --- |
-| **Web game (live)** | Static HTML/CSS/JS canvas runner + Three.js avatars, Vercel serverless Express, Neon Postgres, Stripe boutique, clip-share to X/TikTok/IG, Swift WKWebView wrapper | Shipped on `main` |
-| **Roblox (this PR)** | Rojo + Luau: lobby → theme → dress → runway → vote, DataStores, cosmetic VIP Game Passes / Dev Products, Style Points, Share Links, invite + CaptureService | Scaffold in [`roblox/`](roblox/) — open in Studio next |
+| **Web game (live)** | Static HTML/CSS/JS canvas runner + Three.js avatars, Vercel serverless Express, Neon Postgres, Stripe boutique, clip-share to X/TikTok/IG, Swift WKWebView wrapper | Shipped |
+| **Roblox** | Rojo + Luau: lobby → theme → dress → runway → vote, DataStores, cosmetic VIP, Style Points, Share Links, Studio Play Solo arena | In this repo — `rojo serve` then Play; home CTA **Play on Roblox** |
 
-The HTML game stays the production surface. Roblox is an incremental place George can `rojo serve` and Press Play — not a half-ported rewrite.
+The HTML game stays the production web surface. Roblox is the same IP on a round-based place you can Press Play in Studio — not a half-ported rewrite.
 
 ## Web (current loop)
 
-1. Home (`index.html`) — Play, Sign up, Wardrobe, Fashion Week, or **Quick Run**
+1. Home (`index.html`) — Play, Quick Run, **Play on Roblox**, Sign up, Wardrobe, Fashion Week
 2. Character → wardrobe → city Fashion Week → designer show → 3-lane runner (`gameplay.js`)
 3. Collect looks / rares, dodge paparazzi, share a 9:16 card + ~15s clip (`clip-share.js`)
 4. Boutique via Stripe (`server/` + `/api`)
