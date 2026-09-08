@@ -15,19 +15,26 @@ ShareController.bind(HUD.gui())
 
 local player = Players.LocalPlayer
 
+local function applyData(data: any)
+	if type(data) ~= "table" then
+		return
+	end
+	local sp = data.stylePoints
+	if type(sp) ~= "number" then
+		sp = data.coins
+	end
+	if type(sp) == "number" then
+		HUD.setStylePoints(sp)
+	end
+end
+
 task.spawn(function()
 	local data = Remotes.fn(Remotes.Functions.GetPlayerData):InvokeServer()
-	if type(data) == "table" and type(data.coins) == "number" then
-		HUD.setCoins(data.coins)
-	end
+	applyData(data)
 	Remotes.event(Remotes.Events.RequestJoin):FireServer()
 end)
 
-Remotes.event(Remotes.Events.PlayerData).OnClientEvent:Connect(function(data)
-	if type(data) == "table" and type(data.coins) == "number" then
-		HUD.setCoins(data.coins)
-	end
-end)
+Remotes.event(Remotes.Events.PlayerData).OnClientEvent:Connect(applyData)
 
 Remotes.event(Remotes.Events.Toast).OnClientEvent:Connect(function(text)
 	if type(text) == "string" then

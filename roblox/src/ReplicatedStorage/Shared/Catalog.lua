@@ -8,6 +8,8 @@
 
 export type Slot = "base" | "bottoms" | "top" | "shoes" | "outer" | "finale"
 
+export type Track = "free" | "stylePoints" | "robux" | "iec"
+
 export type Look = {
 	id: string,
 	name: string,
@@ -15,6 +17,8 @@ export type Look = {
 	slot: Slot,
 	rare: boolean?,
 	earnInPlay: boolean?,
+	track: Track?,
+	stylePointCost: number?,
 	webAnalog: string?,
 	description: string,
 }
@@ -28,6 +32,7 @@ Catalog.Looks = {
 		houseId = "crest",
 		slot = "base",
 		earnInPlay = true,
+		track = "free",
 		webAnalog = "street-basics",
 		description = "Starter street pack — every model starts here.",
 	},
@@ -37,6 +42,8 @@ Catalog.Looks = {
 		houseId = "nightfall",
 		slot = "top",
 		earnInPlay = true,
+		track = "stylePoints",
+		stylePointCost = 80,
 		webAnalog = "rick-drkshdw-tee",
 		description = "Inky tee with RR night mark.",
 	},
@@ -47,6 +54,8 @@ Catalog.Looks = {
 		slot = "shoes",
 		rare = true,
 		earnInPlay = true,
+		track = "stylePoints",
+		stylePointCost = 160,
 		webAnalog = "rick-ramones",
 		description = "High-top finale boot. Rare runway drop.",
 	},
@@ -55,6 +64,7 @@ Catalog.Looks = {
 		name = "Full Nightfall",
 		houseId = "nightfall",
 		slot = "finale",
+		track = "robux",
 		webAnalog = "set-rick",
 		description = "Complete Dark Cathedral look (listed pack, not a loot box).",
 	},
@@ -65,6 +75,8 @@ Catalog.Looks = {
 		slot = "top",
 		rare = true,
 		earnInPlay = true,
+		track = "stylePoints",
+		stylePointCost = 140,
 		webAnalog = "ralph-crest-polo",
 		description = "Kelly polo with Rascal crest.",
 	},
@@ -74,6 +86,8 @@ Catalog.Looks = {
 		houseId = "concrete",
 		slot = "top",
 		earnInPlay = true,
+		track = "stylePoints",
+		stylePointCost = 80,
 		webAnalog = "balenciaga-logo-tee",
 		description = "Royal blue tee, white RR bars.",
 	},
@@ -83,6 +97,7 @@ Catalog.Looks = {
 		houseId = "concrete",
 		slot = "shoes",
 		rare = true,
+		track = "robux",
 		webAnalog = "balenciaga-triple",
 		description = "Chunky stack sneaker. Members / pack.",
 	},
@@ -92,6 +107,7 @@ Catalog.Looks = {
 		houseId = "silk",
 		slot = "top",
 		rare = true,
+		track = "robux",
 		webAnalog = "casablanca-silk",
 		description = "Cream silk club shirt.",
 	},
@@ -101,6 +117,7 @@ Catalog.Looks = {
 		houseId = "oblique",
 		slot = "outer",
 		rare = true,
+		track = "iec",
 		webAnalog = "dior-book-tote",
 		description = "Navy tote for the finale walk.",
 	},

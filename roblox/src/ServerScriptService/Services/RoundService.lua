@@ -1,8 +1,10 @@
 --!strict
 --[[
-	Fashion Week round loop: Lobby → (Dress) → Countdown → Run → Pose → Score → Intermission.
+	Fashion Week round loop:
+	Lobby → (Dress) → Countdown → Run → Pose → Vote → Score → Intermission.
 
-	Server is authority for score, crash, collect, and finish. Clients send lane/jump/slide.
+	Fun before funnel. Votes are one-each, no VIP/Premium extra ballots.
+	Server is authority for score, crash, collect, vote, and finish.
 ]]
 
 local Players = game:GetService("Players")
@@ -15,6 +17,7 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Catalog = require(ReplicatedStorage.Shared.Catalog)
 local Scoring = require(ReplicatedStorage.Shared.Scoring)
 local Balance = require(ReplicatedStorage.Shared.Balance)
+local LiveOps = require(ReplicatedStorage.Shared.LiveOps)
 local Remotes = require(ReplicatedStorage.Net.Remotes)
 
 local ArenaService = require(script.Parent.ArenaService)
@@ -40,6 +43,8 @@ export type Contestant = {
 	finished: boolean,
 	place: number,
 	poseQuality: number,
+	votesReceived: number,
+	votedFor: number?,
 }
 
 local RoundService = {}
@@ -82,11 +87,13 @@ local function snapshot()
 			alive = c.alive,
 			looks = c.looks,
 			rares = c.rares,
+			votesReceived = c.votesReceived,
 			scoreHint = c.looks * Balance.scoring.lookPoints + c.rares * Balance.scoring.rarePoints,
 			finished = c.finished,
 			spectatingUserId = c.spectatingUserId,
 		})
 	end
+	local theme = LiveOps.theme()
 	return {
 		roundId = roundId,
 		phase = phase,
@@ -95,6 +102,8 @@ local function snapshot()
 		house = Config.Houses.nightfall,
 		city = "newyork",
 		showId = Config.OpenCastShowId,
+		theme = theme,
+		themeWeek = LiveOps.utcWeekKey(),
 		contestants = list,
 		rareTarget = timings().rareTarget,
 	}
@@ -211,6 +220,22 @@ end
 local function setPhase(nextPhase: string, seconds: number)
 	phase = nextPhase
 	phaseEndsAt = Workspace:GetServerTimeNow() + seconds
+	if nextPhase == Config.Phases.Vote then
+		for _, c in contestants do
+			Remotes.event(Remotes.Events.Tutorial):FireClient(c.player, {
+				step = "vote",
+				hint = "Vote another model — one vote. VIP never adds votes.",
+			})
+		end
+	elseif nextPhase == Config.Phases.Dress then
+		local theme = LiveOps.theme()
+		for _, c in contestants do
+			Remotes.event(Remotes.Events.Tutorial):FireClient(c.player, {
+				step = "dress",
+				hint = "This week: " .. theme.name .. " — layer looks. Style Points buy street; Robux is exclusive.",
+			})
+		end
+	end
 	broadcast()
 end
 
@@ -253,7 +278,6 @@ local function awardBadge(player: Player, badgeId: number)
 end
 
 local function scoreContestant(c: Contestant, place: number)
-	local isPremium = MonetizationService.isPremium(c.player)
 	local result = Scoring.breakdown(Balance, {
 		looks = c.looks,
 		rares = c.rares,
@@ -261,10 +285,10 @@ local function scoreContestant(c: Contestant, place: number)
 		distanceStuds = math.abs(c.distance),
 		place = place,
 		poseQuality01 = c.poseQuality,
+		votesReceived = c.votesReceived,
 		finished = c.finished,
-		isPremium = isPremium,
 	})
-	DataService.addCoins(c.player, result.coins)
+	DataService.addStylePoints(c.player, result.stylePoints)
 	DataService.recordShow(c.player, result.total, c.rares, c.finished)
 	if c.finished then
 		awardBadge(c.player, Config.Badges.FirstWalk)
@@ -277,7 +301,13 @@ local function scoreContestant(c: Contestant, place: number)
 	Remotes.event(Remotes.Events.PlayerData):FireClient(c.player, DataService.get(c.player))
 	toast(
 		c.player,
-		string.format("Show score %d · +%d coins%s", result.total, result.coins, c.finished and " · FIRST WIN" or "")
+		string.format(
+			"Show %d · +%d Style Points · %d votes%s",
+			result.total,
+			result.stylePoints,
+			c.votesReceived,
+			c.finished and " · FIRST WIN" or ""
+		)
 	)
 	return result
 end
@@ -300,6 +330,8 @@ local function startRun()
 		c.slideT = 0
 		c.place = 0
 		c.poseQuality = 0.6
+		c.votesReceived = 0
+		c.votedFor = nil
 		c.spectatingUserId = nil
 		attachCharacter(c.player, c.cart)
 		placeCart(c)
@@ -458,6 +490,8 @@ local function nextPhaseIfDue()
 				c.poseQuality = math.clamp(0.55 + c.looks * 0.08, 0, 1)
 			end
 		end
+		setPhase(Config.Phases.Vote, timings().voteSeconds)
+	elseif phase == Config.Phases.Vote then
 		beginScore()
 	elseif phase == Config.Phases.Score then
 		for _, c in contestants do
@@ -507,8 +541,12 @@ function RoundService.join(player: Player)
 		finished = false,
 		place = 0,
 		poseQuality = 0.5,
+		votesReceived = 0,
+		votedFor = nil,
 	}
-	if MonetizationService.skipsQueue(player) and phase == Config.Phases.Lobby then
+	-- Fast Cast / ticket only. Evaluate phase first so joining mid-show
+	-- does not consume a skip ticket. VIP never skips the queue.
+	if phase == Config.Phases.Lobby and MonetizationService.skipsQueue(player) then
 		phaseEndsAt = Workspace:GetServerTimeNow() + 1
 		toast(player, "Fast Cast — walking on.")
 	end
@@ -525,6 +563,30 @@ function RoundService.leave(player: Player)
 	end
 	contestants[player.UserId] = nil
 	broadcast()
+end
+
+function RoundService.castVote(player: Player, targetUserId: number)
+	if phase ~= Config.Phases.Vote then
+		return
+	end
+	local voter = contestants[player.UserId]
+	local target = contestants[targetUserId]
+	if not voter or not target then
+		return
+	end
+	if targetUserId == player.UserId then
+		toast(player, "Vote for another model.")
+		return
+	end
+	if voter.votedFor ~= nil then
+		toast(player, "Already voted this show.")
+		return
+	end
+	-- One vote each. VIP / Premium never add extra votes.
+	voter.votedFor = targetUserId
+	target.votesReceived += 1
+	broadcast()
+	toast(player, "Vote locked — skill & layering, not Robux.")
 end
 
 function RoundService.input(player: Player, action: string)
@@ -578,6 +640,12 @@ function RoundService.bind()
 	end)
 	Remotes.event(Remotes.Events.RequestSpectate).OnServerEvent:Connect(function(player)
 		RoundService.input(player, "SpectateNext")
+	end)
+	Remotes.event(Remotes.Events.RequestVote).OnServerEvent:Connect(function(player, targetUserId)
+		if type(targetUserId) ~= "number" then
+			return
+		end
+		RoundService.castVote(player, targetUserId)
 	end)
 	Remotes.event(Remotes.Events.Input).OnServerEvent:Connect(function(player, action)
 		if type(action) ~= "string" then

@@ -1,101 +1,121 @@
 # Monetization — Rascal Runways (Roblox)
 
-Fair, ToS-safe, aimed at **DevEx** (Robux → USD) plus **Premium Payouts**. Web Stripe boutique stays on the HTML game; do **not** double-charge the same SKU across platforms without a clear entitlement story.
+Fun first. Cash later. Web Stripe boutique stays on the HTML game — **separate entitlements** from Robux.
 
-## How Roblox creators actually get paid
+**Do not** sell third-party trademarks (Balenciaga, Dior, etc.) on Roblox without a license. Catalog = **House Nightfall / Crest / Concrete / Silk / Oblique**.
 
-| Channel | What it is | How this game uses it |
+## Rules we will not break
+
+1. **Fun before funnel.** Tight loop is theme → dress → runway → **vote**. Ads and hard shops wait until D1/D7 retention is real.
+2. **Cosmetic VIP only** — closet, makeup, poses, nametags. **No win multipliers** on votes, score, speed, rare rate, or place.
+3. **Price ladder (DTI-style reference, not a contract):** ~**799** permanent VIP Game Pass · ~**299** monthly (Dev Product → DataStore expiry) · giftable monthly VIP / props.
+4. **Style Points** (soft) buy meaningful **free** looks. **Robux** buys exclusivity, time-savers, seasonals. Free players stay competitive via **skill + layering**.
+5. **Live-ops:** weekly theme / drop from UTC week index. **No fake scarcity timers** (“ends in 3:00!!” on a fake clock).
+6. **Share Links from day one** for TikTok/Shorts attribution + **Creator Rewards** (Active Spender / Audience Expansion). **Engagement-Based Payouts ended July 2025** — do **not** design AFK Premium farms.
+7. Prefer **in-experience UGC / IEC** so the fashion catalog and the game monetize together (~**40% experience-owner** pattern where Roblox’s current IEC split applies).
+8. **Game Passes and Dev Products are native to this universe.** Cross-game pass sales were disabled ~May 2026. **No donation boards, no AFK grey-area scripts.**
+
+## How money actually hits DevEx (2026)
+
+| Channel | Use here | Do not |
 | --- | --- | --- |
-| **Game Passes** | One-time Robux unlock, `MarketplaceService:UserOwnsGamePassAsync` / `PromptGamePassPurchase` | VIP, queue skip, closet slots, director cam |
-| **Developer Products** | Repeatable Robux, `PromptProductPurchase` + **`ProcessReceipt`** (must return `PurchaseGranted` / `NotProcessedYet`) | Coins, listed look pack, pose VFX |
-| **Premium Payouts** | Roblox pays you for **engagement by Premium subscribers** (time in experience, not a pass you sell) | Daily coin bump + VIP lounge so Premium players linger / rematch |
-| **UGC / Limiteds** | Avatar items on the Marketplace (separate from in-experience passes). Limiteds need Creator eligibility | Later: RR glasses, clutch, tote as catalog items — **not** implemented as fake APIs |
-| **DevEx** | Cash out Robux after Roblox’s creator payout thresholds & region rules ([Creator payouts](https://create.roblox.com/docs/production/monetization)) | Volume from passes + products + Premium time; keep sessions long and D1/D7 healthy |
+| **Game Passes** (`UserOwnsGamePassAsync` / `PromptGamePassPurchase`) | Permanent Front Row VIP (~799), optional à la carte closet/cam | Cross-universe / third-party passes |
+| **Developer Products** (`PromptProductPurchase` + `ProcessReceipt`) | Monthly VIP (~299, 30 days in DataStore), giftable VIP/props, seasonal listed looks, queue skip | Random loot crates without disclosure; selling Style Points |
+| **Share Links + Creator Rewards** | `Player:GetJoinData()` launch data → store `attributedShareCode`; program tracks Active Spender / Audience Expansion | Pretend EBP still pays for idle Premium time |
+| **IEC / in-experience UGC** | Catalog clutch/glasses prompted in-experience when asset IDs exist | Fake Limited APIs |
+| **DevEx** | Cash out earned Robux per current Creator payout rules | Donation-game patterns |
 
-Roblox’s cut on in-experience sales is material (plan ~30%+ platform share; always check current docs). Price in Robux, not USD.
+Engagement-Based Payouts (**ended July 2025**) are **not** in the model. `MembershipType.Premium` is still readable for UX (badge, thank-you) but **must not** multiply votes, score, or Style Points.
 
-**Do not** sell third-party trademarks (Balenciaga, Dior, etc.) as Roblox items without a license. This scaffold uses **House Nightfall / Crest / Concrete / Silk / Oblique**. Licensed drops are a later B2B path (same as the pitch deck “brand collabs”).
+## Funnel (retention before ads)
 
-## Game Passes (worth it, not P2W)
-
-Create in Creator Dashboard → Monetization → Passes. Paste IDs into `Config.GamePasses.*.id`.
-
-| Key | Suggested Robux | Player-facing | Fair-play rule |
-| --- | --- | --- | --- |
-| `FrontRowVIP` | 399 | VIP lounge pad, gold nametag, extra daily coins, exclusive pose | **No** speed, magnet, or score multiplier |
-| `FastCast` | 99 | Skip Open Cast lobby wait | Same round rules |
-| `WalkInCloset` | 199 | 8 saved outfits vs 3 | Cosmetics storage |
-| `DirectorCam` | 149 | Extra spectate / replay cameras | Flex, not power |
-
-VIP may bundle Fast Cast convenience (already coded: `skipsQueue` is Fast Cast **or** VIP). Still no race advantage.
-
-## Developer Products (consumable)
-
-`ProcessReceipt` is in `MonetizationService.lua`. Grants are idempotent via `PlayerData.receipts[PurchaseId]`. If the player is gone, return `NotProcessedYet` so Roblox retries.
-
-| Key | Suggested Robux | Grant |
-| --- | --- | --- |
-| `CoinsS` | 49 | 200 coins |
-| `CoinsM` | 129 | 600 coins |
-| `CoinsL` | 249 | 1,400 coins (best rate — standard IAP ladder) |
-| `SpotlightVfx` | 75 | One-time pose share VFX (cosmetic) |
-| `NightfallPack` | 175 | **Listed** items (cathedral boots + finale). Not a random crate |
-
-Avoid paid **random** items unless you implement Roblox’s paid random item disclosure. A listed pack is the safe v1.
-
-Coins spend later on original looks in an in-world boutique (HUD lists products now; a coin shop UI can come after IDs exist).
-
-## Premium benefits (Payouts, not a fake “Premium Game Pass”)
-
-```lua
-player.MembershipType == Enum.MembershipType.Premium
+```
+Theme (weekly) → Dress (owned + Style Point looks) → Runway → Vote → Rematch / Share Link
 ```
 
-| Benefit | Why |
-| --- | --- |
-| +25% coins from shows and dailies | Soft economy bump |
-| Same scoring as non-Premium | Fair play |
-| Hang in VIP lounge / rematch | **Session time** is what Premium Payouts reward |
+First session: Open Cast tutorial, first finish &lt; ~2 minutes (`Balance.retention`). No shop interstitial before the first vote. Boutique is an intermission button, not a gate.
 
-Do not gate the first win or tutorial behind Premium.
+## Game Passes (this universe only)
 
-## Engagement loops TikTok creators actually push
+Create **on this experience** in Creator Dashboard. Paste IDs into `Config.GamePasses.*.id` (`0` = unconfigured, never prompted).
 
-These feed both UGC and DevEx (more days played → more pass impressions):
+| Key | Hint Robux | What you get | Fair play |
+| --- | --- | --- | --- |
+| `FrontRowVIP` | **799** (DTI-style permanent) | Closet slots, makeup slots, exclusive poses, gold tag | **Zero** vote/score/speed multiplier |
+| `WalkInCloset` | 199 | À la carte extra outfit slots if they skip full VIP | Storage only |
+| `DirectorCam` | 149 | Spectate / replay cameras | Flex, not power |
+| `FastCast` | 99 | Skip lobby wait | Time-saver; same votes |
 
-1. **Clip the pose / wipeout** — Share moment (`CaptureService`) + web clip-share already targeting TikTok/IG/X.
-2. **First win in one sitting** — Open Cast + web Quick Run. Creators can duet a 45s first show.
-3. **Rematch bait** — “one more walk” in 12s intermission.
-4. **Invite overlay** every score screen (`PromptGameInvite`).
-5. **Daily streak** — miss a day, lose the D7 drop (login reward, not a paywall).
-6. **Drop calendar** — real Fashion Week weeks; limited-time original look (timed shop, not a false Limited API).
-7. **Creator codes later** — affiliate Game Pass attribution if/when you add an attribute string on prompts (Dashboard + `PromptGamePassPurchase`).
+VIP **does not** include extra votes. Queue skip is convenience, not placement.
 
-## Economy sketch (not a forecast)
+## Developer Products
 
-Illustrative mix after IDs are live (mirrors the pitch “commerce not ads-first” without copying Stripe SKUs):
+Idempotent `ProcessReceipt` in `MonetizationService.lua`. Monthly VIP writes `vipUntilUnix`. Gifts use a pending target UserId from `RequestGift` (buyer pays, giftee is granted).
 
-- ~50% Game Passes (VIP + closet)
-- ~30% coin products
-- ~15% look packs
-- ~5% Premium Payouts early (grows with session length)
+| Key | Hint Robux | Grant |
+| --- | --- | --- |
+| `VipMonthly` | **299** | +30 days Front Row cosmetics (`vipUntilUnix`) |
+| `GiftVipMonthly` | 299 | Same, to a selected friend (DTI-style gift) |
+| `GiftPropClutch` | 75 | Giftable clutch prop (cosmetic) |
+| `SeasonalLook` | 175 | **This week’s listed drop** (LiveOps theme) — not a loot box, not a fake countdown |
+| `FastCastTicket` | 25 | One-time queue skip if they don’t own the pass |
+| `SpotlightVfx` | 75 | Pose share VFX (cosmetic) |
+| `NightfallPack` | 175 | Listed exclusive look (Robux track) |
 
-Tune `Balance.json` `coinsDivisor` so a typical show grants ~50–80 coins; a look costs a few shows **or** a small product. If coins are too cheap, Dev Products die; too expensive, kids feel paywalled.
+**Do not** sell Style Points for Robux. Soft currency is earned in-round so free players can complete looks.
 
-## ToS / policy checklist
+## Style Points (soft)
 
-- [x] No score/speed P2W in code (`Scoring.lua` has no pass multipliers)
-- [x] Receipt idempotency
-- [x] Unconfigured ID `0` never sent to `PromptProductPurchase`
-- [ ] Age rating / paid random disclosure if you add crates later
-- [ ] Privacy policy URL on the experience
-- [ ] Original cosmetics only until licenses exist
-- [ ] Enable Premium Payouts in Game Settings
-- [ ] Publish place + API services before testing DataStores / purchases in Studio
+- Earned from shows + votes + daily streak (`Scoring.stylePointsForScore` — **no Premium/VIP multiplier**).
+- Spend on `Catalog` rows with `track = "stylePoints"` (street, house tees, layering pieces).
+- Robux / IEC track: `track = "robux"` or `track = "iec"` (exclusives, seasonals).
+- Free players remain competitive: voting is skill + layering, not paywalled slots on the runway.
+
+## Live-ops
+
+`Shared/LiveOps.lua` picks the weekly theme from UTC week index (stable, honest). Shop copy: “This week’s theme,” not a ticking fake expire. When the week rolls, the next drop is live. No countdown UI that implies scarcity the systems don’t have.
+
+## Share Links + Creator Rewards
+
+From day one:
+
+1. Experience Share Links (Creator Dashboard) for TikTok / Shorts bios.
+2. On join, `DataService.captureShareAttribution(player)` reads `player:GetJoinData().LaunchData` (and `ReferredByPlayerId` when present).
+3. Store `attributedShareCode` once (first-touch). Used later for Creator Rewards **Active Spender** / **Audience Expansion** reporting — not for vote weight.
+
+## IEC / UGC
+
+When the group can publish UGC, paste catalog asset IDs into `Config.Iec.assets` and prompt with `MarketplaceService:PromptPurchase` / in-experience catalog APIs **from this experience**. Target the current experience-owner IEC cut (~40% where applicable; confirm live Creator docs). Fashion items worn in the runway **and** sold on the avatar shop is the point.
+
+## Policy checklist
+
+- [x] No vote/score/speed P2W (`Scoring.lua`, `MonetizationService.isVip` cosmetics only)
+- [x] No Premium Style Point multiplier (EBP ended Jul 2025)
+- [x] Receipt idempotency; ID `0` never prompted
+- [x] Native-universe passes/products only
+- [x] No donation/AFK scripts in this repo
+- [ ] Create passes/products **on this universe**; disable any old cross-game links
+- [ ] Share Links enabled in Dashboard; test `LaunchData` on a join
+- [ ] IEC asset IDs when UGC is approved
+- [ ] Age rating / paid-random disclosure only if crates are added later (v1: listed packs only)
 
 ## Web Stripe vs Roblox Robux
 
-Keep them **separate entitlements** for v1:
+v1: Neon `owned_items` ≠ DataStore `ownedLooks`. No cross-grant until a signed mapping exists.
 
-- Web `owned_items` (Neon) ≠ Roblox `ownedLooks` (DataStore)
-- Cross-grant later via `HttpService` + signed user mapping if you want “bought on web, wear on Roblox” — that’s a follow-up, not this scaffold
+## DataStore (`RascalRunways_Player_v2`)
+
+Session cache still works in unpublished Studio. Old `coins` blobs migrate to `stylePoints` on read.
+
+| Field | Purpose |
+| --- | --- |
+| `stylePoints` | Soft currency earned in-round / daily. Never granted from Robux. |
+| `ownedLooks` | Unlocked catalog IDs (free / Style Points / Robux / IEC). |
+| `vipUntilUnix` | Monthly Front Row expiry (Dev Product). Permanent VIP is the Game Pass. |
+| `queueSkipTickets` | Fast Cast tickets. Consumed only when joining a **Lobby**. |
+| `attributedShareCode` | First-touch Share Link / `LaunchData` (64 chars). |
+| `referredByUserId` | `GetJoinData().ReferredByPlayerId` when present. |
+| `receipts` | `ProcessReceipt` idempotency keyed by `PurchaseId`. |
+| `daily` / `streak` | UTC day grant — same Style Points for VIP and free. |
+
+Receipt store: `RascalRunways_Receipts_v1` (reserved; v1 also stamps receipts on the player blob).

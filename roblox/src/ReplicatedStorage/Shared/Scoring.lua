@@ -1,16 +1,19 @@
 --!strict
 --[[
 	Pure scoring — no Roblox instances. Keep in sync with Balance.json.
-	Fair play: callers must not multiply these by Game Pass / Dev Product flags.
+
+	Fair play: never multiply by Game Pass, monthly VIP, or Premium.
+	Engagement-Based Payouts ended July 2025; Premium is not an economy lever.
 ]]
 
 export type Breakdown = {
 	style: number,
 	race: number,
 	pose: number,
+	vote: number,
 	finish: number,
 	total: number,
-	coins: number,
+	stylePoints: number,
 }
 
 local Scoring = {}
@@ -19,7 +22,7 @@ function Scoring.distanceFloor(distanceStuds: number): number
 	return math.floor(math.max(0, distanceStuds))
 end
 
-function Scoring.stylePoints(balance: any, looks: number, rares: number, pickups: number): number
+function Scoring.styleScore(balance: any, looks: number, rares: number, pickups: number): number
 	local s = balance.scoring
 	return looks * s.lookPoints + rares * s.rarePoints + pickups * s.pickupPoints
 end
@@ -38,18 +41,12 @@ function Scoring.posePoints(balance: any, poseQuality01: number): number
 	return math.floor((balance.scoring.poseMax :: number) * q)
 end
 
-function Scoring.total(balance: any, parts: { style: number, race: number, pose: number, finished: boolean }): number
-	local finish = if parts.finished then balance.scoring.finishBonus else 0
-	return parts.style + parts.race + parts.pose + finish
+function Scoring.voteScore(balance: any, votesReceived: number): number
+	return math.max(0, math.floor(votesReceived)) * (balance.scoring.votePoints :: number)
 end
 
-function Scoring.coinsForScore(balance: any, total: number, isPremium: boolean): number
-	local s = balance.scoring
-	local coins = math.floor(total / s.coinsDivisor)
-	if isPremium then
-		coins = math.floor(coins * (1 + s.premiumCoinBonus))
-	end
-	return coins
+function Scoring.stylePointsForScore(balance: any, total: number): number
+	return math.floor(total / (balance.scoring.stylePointsDivisor :: number))
 end
 
 function Scoring.breakdown(
@@ -61,22 +58,24 @@ function Scoring.breakdown(
 		distanceStuds: number,
 		place: number,
 		poseQuality01: number,
+		votesReceived: number,
 		finished: boolean,
-		isPremium: boolean,
 	}
 ): Breakdown
-	local style = Scoring.stylePoints(balance, args.looks, args.rares, args.pickups)
+	local style = Scoring.styleScore(balance, args.looks, args.rares, args.pickups)
 	local race = Scoring.racePoints(balance, args.distanceStuds, args.looks, args.rares, args.place)
 	local pose = Scoring.posePoints(balance, args.poseQuality01)
+	local vote = Scoring.voteScore(balance, args.votesReceived)
 	local finish = if args.finished then balance.scoring.finishBonus else 0
-	local total = style + race + pose + finish
+	local total = style + race + pose + vote + finish
 	return {
 		style = style,
 		race = race,
 		pose = pose,
+		vote = vote,
 		finish = finish,
 		total = total,
-		coins = Scoring.coinsForScore(balance, total, args.isPremium),
+		stylePoints = Scoring.stylePointsForScore(balance, total),
 	}
 end
 

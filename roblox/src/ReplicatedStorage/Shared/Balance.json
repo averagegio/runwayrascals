@@ -4,6 +4,7 @@
   "tutorial": {
     "runSeconds": 45,
     "poseSeconds": 8,
+    "voteSeconds": 12,
     "countdownSeconds": 3,
     "lobbySeconds": 6,
     "lives": 1,
@@ -14,6 +15,7 @@
   "normal": {
     "runSeconds": 75,
     "poseSeconds": 8,
+    "voteSeconds": 20,
     "countdownSeconds": 3,
     "lobbySeconds": 15,
     "dressSeconds": 20,
@@ -38,12 +40,11 @@
     "lookStyleBonus": 10,
     "rareStyleBonus": 50,
     "poseMax": 200,
+    "votePoints": 80,
     "placePoints": [300, 200, 140, 100, 70, 50, 35, 20],
-    "coinsDivisor": 20,
-    "premiumCoinBonus": 0.25,
-    "vipDailyCoins": 75,
-    "dailyCoins": 40,
-    "streakDay7Coins": 200
+    "stylePointsDivisor": 20,
+    "dailyStylePoints": 40,
+    "streakDay7StylePoints": 200
   },
   "match": {
     "minPlayers": 1,
@@ -53,6 +54,20 @@
   "retention": {
     "firstWinTargetSeconds": 120,
     "dailyStreakWindowHours": 36,
-    "d7StreakDays": 7
+    "d7StreakDays": 7,
+    "adsAfterRetentionOnly": true
+  },
+  "liveOps": {
+    "useUtcWeekIndex": true,
+    "fakeScarcityTimers": false
+  },
+  "policy": {
+    "cosmeticVipOnly": true,
+    "noVoteMultipliers": true,
+    "noPremiumStylePointBonus": true,
+    "noStylePointsForRobux": true,
+    "nativeUniverseProductsOnly": true,
+    "noDonationOrAfk": true,
+    "engagementBasedPayoutsEnded": "2025-07"
   }
 }

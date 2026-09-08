@@ -13,7 +13,7 @@ local Catalog = require(ReplicatedStorage.Shared.Catalog)
 local Balance = require(ReplicatedStorage.Shared.Balance)
 
 export type PlayerData = {
-	coins: number,
+	stylePoints: number,
 	xp: number,
 	ownedLooks: { string },
 	unlockedCities: { string },
@@ -28,7 +28,11 @@ export type PlayerData = {
 	streak: { days: number, lastDay: string },
 	tutorialComplete: boolean,
 	receipts: { [string]: boolean },
-	daily: { lastGrant: string, coinsGranted: number },
+	daily: { lastGrant: string, stylePointsGranted: number },
+	vipUntilUnix: number,
+	queueSkipTickets: number,
+	attributedShareCode: string,
+	referredByUserId: number,
 }
 
 local DataService = {}
@@ -43,7 +47,7 @@ end
 
 local function defaultData(): PlayerData
 	return {
-		coins = 0,
+		stylePoints = 0,
 		xp = 0,
 		ownedLooks = Catalog.starterOwned(),
 		unlockedCities = { "newyork" },
@@ -58,7 +62,11 @@ local function defaultData(): PlayerData
 		streak = { days = 0, lastDay = "" },
 		tutorialComplete = false,
 		receipts = {},
-		daily = { lastGrant = "", coinsGranted = 0 },
+		daily = { lastGrant = "", stylePointsGranted = 0 },
+		vipUntilUnix = 0,
+		queueSkipTickets = 0,
+		attributedShareCode = "",
+		referredByUserId = 0,
 	}
 end
 
@@ -67,8 +75,11 @@ local function merge(saved: any): PlayerData
 	if typeof(saved) ~= "table" then
 		return data
 	end
-	if type(saved.coins) == "number" then
-		data.coins = saved.coins
+	if type(saved.coins) == "number" and type(saved.stylePoints) ~= "number" then
+		data.stylePoints = saved.coins
+	end
+	if type(saved.stylePoints) == "number" then
+		data.stylePoints = saved.stylePoints
 	end
 	if type(saved.xp) == "number" then
 		data.xp = saved.xp
@@ -97,7 +108,23 @@ local function merge(saved: any): PlayerData
 		data.receipts = saved.receipts
 	end
 	if type(saved.daily) == "table" then
-		data.daily = saved.daily
+		data.daily.lastGrant = saved.daily.lastGrant or data.daily.lastGrant
+		local granted = saved.daily.stylePointsGranted or saved.daily.coinsGranted
+		if type(granted) == "number" then
+			data.daily.stylePointsGranted = granted
+		end
+	end
+	if type(saved.vipUntilUnix) == "number" then
+		data.vipUntilUnix = saved.vipUntilUnix
+	end
+	if type(saved.queueSkipTickets) == "number" then
+		data.queueSkipTickets = saved.queueSkipTickets
+	end
+	if type(saved.attributedShareCode) == "string" then
+		data.attributedShareCode = saved.attributedShareCode
+	end
+	if type(saved.referredByUserId) == "number" then
+		data.referredByUserId = saved.referredByUserId
 	end
 	return data
 end
@@ -160,9 +187,54 @@ function DataService.grantLook(player: Player, lookId: string)
 	table.insert(data.ownedLooks, lookId)
 end
 
-function DataService.addCoins(player: Player, amount: number)
+function DataService.addStylePoints(player: Player, amount: number)
 	local data = DataService.get(player)
-	data.coins = math.max(0, data.coins + math.floor(amount))
+	data.stylePoints = math.max(0, data.stylePoints + math.floor(amount))
+end
+
+-- Back-compat alias for older call sites.
+function DataService.addCoins(player: Player, amount: number)
+	DataService.addStylePoints(player, amount)
+end
+
+function DataService.extendVip(player: Player, days: number)
+	local data = DataService.get(player)
+	local now = os.time()
+	local base = math.max(data.vipUntilUnix, now)
+	data.vipUntilUnix = base + math.max(0, math.floor(days)) * 86400
+end
+
+function DataService.hasMonthlyVip(player: Player): boolean
+	return DataService.get(player).vipUntilUnix > os.time()
+end
+
+function DataService.addQueueSkipTickets(player: Player, n: number)
+	local data = DataService.get(player)
+	data.queueSkipTickets = math.max(0, data.queueSkipTickets + math.floor(n))
+end
+
+function DataService.tryConsumeQueueSkip(player: Player): boolean
+	local data = DataService.get(player)
+	if data.queueSkipTickets <= 0 then
+		return false
+	end
+	data.queueSkipTickets -= 1
+	return true
+end
+
+function DataService.captureShareAttribution(player: Player)
+	local data = DataService.get(player)
+	if data.attributedShareCode ~= "" or data.referredByUserId ~= 0 then
+		return
+	end
+	local join = player:GetJoinData()
+	if type(join.ReferredByPlayerId) == "number" and join.ReferredByPlayerId > 0 then
+		data.referredByUserId = join.ReferredByPlayerId
+	end
+	local launch = join.LaunchData
+	if type(launch) == "string" and launch ~= "" then
+		data.attributedShareCode = string.sub(launch, 1, 64)
+	end
 end
 
 function DataService.markReceipt(player: Player, purchaseId: string): boolean
@@ -174,26 +246,21 @@ function DataService.markReceipt(player: Player, purchaseId: string): boolean
 	return true
 end
 
-function DataService.applyDailyAndStreak(player: Player, isVip: boolean, isPremium: boolean)
+function DataService.applyDailyAndStreak(player: Player)
 	local data = DataService.get(player)
 	local today = utcDayKey()
 	if data.daily.lastGrant == today then
 		return
 	end
 
-	local grant = Balance.scoring.dailyCoins
-	if isVip then
-		grant += Balance.scoring.vipDailyCoins
-	end
-	if isPremium then
-		grant = math.floor(grant * (1 + Balance.scoring.premiumCoinBonus))
-	end
+	-- Same grant for everyone. No Premium/VIP Style Point multiplier
+	-- (Engagement-Based Payouts ended July 2025; VIP is cosmetic only).
+	local grant = Balance.scoring.dailyStylePoints
 
 	local last = data.streak.lastDay
 	if last == "" then
 		data.streak.days = 1
 	else
-		-- Consecutive if lastDay is yesterday (simple string compare via os.time offset).
 		local yesterday = utcDayKey(os.time() - 24 * 3600)
 		if last == yesterday then
 			data.streak.days += 1
@@ -203,12 +270,12 @@ function DataService.applyDailyAndStreak(player: Player, isVip: boolean, isPremi
 	end
 	data.streak.lastDay = today
 	if data.streak.days == Balance.retention.d7StreakDays then
-		grant += Balance.scoring.streakDay7Coins
+		grant += Balance.scoring.streakDay7StylePoints
 	end
 
 	data.daily.lastGrant = today
-	data.daily.coinsGranted = grant
-	DataService.addCoins(player, grant)
+	data.daily.stylePointsGranted = grant
+	DataService.addStylePoints(player, grant)
 end
 
 function DataService.recordShow(player: Player, score: number, rares: number, finished: boolean)

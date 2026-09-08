@@ -1,6 +1,8 @@
 --!strict
 --[[
-	In-experience HUD: phase, score, coins, rematch, invite, share, boutique.
+	In-experience HUD: phase, Style Points, vote, rematch, invite, share, boutique.
+
+	Boutique is an intermission button, not a gate. VIP copy is cosmetic-only.
 ]]
 
 local Players = game:GetService("Players")
@@ -19,7 +21,11 @@ local phaseLabel: TextLabel
 local hintLabel: TextLabel
 local statsLabel: TextLabel
 local toastLabel: TextLabel
-local coinsLabel: TextLabel
+local stylePointsLabel: TextLabel
+local voteFrame: Frame
+local voteList: Frame
+local giftFrame: Frame?
+local boutiqueFrame: Frame?
 
 local function mk(className: string, props: { [string]: any }, parent: Instance?): any
 	local inst = Instance.new(className)
@@ -45,6 +51,16 @@ local function pill(text: string, parent: Instance, order: number): TextButton
 		LayoutOrder = order,
 		AutoButtonColor = true,
 	}, parent)
+end
+
+local function otherPlayers(): { Player }
+	local list = {}
+	for _, p in Players:GetPlayers() do
+		if p ~= player then
+			table.insert(list, p)
+		end
+	end
+	return list
 end
 
 function HUD.mount()
@@ -74,7 +90,7 @@ function HUD.mount()
 	hintLabel = mk("TextLabel", {
 		BackgroundTransparency = 1,
 		Font = Enum.Font.Gotham,
-		Text = "First win in under two minutes — collect looks, hit the pose.",
+		Text = "Theme → dress → runway → vote. First win under two minutes.",
 		TextColor3 = Color3.fromRGB(244, 239, 230),
 		TextSize = 14,
 		TextWrapped = true,
@@ -83,10 +99,10 @@ function HUD.mount()
 		Size = UDim2.new(0.7, 0, 0, 40),
 	}, top)
 
-	coinsLabel = mk("TextLabel", {
+	stylePointsLabel = mk("TextLabel", {
 		BackgroundTransparency = 1,
 		Font = Enum.Font.GothamBold,
-		Text = "Coins 0",
+		Text = "Style Points 0",
 		TextColor3 = Color3.fromRGB(244, 239, 230),
 		TextSize = 16,
 		TextXAlignment = Enum.TextXAlignment.Right,
@@ -118,6 +134,41 @@ function HUD.mount()
 		Position = UDim2.new(0.5, 0, 0.18, 0),
 		Size = UDim2.new(0.5, 0, 0, 36),
 	}, gui)
+
+	voteFrame = mk("Frame", {
+		Name = "VotePanel",
+		Visible = false,
+		BackgroundTransparency = 0.15,
+		BackgroundColor3 = Color3.fromRGB(12, 10, 14),
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 16, 1, -16),
+		Size = UDim2.fromOffset(240, 220),
+	}, gui)
+	mk("UICorner", { CornerRadius = UDim.new(0, 12) }, voteFrame)
+	mk("TextLabel", {
+		Name = "VoteTitle",
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		Text = "Vote a look",
+		TextColor3 = Color3.fromRGB(201, 165, 106),
+		TextSize = 14,
+		Size = UDim2.new(1, -16, 0, 28),
+		Position = UDim2.fromOffset(8, 6),
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, voteFrame)
+	voteList = mk("Frame", {
+		Name = "VoteList",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(8, 36),
+		Size = UDim2.new(1, -16, 1, -44),
+	}, voteFrame)
+	mk("UIListLayout", {
+		Padding = UDim.new(0, 6),
+		FillDirection = Enum.FillDirection.Vertical,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		VerticalAlignment = Enum.VerticalAlignment.Top,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}, voteList)
 
 	local actions = mk("Frame", {
 		BackgroundTransparency = 1,
@@ -158,7 +209,62 @@ function HUD.mount()
 	HUD.buildBoutique()
 end
 
-local boutiqueFrame: Frame?
+local function hideGiftPicker()
+	if giftFrame then
+		giftFrame:Destroy()
+		giftFrame = nil
+	end
+end
+
+local function promptGift(key: string)
+	hideGiftPicker()
+	local others = otherPlayers()
+	if #others == 0 then
+		HUD.toast("Gift needs a friend in this server.")
+		return
+	end
+	if #others == 1 then
+		Remotes.event(Remotes.Events.RequestGift):FireServer(key, others[1].UserId)
+		return
+	end
+	giftFrame = mk("Frame", {
+		Name = "GiftPicker",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(280, 220),
+		BackgroundColor3 = Color3.fromRGB(12, 10, 14),
+		ZIndex = 20,
+	}, gui)
+	mk("UICorner", { CornerRadius = UDim.new(0, 12) }, giftFrame)
+	mk("TextLabel", {
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		Text = "Gift to",
+		TextColor3 = Color3.fromRGB(201, 165, 106),
+		TextSize = 16,
+		Size = UDim2.new(1, -16, 0, 28),
+		Position = UDim2.fromOffset(8, 8),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex = 21,
+	}, giftFrame)
+	local list = mk("ScrollingFrame", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(8, 40),
+		Size = UDim2.new(1, -16, 1, -48),
+		CanvasSize = UDim2.fromOffset(0, 36 * #others),
+		ScrollBarThickness = 4,
+		ZIndex = 21,
+	}, giftFrame)
+	mk("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }, list)
+	for i, other in others do
+		local btn = pill(other.DisplayName, list, i)
+		btn.ZIndex = 22
+		btn.MouseButton1Click:Connect(function()
+			Remotes.event(Remotes.Events.RequestGift):FireServer(key, other.UserId)
+			hideGiftPicker()
+		end)
+	end
+end
 
 function HUD.buildBoutique()
 	boutiqueFrame = mk("Frame", {
@@ -166,7 +272,7 @@ function HUD.buildBoutique()
 		Visible = false,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(420, 460),
+		Size = UDim2.fromOffset(440, 500),
 		BackgroundColor3 = Color3.fromRGB(12, 10, 14),
 		BackgroundTransparency = 0.08,
 	}, gui)
@@ -184,20 +290,20 @@ function HUD.buildBoutique()
 	mk("TextLabel", {
 		BackgroundTransparency = 1,
 		Font = Enum.Font.Gotham,
-		Text = "Cosmetics & convenience. No pay-to-win speed or score.",
+		Text = "Cosmetic VIP only — closet, makeup, poses, tags. No vote or score multipliers. Style Points are earned, never sold.",
 		TextColor3 = Color3.fromRGB(244, 239, 230),
 		TextSize = 13,
 		TextWrapped = true,
-		Size = UDim2.new(1, -24, 0, 36),
+		Size = UDim2.new(1, -24, 0, 48),
 		Position = UDim2.fromOffset(12, 44),
 		TextXAlignment = Enum.TextXAlignment.Left,
 	}, boutiqueFrame)
 
 	local list = mk("ScrollingFrame", {
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(12, 88),
-		Size = UDim2.new(1, -24, 1, -100),
-		CanvasSize = UDim2.fromOffset(0, 520),
+		Position = UDim2.fromOffset(12, 100),
+		Size = UDim2.new(1, -24, 1, -112),
+		CanvasSize = UDim2.fromOffset(0, 720),
 		ScrollBarThickness = 4,
 	}, boutiqueFrame)
 	mk("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }, list)
@@ -205,16 +311,21 @@ function HUD.buildBoutique()
 	local order = 0
 	for key, def in Config.GamePasses do
 		order += 1
-		local btn = pill(def.name .. "  ·  Pass", list, order)
+		local btn = pill(string.format("%s  ·  %d R$ pass", def.name, def.priceHintRobux), list, order)
 		btn.MouseButton1Click:Connect(function()
 			Remotes.event(Remotes.Events.RequestPromptPass):FireServer(key)
 		end)
 	end
 	for key, def in Config.Products do
 		order += 1
-		local btn = pill(def.name .. "  ·  Product", list, order)
+		local suffix = if def.gift then "gift" else "product"
+		local btn = pill(string.format("%s  ·  %d R$ %s", def.name, def.priceHintRobux, suffix), list, order)
 		btn.MouseButton1Click:Connect(function()
-			Remotes.event(Remotes.Events.RequestPromptProduct):FireServer(key)
+			if def.gift == true then
+				promptGift(key)
+			else
+				Remotes.event(Remotes.Events.RequestPromptProduct):FireServer(key)
+			end
 		end)
 	end
 end
@@ -222,12 +333,48 @@ end
 function HUD.toggleBoutique()
 	if boutiqueFrame then
 		boutiqueFrame.Visible = not boutiqueFrame.Visible
+		if not boutiqueFrame.Visible then
+			hideGiftPicker()
+		end
 	end
 end
 
+function HUD.setStylePoints(n: number)
+	if stylePointsLabel then
+		stylePointsLabel.Text = "Style Points " .. tostring(n)
+	end
+end
+
+-- Back-compat alias (old clients sent "coins").
 function HUD.setCoins(n: number)
-	if coinsLabel then
-		coinsLabel.Text = "Coins " .. tostring(n)
+	HUD.setStylePoints(n)
+end
+
+local function rebuildVotes(state: any)
+	for _, child in voteList:GetChildren() do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
+	local isVote = state.phase == Config.Phases.Vote
+	voteFrame.Visible = isVote
+	if not isVote then
+		return
+	end
+	local order = 0
+	for _, row in state.contestants or {} do
+		if row.userId ~= player.UserId then
+			order += 1
+			local label = string.format("%s  ·  %d", row.name or "Model", row.votesReceived or 0)
+			local btn = pill(label, voteList, order)
+			local targetId = row.userId
+			btn.MouseButton1Click:Connect(function()
+				Remotes.event(Remotes.Events.RequestVote):FireServer(targetId)
+			end)
+		end
+	end
+	if order == 0 then
+		voteFrame.Visible = false
 	end
 end
 
@@ -243,11 +390,24 @@ function HUD.setRound(state: any)
 		end
 	end
 	local left = math.max(0, math.ceil((state.endsAt or 0) - Workspace:GetServerTimeNow()))
-	phaseLabel.Text = string.format("%s  ·  %ds", string.upper(state.phase or "?"), left)
+	local themeName = if type(state.theme) == "table" then state.theme.name else nil
+	local phaseName = string.upper(state.phase or "?")
+	if themeName then
+		phaseLabel.Text = string.format("%s  ·  %s  ·  %ds", phaseName, themeName, left)
+	else
+		phaseLabel.Text = string.format("%s  ·  %ds", phaseName, left)
+	end
 	local target = state.rareTarget or 1
 	if me then
-		statsLabel.Text = string.format("Looks %d  ·  Rares %d/%d", me.looks or 0, me.rares or 0, target)
+		statsLabel.Text = string.format(
+			"Looks %d  ·  Rares %d/%d  ·  Votes %d",
+			me.looks or 0,
+			me.rares or 0,
+			target,
+			me.votesReceived or 0
+		)
 	end
+	rebuildVotes(state)
 end
 
 function HUD.setHint(text: string)

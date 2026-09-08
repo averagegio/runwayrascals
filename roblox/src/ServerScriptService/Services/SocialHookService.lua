@@ -70,7 +70,9 @@ function SocialHookService.bind()
 		-- Client captures via CaptureService; server just acknowledges for future telemetry.
 		Remotes.event(Remotes.Events.Toast):FireClient(
 			player,
-			if kind == "screenshot" then "Moment saved — post the capture to TikTok / IG" else "Share ready"
+			if kind == "screenshot"
+				then "Moment saved — post to TikTok / Shorts. Share Links attribute Creator Rewards."
+				else "Share ready"
 		)
 	end)
 end

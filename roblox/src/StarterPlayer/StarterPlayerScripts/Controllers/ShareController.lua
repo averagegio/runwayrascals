@@ -1,8 +1,11 @@
 --!strict
 --[[
 	Shareable moments — CaptureService:CaptureScreenshot (client API).
-	Mirrors the web clip-share sheet: capture a still, then the player posts
-	it from the Roblox capture UI / device share sheet to TikTok, IG, X.
+
+	From day one: stills go to TikTok / Shorts / IG via the device sheet.
+	Experience Share Links (Creator Dashboard) + GetJoinData LaunchData
+	attribute Active Spender / Audience Expansion. Do not plan AFK Premium
+	farms — Engagement-Based Payouts ended July 2025.
 ]]
 
 local CaptureService = game:GetService("CaptureService")

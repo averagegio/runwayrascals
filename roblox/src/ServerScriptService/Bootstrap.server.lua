@@ -19,28 +19,23 @@ SocialHookService.bind()
 RoundService.bind()
 
 Remotes.fn(Remotes.Functions.GetPlayerData).OnServerInvoke = function(player)
-	local data = DataService.load(player)
-	DataService.applyDailyAndStreak(
-		player,
-		MonetizationService.ownsPass(player, "FrontRowVIP"),
-		MonetizationService.isPremium(player)
-	)
-	return data
+	DataService.load(player)
+	DataService.captureShareAttribution(player)
+	DataService.applyDailyAndStreak(player)
+	return DataService.get(player)
 end
 
 local function onPlayerAdded(player)
-	local data = DataService.load(player)
-	DataService.applyDailyAndStreak(
-		player,
-		MonetizationService.ownsPass(player, "FrontRowVIP"),
-		MonetizationService.isPremium(player)
-	)
+	DataService.load(player)
+	DataService.captureShareAttribution(player)
+	DataService.applyDailyAndStreak(player)
+	local data = DataService.get(player)
 	Remotes.event(Remotes.Events.PlayerData):FireClient(player, data)
 	Remotes.event(Remotes.Events.Tutorial):FireClient(player, {
 		step = if data.tutorialComplete then "lobby" else "welcome",
 		hint = if data.tutorialComplete
-			then "Queue a show or invite a friend"
-			else "Welcome to Open Cast — first win in under two minutes",
+			then "Theme → dress → runway → vote. Invite a friend."
+			else "Welcome to Open Cast — theme, dress, runway, vote. First win under two minutes.",
 	})
 end
 

@@ -45,7 +45,7 @@ describe('Rojo project', () => {
 describe('Balance + scoring', () => {
     const balance = json('src/ReplicatedStorage/Shared/Balance.json');
 
-    function stylePoints(looks, rares, pickups) {
+    function styleScore(looks, rares, pickups) {
         const s = balance.scoring;
         return looks * s.lookPoints + rares * s.rarePoints + pickups * s.pickupPoints;
     }
@@ -61,26 +61,31 @@ describe('Balance + scoring', () => {
         return Math.floor(balance.scoring.poseMax * clamped);
     }
 
-    function coinsForScore(total, isPremium) {
-        let coins = Math.floor(total / balance.scoring.coinsDivisor);
-        if (isPremium) coins = Math.floor(coins * (1 + balance.scoring.premiumCoinBonus));
-        return coins;
+    function voteScore(votes) {
+        return Math.max(0, Math.floor(votes)) * balance.scoring.votePoints;
     }
 
-    it('keeps first-win budget under 2 minutes', () => {
+    function stylePointsForScore(total) {
+        return Math.floor(total / balance.scoring.stylePointsDivisor);
+    }
+
+    it('keeps first-win budget under 2 minutes including vote', () => {
         const t = balance.tutorial;
-        const total = t.lobbySeconds + t.countdownSeconds + t.runSeconds + t.poseSeconds;
+        const total =
+            t.lobbySeconds + t.countdownSeconds + t.runSeconds + t.poseSeconds + t.voteSeconds;
         assert.ok(total < balance.retention.firstWinTargetSeconds, `tutorial ${total}s`);
+        assert.equal(t.voteSeconds, 12);
         assert.equal(t.winOnFinishLine, true);
         assert.equal(t.rareTarget, 1);
         assert.ok(t.lives >= 1);
+        assert.equal(balance.retention.adsAfterRetentionOnly, true);
     });
 
     it('scores a tutorial finish without pay-to-win knobs', () => {
         const looks = 2;
         const rares = 1;
         const pickups = 2;
-        const style = stylePoints(looks, rares, pickups);
+        const style = styleScore(looks, rares, pickups);
         const race = racePoints(90, looks, rares, 1);
         const pose = posePoints(0.7);
         const finish = balance.scoring.finishBonus;
@@ -90,15 +95,26 @@ describe('Balance + scoring', () => {
         assert.equal(pose, 140);
         assert.equal(finish, 500);
         assert.equal(total, 1350);
-        assert.equal(coinsForScore(total, false), 67);
-        assert.equal(coinsForScore(total, true), 83);
+        assert.equal(stylePointsForScore(total), 67);
+        assert.equal(stylePointsForScore(total + voteScore(1)), 71);
+        assert.equal(voteScore(0), 0);
     });
 
-    it('does not encode score multipliers on passes', () => {
+    it('does not encode score or Style Point multipliers', () => {
         const blob = JSON.stringify(balance);
         assert.equal(blob.includes('passScoreMult'), false);
         assert.equal(blob.includes('p2w'), false);
-        assert.ok(balance.scoring.premiumCoinBonus <= 0.25);
+        assert.equal(blob.includes('premiumCoinBonus'), false);
+        assert.equal(blob.includes('coinsDivisor'), false);
+        assert.equal(balance.scoring.premiumCoinBonus, undefined);
+        assert.equal(balance.policy.noPremiumStylePointBonus, true);
+        assert.equal(balance.policy.noVoteMultipliers, true);
+        assert.equal(balance.policy.noStylePointsForRobux, true);
+        assert.equal(balance.policy.nativeUniverseProductsOnly, true);
+        assert.equal(balance.policy.noDonationOrAfk, true);
+        assert.equal(balance.policy.engagementBasedPayoutsEnded, '2025-07');
+        assert.equal(balance.liveOps.fakeScarcityTimers, false);
+        assert.equal(balance.liveOps.useUtcWeekIndex, true);
     });
 });
 
@@ -107,11 +123,12 @@ describe('Luau uses real Roblox APIs', () => {
         'src/ServerScriptService/Services/MonetizationService.lua',
         'src/ServerScriptService/Services/DataService.lua',
         'src/ServerScriptService/Services/SocialHookService.lua',
+        'src/ServerScriptService/Services/RoundService.lua',
         'src/StarterPlayer/StarterPlayerScripts/Controllers/ShareController.lua',
         'src/ReplicatedStorage/Shared/Config.lua'
     ].map((rel) => read(rel));
 
-    it('calls MarketplaceService, DataStoreService, SocialService, CaptureService', () => {
+    it('calls MarketplaceService, DataStoreService, SocialService, CaptureService, GetJoinData', () => {
         const all = files.join('\n');
         assert.match(all, /MarketplaceService/);
         assert.match(all, /UserOwnsGamePassAsync/);
@@ -126,6 +143,9 @@ describe('Luau uses real Roblox APIs', () => {
         assert.match(all, /CaptureService/);
         assert.match(all, /CaptureScreenshot/);
         assert.match(all, /MembershipType\.Premium/);
+        assert.match(all, /GetJoinData/);
+        assert.match(all, /RequestVote/);
+        assert.match(all, /RequestGift/);
     });
 
     it('treats product id 0 as unconfigured', () => {
@@ -180,5 +200,64 @@ describe('Rokit + Wally + Rojo + MCP templates', () => {
         );
         assert.ok(existsSync(path.join(repo, 'SETUP.md')));
         assert.ok(existsSync(path.join(root, 'scripts/setup.sh')));
+    });
+});
+
+describe('Monetization policy 2026', () => {
+    it('uses DTI-style price hints and cosmetic VIP only', () => {
+        const config = read('src/ReplicatedStorage/Shared/Config.lua');
+        assert.match(config, /priceHintRobux = 799/);
+        assert.match(config, /priceHintRobux = 299/);
+        assert.match(config, /DATASTORE_NAME = "RascalRunways_Player_v2"/);
+        assert.match(config, /cosmeticVipOnly = true/);
+        assert.match(config, /noVoteMultipliers = true/);
+        assert.match(config, /noStylePointsForRobux = true/);
+        assert.match(config, /nativeUniverseProductsOnly = true/);
+        assert.match(config, /engagementBasedPayoutsEnded = "2025-07"/);
+        assert.match(config, /shareLinksFromDayOne = true/);
+        assert.match(config, /Vote = "Vote"/);
+        assert.equal(config.includes('stylePoints ='), false);
+        assert.match(config, /this universe only/);
+    });
+
+    it('never sells Style Points or multiplies votes in services', () => {
+        const monetization = read('src/ServerScriptService/Services/MonetizationService.lua');
+        const data = read('src/ServerScriptService/Services/DataService.lua');
+        const scoring = read('src/ReplicatedStorage/Shared/Scoring.lua');
+        const round = read('src/ServerScriptService/Services/RoundService.lua');
+        const catalog = read('src/ReplicatedStorage/Shared/Catalog.lua');
+        assert.match(monetization, /Style Points are earned in-round/);
+        assert.match(monetization, /Must never multiply votes/);
+        assert.match(data, /captureShareAttribution/);
+        assert.match(data, /No Premium\/VIP Style Point multiplier/);
+        assert.match(scoring, /never multiply by Game Pass/);
+        assert.match(round, /VIP \/ Premium never add extra votes/);
+        assert.match(round, /Config\.Phases\.Vote/);
+        assert.match(catalog, /track: Track/);
+        assert.match(catalog, /stylePoints/);
+        assert.match(catalog, /iec/);
+        assert.equal(existsSync(path.join(root, 'src/ReplicatedStorage/Shared/LiveOps.lua')), true);
+        assert.match(monetization, /No donation\/AFK/);
+        assert.equal(/PromptProductPurchase.*[Dd]onat/.test(monetization), false);
+        assert.equal(round.toLowerCase().includes('afk farm'), false);
+    });
+
+    it('docs drop Engagement-Based Payouts and keep the eight rules', () => {
+        const monetization = readFileSync(path.join(repo, 'docs/MONETIZATION.md'), 'utf8');
+        const gameplay = readFileSync(path.join(repo, 'docs/GAMEPLAY.md'), 'utf8');
+        const roblox = readFileSync(path.join(repo, 'docs/ROBLOX.md'), 'utf8');
+        assert.match(monetization, /Fun before funnel/);
+        assert.match(monetization, /Cosmetic VIP only/);
+        assert.match(monetization, /\*\*799\*\*/);
+        assert.match(monetization, /\*\*299\*\*/);
+        assert.match(monetization, /Style Points/);
+        assert.match(monetization, /No fake scarcity timers/);
+        assert.match(monetization, /Engagement-Based Payouts ended July 2025/);
+        assert.match(monetization, /in-experience UGC/);
+        assert.match(monetization, /native to this universe/);
+        assert.match(monetization, /No donation\/AFK/);
+        assert.equal(roblox.includes('enable Premium Payouts'), false);
+        assert.match(gameplay, /Theme → dress → runway → vote/);
+        assert.match(gameplay, /one vote per player/);
     });
 });

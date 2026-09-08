@@ -13,5 +13,5 @@ rojo serve
 
 Or `bash scripts/setup.sh`. Then Rojo plugin → Connect → Play.
 
-Pins: `rokit.toml` (Rojo 7.7.0, Wally 0.3.2). Packages: `wally.toml`. Config IDs: `src/ReplicatedStorage/Shared/Config.lua`.
+Pins: `rokit.toml` (Rojo 7.7.0, Wally 0.3.2). Packages: `wally.toml`. Config IDs: `src/ReplicatedStorage/Shared/Config.lua` (create on **this universe** only; `0` until pasted). Monetization rules: [`../docs/MONETIZATION.md`](../docs/MONETIZATION.md).
 
