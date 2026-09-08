@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Play Rascal Runways on Roblox — theme, dress, runway, vote." />
+  <title>Play on Roblox — Rascal Runways</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400;1,6..96,600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="waitlist.css" />
+</head>
+<body class="waitlist-page">
+  <div class="phone-frame">
+    <div class="app-container waitlist-shell">
+      <header class="waitlist-top">
+        <a class="waitlist-back" href="index.html">← Home</a>
+      </header>
+
+      <main class="waitlist-main">
+        <p class="waitlist-kicker">Roblox</p>
+        <h1 class="waitlist-brand">
+          <span class="rr-mark" aria-hidden="true">RR</span>
+          <span class="waitlist-brand-text">Rascal Runways</span>
+        </h1>
+        <p class="waitlist-lede">
+          Same fashion runner, on Roblox: weekly theme, dress the look, walk the catwalk, then vote. Cosmetic VIP only — Style Points stay earned in-round.
+        </p>
+        <ol class="waitlist-lede roblox-loop">
+          <li>Theme drops (UTC week)</li>
+          <li>Dress the look</li>
+          <li>Run the three-lane catwalk</li>
+          <li>Vote the house</li>
+        </ol>
+        <a class="game-btn confirm-btn waitlist-submit" id="robloxPlayBtn" href="waitlist.html">
+          <span class="btn-text">Join the Roblox waitlist</span>
+        </a>
+        <button type="button" class="game-btn waitlist-submit roblox-web-run" id="quickRunFromRoblox">
+          <span class="btn-text">Quick Run on web</span>
+        </button>
+        <p class="waitlist-lede roblox-note">
+          Place goes live after publish. Until then: test pilot list, web Quick Run, or Rojo → Studio Play.
+        </p>
+      </main>
+    </div>
+  </div>
+  <script src="roblox-play.js"></script>
+  <script src="quick-run.js"></script>
+  <script>
+    (function () {
+      const btn = document.getElementById('robloxPlayBtn');
+      if (btn && window.RascalRoblox && RascalRoblox.PLACE_ID > 0) {
+        btn.href = RascalRoblox.playUrl();
+        btn.target = '_blank';
+        btn.rel = 'noopener noreferrer';
+        btn.querySelector('.btn-text').textContent = 'Play on Roblox';
+      }
+      const web = document.getElementById('quickRunFromRoblox');
+      if (web) {
+        web.addEventListener('click', function () {
+          if (window.RascalQuickRun) RascalQuickRun.go();
+          else window.location.href = 'gameplay.html';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

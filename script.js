@@ -72,6 +72,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         logoutBtn.addEventListener('click', () => RunwayAuth.logout());
     }
 
+    const quickRunBtn = document.getElementById('quickRunBtn');
+    if (quickRunBtn) {
+        quickRunBtn.addEventListener('click', () => {
+            if (window.RascalQuickRun) RascalQuickRun.go();
+            else window.location.href = 'gameplay.html';
+        });
+    }
+
+    const robloxPlayLink = document.getElementById('robloxPlayLink');
+    const robloxDrawerLink = document.getElementById('robloxDrawerLink');
+    if (window.RascalRoblox && RascalRoblox.PLACE_ID > 0) {
+        const url = RascalRoblox.playUrl();
+        [robloxPlayLink, robloxDrawerLink].forEach((el) => {
+            if (!el) return;
+            el.href = url;
+            el.target = '_blank';
+            el.rel = 'noopener noreferrer';
+        });
+    }
+
     if (enterGameBtn) {
         enterGameBtn.addEventListener('click', (e) => {
             e.preventDefault();

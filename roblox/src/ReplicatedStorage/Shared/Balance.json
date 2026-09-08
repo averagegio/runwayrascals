@@ -1,0 +1,73 @@
+{
+  "lanes": 3,
+  "laneSpacingStuds": 6,
+  "tutorial": {
+    "runSeconds": 45,
+    "poseSeconds": 8,
+    "voteSeconds": 12,
+    "countdownSeconds": 3,
+    "lobbySeconds": 6,
+    "lives": 1,
+    "rareTarget": 1,
+    "startShieldSeconds": 5,
+    "winOnFinishLine": true
+  },
+  "normal": {
+    "runSeconds": 75,
+    "poseSeconds": 8,
+    "voteSeconds": 20,
+    "countdownSeconds": 3,
+    "lobbySeconds": 15,
+    "dressSeconds": 20,
+    "intermissionSeconds": 12,
+    "lives": 0,
+    "rareTarget": 3,
+    "startShieldSeconds": 2.5,
+    "winOnFinishLine": true
+  },
+  "movement": {
+    "tutorialSpeed": 2.2,
+    "normalSpeed": 2.6,
+    "jumpSeconds": 0.7,
+    "slideSeconds": 0.55,
+    "laneLerp": 14
+  },
+  "scoring": {
+    "lookPoints": 25,
+    "rarePoints": 120,
+    "pickupPoints": 40,
+    "finishBonus": 500,
+    "lookStyleBonus": 10,
+    "rareStyleBonus": 50,
+    "poseMax": 200,
+    "votePoints": 80,
+    "placePoints": [300, 200, 140, 100, 70, 50, 35, 20],
+    "stylePointsDivisor": 20,
+    "dailyStylePoints": 40,
+    "streakDay7StylePoints": 200
+  },
+  "match": {
+    "minPlayers": 1,
+    "maxPlayers": 8,
+    "queueSkipPassRemovesWait": true
+  },
+  "retention": {
+    "firstWinTargetSeconds": 120,
+    "dailyStreakWindowHours": 36,
+    "d7StreakDays": 7,
+    "adsAfterRetentionOnly": true
+  },
+  "liveOps": {
+    "useUtcWeekIndex": true,
+    "fakeScarcityTimers": false
+  },
+  "policy": {
+    "cosmeticVipOnly": true,
+    "noVoteMultipliers": true,
+    "noPremiumStylePointBonus": true,
+    "noStylePointsForRobux": true,
+    "nativeUniverseProductsOnly": true,
+    "noDonationOrAfk": true,
+    "engagementBasedPayoutsEnded": "2025-07"
+  }
+}

@@ -6,3 +6,11 @@ server/data/users.json
 server/data/purchases.json
 server/data/waitlist.json
 server/data/*.tmp
+
+# Roblox / Wally (also listed in roblox/.gitignore)
+roblox/sourcemap.json
+roblox/Packages/**
+!roblox/Packages/.gitkeep
+roblox/ServerPackages/**
+!roblox/ServerPackages/.gitkeep
+roblox/build/
