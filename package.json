@@ -5,7 +5,11 @@
   "scripts": {
     "start:api": "npm start --prefix server",
     "install:all": "npm install && npm install --prefix server",
-    "test": "node --test roblox/scripts/scaffold.test.mjs"
+    "test": "node --test roblox/scripts/scaffold.test.mjs",
+    "roblox:setup": "bash roblox/scripts/setup.sh",
+    "roblox:serve": "rojo serve roblox/default.project.json",
+    "roblox:sourcemap": "rojo sourcemap roblox/default.project.json --output roblox/sourcemap.json",
+    "roblox:wally": "cd roblox && wally install"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

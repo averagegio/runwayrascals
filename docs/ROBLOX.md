@@ -28,22 +28,12 @@ This folder is the incremental path: a **playable Open Cast vertical slice** Geo
 
 ## Open in Roblox Studio (first hour)
 
+Full toolchain (Rokit, Wally, sourcemap, Cursor MCP): **[`../SETUP.md`](../SETUP.md)**.
+
 1. Create an experience on [create.roblox.com](https://create.roblox.com) (place for Rascal Runways).
-2. Install **Rojo 7** ([rojo.space](https://rojo.space/docs/v7/getting-started/installation/)) and the [Rojo Studio plugin](https://github.com/rojo-rbx/rojo).
-3. Optional toolchain pin:
-
-   ```bash
-   cd roblox
-   # https://github.com/LPGhatguy/aftman
-   aftman install
-   ```
-
-4. From `roblox/`:
-
-   ```bash
-   rojo serve
-   ```
-
+2. Install **Rokit**, then from `roblox/`: `rokit install` (pins **Rojo 7.7.0** + **Wally**). See [Rojo + Rokit](https://rojo.space/docs/v7/getting-started/installation/).
+3. `bash scripts/setup.sh` (Wally packages + `rojo sourcemap`).
+4. `rojo plugin install` (once) then `rojo serve`.
 5. In Studio: open a **new Baseplate** (or your place) → Plugins → **Rojo** → **Connect**.
 6. Press **Play**. You should get:
    - RR splash (`ReplicatedFirst`)
@@ -51,15 +41,16 @@ This folder is the incremental path: a **playable Open Cast vertical slice** Geo
    - HUD (phase timer, looks, rematch / spectate / invite / share / boutique)
    - Auto-join **Open Cast** tutorial round (~45s run + pose) aimed at a first finish under two minutes
    - A/D or swipe lanes, W jump, S slide; neon orbs = looks, dark blocks = paparazzi
-
 7. File → Save to Roblox (publish the place). Enable **Studio access to API services** (Game Settings → Security) so `DataStoreService` and `MarketplaceService` work in Play Solo.
+
+On the same machine as Cursor: Studio Assistant → Manage MCP Servers → enable Studio MCP → **Quick connect → Cursor**. This cloud VM does not run Studio MCP.
 
 `default.project.json` maps:
 
 | Disk | Roblox |
 | --- | --- |
-| `src/ReplicatedStorage` | `ReplicatedStorage` (Shared + Net) |
-| `src/ServerScriptService` | `ServerScriptService` |
+| `src/ReplicatedStorage` + `Packages/` | `ReplicatedStorage` (Shared + Net + Wally) |
+| `src/ServerScriptService` + `ServerPackages/` | `ServerScriptService` |
 | `src/StarterPlayer/StarterPlayerScripts` | client controllers |
 | `src/ReplicatedFirst` | loading splash |
 | `src/StarterGui`, `src/ServerStorage` | notes only — HUD/arena are Lua-built |

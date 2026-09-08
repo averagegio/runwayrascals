@@ -31,18 +31,23 @@ Vercel + Neon + Stripe: [`DEPLOY_VERCEL.md`](DEPLOY_VERCEL.md). iOS wrapper: [`i
 
 ## Roblox (next playable surface)
 
-Rojo project lives in [`roblox/`](roblox/). Studio setup, round loop, and monetization:
+Toolchain (Rokit → Rojo + Wally → Studio + Cursor MCP): **[`SETUP.md`](SETUP.md)** — do this on George’s machine; Studio MCP is not live on the cloud agent.
 
-- [`docs/ROBLOX.md`](docs/ROBLOX.md) — install Rojo, sync, Press Play, Creator Dashboard IDs
+Place source, round loop, monetization:
+
+- [`roblox/`](roblox/) — `default.project.json`, Luau, `rokit.toml`, `wally.toml`
+- [`docs/ROBLOX.md`](docs/ROBLOX.md) — Play Solo checklist, Creator Dashboard IDs
 - [`docs/GAMEPLAY.md`](docs/GAMEPLAY.md) — onboarding, scoring, rematch / spectate / share
-- [`docs/MONETIZATION.md`](docs/MONETIZATION.md) — Game Passes, Dev Products, Premium Payouts, DevEx, ToS-safe catalog
+- [`docs/MONETIZATION.md`](docs/MONETIZATION.md) — Game Passes, Dev Products, Premium Payouts, DevEx
 
 ```bash
 cd roblox
-aftman install          # or install Rojo another way
+rokit install && bash scripts/setup.sh
 rojo serve              # then Rojo plugin → Connect in Studio
-npm test                # from repo root — Balance.json + API-presence checks
 ```
+
+From repo root: `npm run roblox:setup` · `npm test`
+
 
 ## Tests
 

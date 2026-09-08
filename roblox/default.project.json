@@ -1,5 +1,9 @@
 {
   "name": "RascalRunways",
+  "globIgnorePaths": [
+    "**/.gitkeep",
+    "**/*.spec.lua"
+  ],
   "tree": {
     "$className": "DataModel",
     "ReplicatedFirst": {
@@ -10,12 +14,18 @@
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
       "$ignoreUnknownInstances": true,
-      "$path": "src/ReplicatedStorage"
+      "$path": "src/ReplicatedStorage",
+      "Packages": {
+        "$path": "Packages"
+      }
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
       "$ignoreUnknownInstances": true,
-      "$path": "src/ServerScriptService"
+      "$path": "src/ServerScriptService",
+      "ServerPackages": {
+        "$path": "ServerPackages"
+      }
     },
     "ServerStorage": {
       "$className": "ServerStorage",

@@ -140,3 +140,45 @@ describe('web quick-run still exists for the live HTML game', () => {
         assert.ok(existsSync(path.join(repo, 'quick-run.js')));
     });
 });
+
+describe('Rokit + Wally + Rojo + MCP templates', () => {
+    it('pins rojo and wally in rokit.toml (not Aftman)', () => {
+        const toml = read('rokit.toml');
+        assert.match(toml, /\[tools\]/);
+        assert.match(toml, /rojo-rbx\/rojo@/);
+        assert.match(toml, /UpliftGames\/wally@/);
+        assert.equal(existsSync(path.join(root, 'aftman.toml')), false);
+    });
+
+    it('has wally.toml and ignores Packages/', () => {
+        const wally = read('wally.toml');
+        assert.match(wally, /\[package\]/);
+        assert.match(wally, /averagegio\/rascal-runways/);
+        assert.match(wally, /\[dependencies\]/);
+        const gi = read('.gitignore');
+        assert.match(gi, /Packages/);
+        assert.match(gi, /ServerPackages/);
+    });
+
+    it('maps Wally Packages folders on the DataModel', () => {
+        const project = json('default.project.json');
+        assert.equal(project.tree.ReplicatedStorage.Packages.$path, 'Packages');
+        assert.equal(project.tree.ServerScriptService.ServerPackages.$path, 'ServerPackages');
+        assert.ok(existsSync(path.join(root, 'wally.toml')));
+        assert.ok(existsSync(path.join(root, 'Packages/.gitkeep')));
+        assert.ok(existsSync(path.join(root, 'ServerPackages/.gitkeep')));
+    });
+
+    it('ships Cursor MCP templates matching Studio docs', () => {
+        const win = JSON.parse(readFileSync(path.join(repo, '.cursor/mcp.json'), 'utf8'));
+        const mac = JSON.parse(readFileSync(path.join(repo, '.cursor/mcp.macos.json'), 'utf8'));
+        assert.equal(win.mcpServers.Roblox_Studio.command, 'cmd.exe');
+        assert.ok(win.mcpServers.Roblox_Studio.args.includes('%LOCALAPPDATA%\\Roblox\\mcp.bat'));
+        assert.equal(
+            mac.mcpServers.Roblox_Studio.command,
+            '/Applications/RobloxStudio.app/Contents/MacOS/StudioMCP'
+        );
+        assert.ok(existsSync(path.join(repo, 'SETUP.md')));
+        assert.ok(existsSync(path.join(root, 'scripts/setup.sh')));
+    });
+});
