@@ -1,0 +1,5 @@
+# Pin Roblox toolchain versions: https://github.com/LPGhatguy/aftman
+[tools]
+rojo = "rojo-rbx/rojo@7.4.4"
+selene = "Kampfkarren/selene@0.27.1"
+stylua = "JohnnyMorganz/Stylua@0.20.0"

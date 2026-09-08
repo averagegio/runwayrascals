@@ -1,10 +1,11 @@
 {
   "name": "runwayrascals",
   "private": true,
-  "description": "Rascal Runways — static game + Vercel serverless API",
+  "description": "Rascal Runways — web runner + Roblox (Rojo) scaffold + Vercel API",
   "scripts": {
     "start:api": "npm start --prefix server",
-    "install:all": "npm install && npm install --prefix server"
+    "install:all": "npm install && npm install --prefix server",
+    "test": "node --test roblox/scripts/scaffold.test.mjs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

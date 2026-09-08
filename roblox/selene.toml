@@ -1,0 +1,7 @@
+std = "roblox"
+
+[lints]
+# Keep scaffolding noisy only for real mistakes.
+unused_variable = "warn"
+shadowing = "allow"
+empty_if = "allow"
