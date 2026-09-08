@@ -16,6 +16,7 @@ export type PlayerData = {
 	stylePoints: number,
 	xp: number,
 	ownedLooks: { string },
+	equippedLookId: string,
 	unlockedCities: { string },
 	savedOutfits: { { [string]: string } },
 	stats: {
@@ -50,6 +51,7 @@ local function defaultData(): PlayerData
 		stylePoints = 0,
 		xp = 0,
 		ownedLooks = Catalog.starterOwned(),
+		equippedLookId = Config.DefaultLookId,
 		unlockedCities = { "newyork" },
 		savedOutfits = {},
 		stats = {
@@ -86,6 +88,9 @@ local function merge(saved: any): PlayerData
 	end
 	if type(saved.ownedLooks) == "table" then
 		data.ownedLooks = saved.ownedLooks
+	end
+	if type(saved.equippedLookId) == "string" then
+		data.equippedLookId = saved.equippedLookId
 	end
 	if type(saved.unlockedCities) == "table" then
 		data.unlockedCities = saved.unlockedCities
@@ -185,6 +190,43 @@ function DataService.grantLook(player: Player, lookId: string)
 		return
 	end
 	table.insert(data.ownedLooks, lookId)
+end
+
+function DataService.equipLook(player: Player, lookId: string): boolean
+	local data = DataService.get(player)
+	if not table.find(data.ownedLooks, lookId) then
+		return false
+	end
+	if not Catalog.getLook(lookId) then
+		return false
+	end
+	data.equippedLookId = lookId
+	return true
+end
+
+function DataService.buyLookWithStylePoints(player: Player, lookId: string): (boolean, string)
+	local look = Catalog.getLook(lookId)
+	if not look then
+		return false, "Unknown look."
+	end
+	if look.track == "robux" or look.track == "iec" then
+		return false, "That look is Robux / IEC — not Style Points."
+	end
+	local data = DataService.get(player)
+	if table.find(data.ownedLooks, lookId) then
+		return false, "Already owned."
+	end
+	local cost = look.stylePointCost or 0
+	if cost <= 0 then
+		DataService.grantLook(player, lookId)
+		return true, "Unlocked."
+	end
+	if data.stylePoints < cost then
+		return false, "Need " .. tostring(cost) .. " Style Points."
+	end
+	data.stylePoints -= cost
+	DataService.grantLook(player, lookId)
+	return true, "Unlocked with Style Points."
 end
 
 function DataService.addStylePoints(player: Player, amount: number)

@@ -10,6 +10,7 @@ local DataService = require(script.Parent.Services.DataService)
 local MonetizationService = require(script.Parent.Services.MonetizationService)
 local RoundService = require(script.Parent.Services.RoundService)
 local SocialHookService = require(script.Parent.Services.SocialHookService)
+local LookVisuals = require(ReplicatedStorage.Shared.LookVisuals)
 
 ArenaService.build()
 DataService.init()
@@ -37,6 +38,13 @@ local function onPlayerAdded(player)
 			then "Theme → dress → runway → vote. Invite a friend."
 			else "Welcome to Open Cast — theme, dress, runway, vote. First win under two minutes.",
 	})
+	local function paint(character)
+		LookVisuals.applyToModel(character, DataService.get(player).equippedLookId)
+	end
+	player.CharacterAdded:Connect(paint)
+	if player.Character then
+		paint(player.Character)
+	end
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)

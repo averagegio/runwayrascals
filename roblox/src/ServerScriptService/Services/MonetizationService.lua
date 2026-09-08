@@ -12,6 +12,7 @@
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Config = require(ReplicatedStorage.Shared.Config)
 local Catalog = require(ReplicatedStorage.Shared.Catalog)
@@ -22,9 +23,14 @@ local DataService = require(script.Parent.DataService)
 local MonetizationService = {}
 
 local pendingGiftTarget: { [number]: number } = {}
+local studioPasses: { [number]: { [string]: boolean } } = {}
 
 local function toast(player: Player, text: string)
 	Remotes.event(Remotes.Events.Toast):FireClient(player, text)
+end
+
+local function studioMock(): boolean
+	return RunService:IsStudio() and Config.StudioPlaytest.mockMarketplace == true
 end
 
 local function passId(key: string): number
@@ -36,6 +42,12 @@ local function passId(key: string): number
 end
 
 function MonetizationService.ownsPass(player: Player, key: string): boolean
+	if studioMock() then
+		local owned = studioPasses[player.UserId]
+		if owned and owned[key] == true then
+			return true
+		end
+	end
 	local id = passId(key)
 	if not Config.isConfiguredId(id) then
 		return false
@@ -72,6 +84,16 @@ end
 function MonetizationService.promptPass(player: Player, key: string)
 	local id = passId(key)
 	if not Config.isConfiguredId(id) then
+		if studioMock() then
+			studioPasses[player.UserId] = studioPasses[player.UserId] or {}
+			studioPasses[player.UserId][key] = true
+			if key == "FrontRowVIP" then
+				DataService.extendVip(player, 30)
+			end
+			toast(player, "Studio mock: " .. key .. " (paste real IDs before publish).")
+			Remotes.event(Remotes.Events.PlayerData):FireClient(player, DataService.get(player))
+			return
+		end
 		toast(player, "Set Game Pass IDs in Config.lua (this universe only).")
 		return
 	end
@@ -80,12 +102,20 @@ end
 
 function MonetizationService.promptProduct(player: Player, key: string)
 	local def = (Config.Products :: any)[key]
-	if type(def) ~= "table" or not Config.isConfiguredId(def.id) then
-		toast(player, "Set Developer Product IDs in Config.lua (this universe only).")
+	if type(def) ~= "table" then
 		return
 	end
 	if type(def.stylePoints) == "number" then
 		toast(player, "Style Points are earned in-round — not sold for Robux.")
+		return
+	end
+	if not Config.isConfiguredId(def.id) then
+		if studioMock() then
+			MonetizationService.grantProductByKey(player, key)
+			toast(player, "Studio mock: " .. def.name .. " (paste real IDs before publish).")
+			return
+		end
+		toast(player, "Set Developer Product IDs in Config.lua (this universe only).")
 		return
 	end
 	MarketplaceService:PromptProductPurchase(player, def.id)
@@ -107,23 +137,17 @@ local function grantLookPack(player: Player, lookId: string)
 	end
 end
 
-function MonetizationService.grantProduct(player: Player, productId: number): boolean
-	local _, def = productById(productId)
-	if not def then
-		warn("[Rascal] Unknown product", productId)
-		return false
-	end
-
+local function applyDef(player: Player, buyer: Player, def: any): boolean
 	local beneficiary = player
 	if def.gift == true then
-		local targetId = pendingGiftTarget[player.UserId]
-		pendingGiftTarget[player.UserId] = nil
+		local targetId = pendingGiftTarget[buyer.UserId]
+		pendingGiftTarget[buyer.UserId] = nil
 		if type(targetId) == "number" then
 			local target = Players:GetPlayerByUserId(targetId)
 			if target then
 				beneficiary = target
 			else
-				toast(player, "Gift held — friend must be in this server. Retry while they're here.")
+				toast(buyer, "Gift held — friend must be in this server. Retry while they're here.")
 				return false
 			end
 		end
@@ -139,15 +163,32 @@ function MonetizationService.grantProduct(player: Player, productId: number): bo
 		DataService.addQueueSkipTickets(beneficiary, def.queueSkipTickets)
 	end
 
-	toast(player, "Unlocked: " .. def.name)
-	if beneficiary ~= player then
-		toast(beneficiary, player.DisplayName .. " sent you " .. def.name)
+	toast(buyer, "Unlocked: " .. def.name)
+	if beneficiary ~= buyer then
+		toast(beneficiary, buyer.DisplayName .. " sent you " .. def.name)
 	end
-	Remotes.event(Remotes.Events.PlayerData):FireClient(player, DataService.get(player))
-	if beneficiary ~= player then
+	Remotes.event(Remotes.Events.PlayerData):FireClient(buyer, DataService.get(buyer))
+	if beneficiary ~= buyer then
 		Remotes.event(Remotes.Events.PlayerData):FireClient(beneficiary, DataService.get(beneficiary))
 	end
 	return true
+end
+
+function MonetizationService.grantProductByKey(player: Player, key: string): boolean
+	local def = (Config.Products :: any)[key]
+	if type(def) ~= "table" then
+		return false
+	end
+	return applyDef(player, player, def)
+end
+
+function MonetizationService.grantProduct(player: Player, productId: number): boolean
+	local _, def = productById(productId)
+	if not def then
+		warn("[Rascal] Unknown product", productId)
+		return false
+	end
+	return applyDef(player, player, def)
 end
 
 function MonetizationService.processReceipt(receiptInfo: { [string]: any }): Enum.ProductPurchaseDecision

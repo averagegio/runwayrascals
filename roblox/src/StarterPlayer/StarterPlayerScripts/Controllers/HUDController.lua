@@ -11,6 +11,7 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Catalog = require(ReplicatedStorage.Shared.Catalog)
 local Remotes = require(ReplicatedStorage.Net.Remotes)
 
 local HUD = {}
@@ -24,8 +25,11 @@ local toastLabel: TextLabel
 local stylePointsLabel: TextLabel
 local voteFrame: Frame
 local voteList: Frame
+local dressFrame: Frame
+local dressList: Frame
 local giftFrame: Frame?
 local boutiqueFrame: Frame?
+local lastData: any = nil
 
 local function mk(className: string, props: { [string]: any }, parent: Instance?): any
 	local inst = Instance.new(className)
@@ -169,6 +173,40 @@ function HUD.mount()
 		VerticalAlignment = Enum.VerticalAlignment.Top,
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	}, voteList)
+
+	dressFrame = mk("Frame", {
+		Name = "DressPanel",
+		Visible = false,
+		BackgroundTransparency = 0.12,
+		BackgroundColor3 = Color3.fromRGB(12, 10, 14),
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 16, 1, -16),
+		Size = UDim2.fromOffset(280, 280),
+	}, gui)
+	mk("UICorner", { CornerRadius = UDim.new(0, 12) }, dressFrame)
+	mk("TextLabel", {
+		Name = "DressTitle",
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		Text = "Dress the look",
+		TextColor3 = Color3.fromRGB(201, 165, 106),
+		TextSize = 14,
+		Size = UDim2.new(1, -16, 0, 28),
+		Position = UDim2.fromOffset(8, 6),
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, dressFrame)
+	dressList = mk("ScrollingFrame", {
+		Name = "DressList",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(8, 36),
+		Size = UDim2.new(1, -16, 1, -44),
+		CanvasSize = UDim2.fromOffset(0, 420),
+		ScrollBarThickness = 4,
+	}, dressFrame)
+	mk("UIListLayout", {
+		Padding = UDim.new(0, 6),
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	}, dressList)
 
 	local actions = mk("Frame", {
 		BackgroundTransparency = 1,
@@ -345,6 +383,21 @@ function HUD.setStylePoints(n: number)
 	end
 end
 
+function HUD.setData(data: any)
+	if typeof(data) ~= "table" then
+		return
+	end
+	lastData = data
+	local sp = data.stylePoints
+	if type(sp) ~= "number" then
+		sp = data.coins
+	end
+	if type(sp) == "number" then
+		HUD.setStylePoints(sp)
+	end
+	HUD.rebuildDress()
+end
+
 -- Back-compat alias (old clients sent "coins").
 function HUD.setCoins(n: number)
 	HUD.setStylePoints(n)
@@ -378,6 +431,50 @@ local function rebuildVotes(state: any)
 	end
 end
 
+function HUD.rebuildDress()
+	if not dressList then
+		return
+	end
+	for _, child in dressList:GetChildren() do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
+	local owned = if lastData and type(lastData.ownedLooks) == "table" then lastData.ownedLooks else Catalog.starterOwned()
+	local equipped = if lastData then lastData.equippedLookId else Config.DefaultLookId
+	local points = if lastData and type(lastData.stylePoints) == "number" then lastData.stylePoints else 0
+	local order = 0
+	for _, look in Catalog.Looks do
+		order += 1
+		local has = table.find(owned, look.id) ~= nil
+		local suffix
+		if has and look.id == equipped then
+			suffix = "on"
+		elseif has then
+			suffix = "equip"
+		elseif look.track == "stylePoints" then
+			suffix = tostring(look.stylePointCost or 0) .. " SP"
+		else
+			suffix = "Robux"
+		end
+		local btn = pill(string.format("%s  ·  %s", look.name, suffix), dressList, order)
+		local lookId = look.id
+		btn.MouseButton1Click:Connect(function()
+			if has then
+				Remotes.event(Remotes.Events.RequestEquipLook):FireServer(lookId)
+			elseif look.track == "stylePoints" then
+				if points < (look.stylePointCost or 0) then
+					HUD.toast("Need more Style Points — walk first.")
+					return
+				end
+				Remotes.event(Remotes.Events.RequestBuyLook):FireServer(lookId)
+			else
+				HUD.toast("Robux / IEC looks live in Boutique.")
+			end
+		end)
+	end
+end
+
 function HUD.setRound(state: any)
 	if typeof(state) ~= "table" then
 		return
@@ -408,6 +505,14 @@ function HUD.setRound(state: any)
 		)
 	end
 	rebuildVotes(state)
+	local isDress = state.phase == Config.Phases.Dress
+	if dressFrame then
+		dressFrame.Visible = isDress
+		if isDress then
+			voteFrame.Visible = false
+			HUD.rebuildDress()
+		end
+	end
 end
 
 function HUD.setHint(text: string)

@@ -125,7 +125,8 @@ describe('Luau uses real Roblox APIs', () => {
         'src/ServerScriptService/Services/SocialHookService.lua',
         'src/ServerScriptService/Services/RoundService.lua',
         'src/StarterPlayer/StarterPlayerScripts/Controllers/ShareController.lua',
-        'src/ReplicatedStorage/Shared/Config.lua'
+        'src/ReplicatedStorage/Shared/Config.lua',
+        'src/ReplicatedStorage/Net/Remotes.lua'
     ].map((rel) => read(rel));
 
     it('calls MarketplaceService, DataStoreService, SocialService, CaptureService, GetJoinData', () => {
@@ -146,6 +147,8 @@ describe('Luau uses real Roblox APIs', () => {
         assert.match(all, /GetJoinData/);
         assert.match(all, /RequestVote/);
         assert.match(all, /RequestGift/);
+        assert.match(all, /RequestEquipLook/);
+        assert.match(all, /RequestBuyLook/);
     });
 
     it('treats product id 0 as unconfigured', () => {
@@ -155,11 +158,73 @@ describe('Luau uses real Roblox APIs', () => {
     });
 });
 
+describe('Studio Play Solo', () => {
+    it('clears the default Baseplate so Connect → Play starts on the plaza', () => {
+        const arena = read('src/ServerScriptService/Services/ArenaService.lua');
+        assert.match(arena, /clearDefaultMap/);
+        assert.match(arena, /Baseplate/);
+        assert.match(arena, /DressingRoom/);
+        assert.match(arena, /CamLobby/);
+        assert.match(arena, /CamPose/);
+        assert.match(arena, /Atmosphere/);
+    });
+
+    it('spawns Studio cast NPCs and a mock marketplace only in Studio', () => {
+        const config = read('src/ReplicatedStorage/Shared/Config.lua');
+        const round = read('src/ServerScriptService/Services/RoundService.lua');
+        const cast = read('src/ServerScriptService/Services/StudioCastService.lua');
+        const monetization = read('src/ServerScriptService/Services/MonetizationService.lua');
+        assert.match(config, /StudioPlaytest/);
+        assert.match(config, /spawnCastNpcs = true/);
+        assert.match(config, /mockMarketplace = true/);
+        assert.match(config, /dressOnTutorial = true/);
+        assert.match(config, /tutorialDressSeconds = 8/);
+        assert.match(config, /npcUserIds = \{ -9101, -9102 \}/);
+        assert.match(cast, /RunService:IsStudio/);
+        assert.match(cast, /-9101/);
+        assert.match(round, /ensureStudioCast/);
+        assert.match(round, /isNpc/);
+        assert.match(monetization, /studioMock/);
+        assert.match(monetization, /Studio mock/);
+        assert.match(monetization, /grantProductByKey/);
+    });
+
+    it('wires dress equip / Style Point buy and visible looks', () => {
+        const remotes = read('src/ReplicatedStorage/Net/Remotes.lua');
+        const data = read('src/ServerScriptService/Services/DataService.lua');
+        const hud = read('src/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.lua');
+        const visuals = read('src/ReplicatedStorage/Shared/LookVisuals.lua');
+        const cam = read('src/StarterPlayer/StarterPlayerScripts/Controllers/CameraController.lua');
+        assert.match(remotes, /RequestEquipLook/);
+        assert.match(remotes, /RequestBuyLook/);
+        assert.match(data, /equippedLookId/);
+        assert.match(data, /buyLookWithStylePoints/);
+        assert.match(data, /function DataService.equipLook/);
+        assert.match(hud, /DressPanel/);
+        assert.match(hud, /rebuildDress/);
+        assert.match(visuals, /applyToModel/);
+        assert.match(visuals, /BodyColors/);
+        assert.match(cam, /CameraType.Scriptable/);
+        assert.match(cam, /CamLobby/);
+    });
+
+    it('keeps Studio tutorial + dress under the first-win budget', () => {
+        const balance = json('src/ReplicatedStorage/Shared/Balance.json');
+        const t = balance.tutorial;
+        const dress = 8;
+        const total =
+            t.lobbySeconds + dress + t.countdownSeconds + t.runSeconds + t.poseSeconds + t.voteSeconds;
+        assert.ok(total < balance.retention.firstWinTargetSeconds, `studio tutorial ${total}s`);
+        assert.equal(total, 82);
+    });
+});
+
 describe('web quick-run still exists for the live HTML game', () => {
     it('ships quick-run.js', () => {
         assert.ok(existsSync(path.join(repo, 'quick-run.js')));
     });
 });
+
 
 describe('Rokit + Wally + Rojo + MCP templates', () => {
     it('pins rojo and wally in rokit.toml (not Aftman)', () => {

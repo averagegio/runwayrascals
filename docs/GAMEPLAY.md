@@ -27,9 +27,10 @@ Goal: **first finish without a wipe in under two minutes**.
 | --- | --- | --- |
 | Splash | ~2s | RR mark, theme → dress → runway → vote |
 | Lobby | 6s | Auto-queue; **Fast Cast** (or a ticket) skips wait — VIP does **not** |
+| Dress (Studio Play Solo) | 8s | Closet panel: equip owned looks / buy Style Point looks. Skipped on live tutorial |
 | Countdown | 3s | 3-2-1 |
 | Run | 45s | Extra life, 5s start shield, rare target **1**, win on **finish line** (not 3 rares) |
-| Pose + vote + score | ~26s | Hold pose, one vote, Style Points, First Walk badge (when ID set) |
+| Pose + vote + score | ~26s | Hold pose, one vote (Studio spawns two house NPCs so solo vote works), Style Points, First Walk badge (when ID set) |
 
 Web **Quick Run** (home CTA) mirrors the short first-win: Easy NY + Rick Owens magnet show, skip character/wardrobe/map funnel (`quick-run.js`).
 
@@ -92,3 +93,4 @@ Session design: a show is ~90s; rematch is one tap. Three shows + boutique brows
 - `minPlayers = 1` so Studio Play Solo completes a show
 - Cap 8 walkers; extras spectate (Director Cam pass = nicer cameras, not extra score)
 - Server moves a hidden cart and CFrames `HumanoidRootPart` — replace with animations when the rig is in
+- **Studio only:** `StudioCastService` adds Nightfall + Crest mannequins on lanes 0 and 2 so the vote panel is not empty. They never write DataStores. `Config.StudioPlaytest.mockMarketplace` grants session cosmetics when product IDs are still `0` — paste real IDs before publish.

@@ -39,6 +39,12 @@ Or one script:
 cd roblox && bash scripts/setup.sh
 ```
 
+Build a place file (optional, gitignored):
+
+```bash
+npm run roblox:build   # → roblox/build/RascalRunways.rbxl
+```
+
 From repo root: `npm run roblox:setup` (same script).
 
 `rokit.toml` pins:

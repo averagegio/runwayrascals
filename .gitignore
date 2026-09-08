@@ -13,3 +13,4 @@ roblox/Packages/**
 !roblox/Packages/.gitkeep
 roblox/ServerPackages/**
 !roblox/ServerPackages/.gitkeep
+roblox/build/

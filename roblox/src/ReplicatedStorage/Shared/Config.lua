@@ -231,6 +231,19 @@ Config.CreatorRewards = {
 	engagementBasedPayoutsEnded = "2025-07",
 }
 
+--[[
+	Play Solo on an unpublished place. Live servers ignore these flags
+	because RunService:IsStudio() is false. Mock grants never persist
+	to a published universe.
+]]
+Config.StudioPlaytest = {
+	spawnCastNpcs = true,
+	mockMarketplace = true,
+	dressOnTutorial = true,
+	tutorialDressSeconds = 8,
+	npcUserIds = { -9101, -9102 },
+}
+
 function Config.isConfiguredId(id: number): boolean
 	return type(id) == "number" and id > 0
 end

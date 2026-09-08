@@ -37,11 +37,14 @@ Full toolchain (Rokit, Wally, sourcemap, Cursor MCP): **[`../SETUP.md`](../SETUP
 5. In Studio: open a **new Baseplate** (or your place) → Plugins → **Rojo** → **Connect**.
 6. Press **Play**. You should get:
    - RR splash (`ReplicatedFirst`)
-   - Generated lobby + 3-lane catwalk (`ArenaService`)
-   - HUD (phase + weekly theme, Style Points, vote panel, rematch / spectate / invite / share / boutique)
+   - Generated lobby + 3-lane catwalk (`ArenaService`) — default **Baseplate is destroyed** so you spawn on the plaza
+   - Dressing room, VIP lounge, runway spots, skyline, lobby/pose cameras
+   - HUD (phase + weekly theme, Style Points, **dress panel**, vote panel, rematch / spectate / invite / share / boutique)
+   - **Studio Play Solo extras** (IsStudio only): two house NPCs (Nightfall / Crest) so vote has a target; 8s dress beat on the tutorial; boutique **mock grants** while IDs are `0`
    - Auto-join **Open Cast** tutorial round (~45s run + pose + vote) aimed at a first finish under two minutes
-   - A/D or swipe lanes, W jump, S slide; neon orbs = looks, dark blocks = paparazzi
-7. File → Save to Roblox (publish the place). Enable **Studio access to API services** (Game Settings → Security) so `DataStoreService` and `MarketplaceService` work in Play Solo.
+   - A/D or swipe lanes, W jump, S slide; neon orbs = looks (they tint the avatar); dark blocks = paparazzi
+7. Optional: `npm run roblox:build` then File → Open `roblox/build/RascalRunways.rbxl` (binary is gitignored).
+8. File → Save to Roblox (publish the place). Enable **Studio access to API services** (Game Settings → Security) so `DataStoreService` and `MarketplaceService` work in Play Solo. Mock grants do **not** replace real IDs on a published place.
 
 On the same machine as Cursor: Studio Assistant → Manage MCP Servers → enable Studio MCP → **Quick connect → Cursor**. This cloud VM does not run Studio MCP.
 
@@ -107,4 +110,6 @@ From repo root:
 npm test
 ```
 
-Checks project paths, tutorial duration &lt; 120s, scoring numbers, and that Luau files reference real services.
+Checks project paths, tutorial duration &lt; 120s (including Studio's extra 8s dress), scoring numbers, Play Solo NPC/mock/dress wiring, and that Luau files reference real services.
+
+`npm run roblox:build` writes `roblox/build/RascalRunways.rbxl` when Rojo is installed (file is gitignored).

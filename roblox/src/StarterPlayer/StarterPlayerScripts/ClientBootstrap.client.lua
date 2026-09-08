@@ -8,24 +8,17 @@ local HUD = require(script.Parent.Controllers.HUDController)
 local InputController = require(script.Parent.Controllers.InputController)
 local ShareController = require(script.Parent.Controllers.ShareController)
 local SpectateController = require(script.Parent.Controllers.SpectateController)
+local CameraController = require(script.Parent.Controllers.CameraController)
 
 HUD.mount()
 InputController.bind()
 ShareController.bind(HUD.gui())
+CameraController.bind()
 
 local player = Players.LocalPlayer
 
 local function applyData(data: any)
-	if type(data) ~= "table" then
-		return
-	end
-	local sp = data.stylePoints
-	if type(sp) ~= "number" then
-		sp = data.coins
-	end
-	if type(sp) == "number" then
-		HUD.setStylePoints(sp)
-	end
+	HUD.setData(data)
 end
 
 task.spawn(function()
@@ -50,6 +43,7 @@ end)
 
 Remotes.event(Remotes.Events.RoundState).OnClientEvent:Connect(function(state)
 	HUD.setRound(state)
+	CameraController.setRound(state)
 	if type(state) == "table" then
 		for _, row in state.contestants or {} do
 			if row.userId == player.UserId and row.spectatingUserId then

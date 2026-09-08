@@ -40,6 +40,12 @@
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "$ignoreUnknownInstances": true,
+      "$properties": {
+        "CameraMaxZoomDistance": 64,
+        "CameraMinZoomDistance": 6,
+        "CharacterWalkSpeed": 16,
+        "EnableMouseLockOption": true
+      },
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
         "$ignoreUnknownInstances": true,

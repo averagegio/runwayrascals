@@ -8,6 +8,7 @@
     "test": "node --test roblox/scripts/scaffold.test.mjs",
     "roblox:setup": "bash roblox/scripts/setup.sh",
     "roblox:serve": "rojo serve roblox/default.project.json",
+    "roblox:build": "bash roblox/scripts/build.sh",
     "roblox:sourcemap": "rojo sourcemap roblox/default.project.json --output roblox/sourcemap.json",
     "roblox:wally": "cd roblox && wally install"
   },
