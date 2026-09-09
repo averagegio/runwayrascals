@@ -1,11 +1,11 @@
 /**
- * Rascal Runways — web ↔ Roblox play link.
+ * Rascal Runways â€” web â†” Roblox play link.
  * Keep PLACE_ID in sync with Config.PlaceId in roblox/src/ReplicatedStorage/Shared/Config.lua.
  */
 (function (global) {
     'use strict';
 
-    const PLACE_ID = 0;
+    const PLACE_ID = 77428346462225;
     const SLUG = 'Rascal-Runways';
 
     function playUrl() {
