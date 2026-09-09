@@ -1,9 +1,9 @@
 --!strict
 --[[
-	Rascal Runways — shared config for the Roblox experience.
+	Rascal Runways â€” shared config for the Roblox experience.
 
 	Product / Game Pass IDs are 0 until created on THIS universe in Creator Dashboard.
-	Cross-game pass sales are disabled (~May 2026) — do not reuse IDs from other places.
+	Cross-game pass sales are disabled (~May 2026) â€” do not reuse IDs from other places.
 	Config.isConfiguredId skips MarketplaceService prompts while id == 0.
 ]]
 
@@ -33,7 +33,7 @@ Config.RECEIPT_STORE_NAME = "RascalRunways_Receipts_v1"
 Config.REMOTES_FOLDER = "RascalRemotes"
 Config.ARENA_NAME = "RascalArena"
 -- Creator Dashboard place id. 0 until published. Keep in sync with roblox-play.js.
-Config.PlaceId = 0
+Config.PlaceId = 77428346462225
 
 Config.Policy = {
 	cosmeticVipOnly = true,
@@ -224,8 +224,8 @@ Config.Vip = {
 	poseNames = { "FrontRow", "FinaleHold", "GoldTagIdle" },
 }
 
--- Share Links from day one → Creator Rewards (Active Spender / Audience Expansion).
--- Engagement-Based Payouts ended July 2025 — do not farm AFK Premium time.
+-- Share Links from day one â†’ Creator Rewards (Active Spender / Audience Expansion).
+-- Engagement-Based Payouts ended July 2025 â€” do not farm AFK Premium time.
 Config.CreatorRewards = {
 	shareLinksFromDayOne = true,
 	activeSpender = true,
