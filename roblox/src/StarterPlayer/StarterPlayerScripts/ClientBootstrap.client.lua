@@ -1,4 +1,4 @@
--- Client bootstrap: HUD, input, share, spectate, join Open Cast.
+-- Client bootstrap: HUD, input, share, spectate, districts, join Open Cast.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -9,11 +9,13 @@ local InputController = require(script.Parent.Controllers.InputController)
 local ShareController = require(script.Parent.Controllers.ShareController)
 local SpectateController = require(script.Parent.Controllers.SpectateController)
 local CameraController = require(script.Parent.Controllers.CameraController)
+local DistrictController = require(script.Parent.Controllers.DistrictController)
 
 HUD.mount()
 InputController.bind()
 ShareController.bind(HUD.gui())
 CameraController.bind()
+DistrictController.bind()
 
 local player = Players.LocalPlayer
 

@@ -1,23 +1,27 @@
--- Server bootstrap: remotes, arena, data, monetization, rounds.
+-- Server bootstrap: remotes, world, data, monetization, rounds.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 local Remotes = require(ReplicatedStorage.Net.Remotes)
 Remotes.ensure()
 
-local ArenaService = require(script.Parent.Services.ArenaService)
+local WorldService = require(script.Parent.Services.WorldService)
+local SeasonService = require(script.Parent.Services.SeasonService)
+local BoutiqueService = require(script.Parent.Services.BoutiqueService)
 local DataService = require(script.Parent.Services.DataService)
 local MonetizationService = require(script.Parent.Services.MonetizationService)
 local RoundService = require(script.Parent.Services.RoundService)
 local SocialHookService = require(script.Parent.Services.SocialHookService)
 local LookVisuals = require(ReplicatedStorage.Shared.LookVisuals)
 
-ArenaService.build()
+local worldRoot = WorldService.build()
 DataService.init()
 DataService.bind()
 MonetizationService.bind()
 SocialHookService.bind()
 RoundService.bind()
+SeasonService.apply(worldRoot)
+BoutiqueService.build(worldRoot)
 
 Remotes.fn(Remotes.Functions.GetPlayerData).OnServerInvoke = function(player)
 	DataService.load(player)
@@ -32,6 +36,7 @@ local function onPlayerAdded(player)
 	DataService.applyDailyAndStreak(player)
 	local data = DataService.get(player)
 	Remotes.event(Remotes.Events.PlayerData):FireClient(player, data)
+	SeasonService.sendTo(player)
 	Remotes.event(Remotes.Events.Tutorial):FireClient(player, {
 		step = if data.tutorialComplete then "lobby" else "welcome",
 		hint = if data.tutorialComplete
@@ -52,4 +57,4 @@ for _, player in Players:GetPlayers() do
 	task.spawn(onPlayerAdded, player)
 end
 
-print("[Rascal Runways] Server ready — Open Cast lobby is live.")
+print("[Rascal Runways] Server ready — Rascal City is live.")

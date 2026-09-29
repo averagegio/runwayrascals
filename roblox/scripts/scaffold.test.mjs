@@ -331,10 +331,67 @@ describe('Monetization policy 2026', () => {
         const play = readFileSync(path.join(repo, 'roblox-play.js'), 'utf8');
         const home = readFileSync(path.join(repo, 'index.html'), 'utf8');
         const landing = readFileSync(path.join(repo, 'roblox.html'), 'utf8');
-        assert.match(config, /Config\.PlaceId = 0/);
-        assert.match(play, /const PLACE_ID = 0/);
+        const configId = config.match(/Config\.PlaceId = (\d+)/)?.[1];
+        const playId = play.match(/const PLACE_ID = (\d+)/)?.[1];
+        assert.ok(configId && Number(configId) > 0, 'Config.PlaceId is a real place id');
+        assert.equal(playId, configId, 'roblox-play.js shares Config.PlaceId');
         assert.match(home, /id="robloxPlayLink"/);
-        assert.match(home, /roblox-play.js/);
+        assert.match(home, /roblox-play\.js/);
         assert.match(landing, /Play on Roblox/);
+    });
+});
+
+describe('Rascal City world scaffold', () => {
+    it('new services exist and bootstraps wire them', () => {
+        for (const f of [
+            'src/ServerScriptService/Services/WorldService.lua',
+            'src/ServerScriptService/Services/SeasonService.lua',
+            'src/ServerScriptService/Services/BoutiqueService.lua',
+            'src/StarterPlayer/StarterPlayerScripts/Controllers/DistrictController.lua',
+        ]) assert.equal(existsSync(path.join(root, f)), true, f);
+        const bootstrap = read('src/ServerScriptService/Bootstrap.server.lua');
+        assert.match(bootstrap, /WorldService\.build\(\)/);
+        assert.match(bootstrap, /SeasonService\.apply\(/);
+        assert.match(bootstrap, /BoutiqueService\.build\(/);
+        const client = read('src/StarterPlayer/StarterPlayerScripts/ClientBootstrap.client.lua');
+        assert.match(client, /DistrictController\.bind\(\)/);
+    });
+
+    it('config declares world layout, seasons, and the season remote', () => {
+        const config = read('src/ReplicatedStorage/Shared/Config.lua');
+        assert.match(config, /Config\.World = \{/);
+        assert.match(config, /Config\.Seasons = \{/);
+        assert.match(config, /districts = \{/);
+        const remotes = read('src/ReplicatedStorage/Net/Remotes.lua');
+        assert.match(remotes, /SeasonChanged/);
+    });
+
+    it('districts align 1:1 with cities and seasons cover all twelve months', () => {
+        const config = read('src/ReplicatedStorage/Shared/Config.lua');
+        const cityCount = (config.match(/id = "(newyork|milan|paris|london|berlin|miami)"/g) || []).length;
+        assert.equal(cityCount, 6);
+        const districtCount = (config.match(/\{ x = [+-]?\d+, z = \d+ \},? --/g) || []).length;
+        assert.equal(districtCount, 6);
+        const months = new Set();
+        for (const m of config.matchAll(/months = \{ ([0-9, ]+) \}/g)) {
+            for (const n of m[1].split(',')) months.add(Number(n.trim()));
+        }
+        assert.equal(months.size, 12);
+    });
+
+    it('boutique never sells style points and stays cosmetic-only', () => {
+        const boutique = read('src/ServerScriptService/Services/BoutiqueService.lua');
+        assert.match(boutique, /buyLookWithStylePoints/);
+        assert.match(boutique, /promptProduct/);
+        assert.equal(/PromptProductPurchase.*[Dd]onat/.test(boutique), false);
+        const season = read('src/ServerScriptService/Services/SeasonService.lua');
+        assert.match(season, /FireAllClients/);
+    });
+
+    it('world doc exists and describes the city loop', () => {
+        const world = readFileSync(path.join(repo, 'docs/WORLD.md'), 'utf8');
+        assert.match(world, /Rascal City/);
+        assert.match(world, /Boutique/);
+        assert.match(world, /[Ss]eason/);
     });
 });

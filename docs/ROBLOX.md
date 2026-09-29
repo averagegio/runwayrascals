@@ -1,5 +1,15 @@
 # Rascal Runways → Roblox
 
+## Rascal City (current)
+
+The place is now a **persistent fashion world**, not just a runway arena —
+see [`WORLD.md`](WORLD.md). `WorldService` builds Rascal City around the
+Fashion Week venue: Central Plaza (spawn), Grand Avenue, six fashion
+districts (one per city/house), the flagship Boutique (in-world try-on +
+Style Points / Robux shopping via `BoutiqueService`), and real calendar
+seasons (`SeasonService`). The round loop is untouched — the game loop is now
+**city → show → city**. Play Solo checklist lives in `WORLD.md`.
+
 ## What exists today (web) vs what Roblox still needed
 
 Inspected on `main` (Fashion Week runner + clip-share PRs already merged).

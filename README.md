@@ -9,7 +9,7 @@ Live web game: [rascalrunways.com](https://rascalrunways.com) · Roblox place in
 | Track | Stack | Status |
 | --- | --- | --- |
 | **Web game (live)** | Static HTML/CSS/JS canvas runner + Three.js avatars, Vercel serverless Express, Neon Postgres, Stripe boutique, clip-share to X/TikTok/IG, Swift WKWebView wrapper | Shipped |
-| **Roblox** | Rojo + Luau: lobby → theme → dress → runway → vote, DataStores, cosmetic VIP, Style Points, Share Links, Studio Play Solo arena | In this repo — `rojo serve` then Play; home CTA **Play on Roblox** |
+| **Roblox** | Rojo + Luau: **Rascal City world** (plaza, 6 districts, boutique, real seasons) around the runway — lobby → theme → dress → runway → vote, DataStores, cosmetic VIP, Style Points, Share Links, Studio Play Solo | In this repo — `rojo serve` then Play; home CTA **Play on Roblox** |
 
 The HTML game stays the production web surface. Roblox is the same IP on a round-based place you can Press Play in Studio — not a half-ported rewrite.
 

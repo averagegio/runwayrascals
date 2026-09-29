@@ -234,6 +234,36 @@ Config.CreatorRewards = {
 }
 
 --[[
+	Rascal City — persistent fashion world around the Fashion Week venue.
+	Coordinates are studs on the XZ plane; Y heights live in WorldService.
+	Config.World.districts is index-aligned with Config.Cities:
+	west column = New York / Paris / Berlin, east column = Milan / London / Miami.
+]]
+Config.World = {
+	plaza = { x = 0, z = 175, radius = 42 },
+	avenue = { x = 0, z0 = 52, z1 = 148, halfWidth = 9 },
+	venueGate = { x = 0, z = 58 },
+	boutique = { x = -48, z = 170, w = 34, d = 26, h = 14 },
+	districtSize = 46,
+	districts = {
+		{ x = -75, z = 95 }, -- 1 New York (House Nightfall)
+		{ x = 75, z = 95 }, -- 2 Milan (House Oblique)
+		{ x = -75, z = 160 }, -- 3 Paris (House Oblique)
+		{ x = 75, z = 160 }, -- 4 London (House Crest)
+		{ x = -75, z = 225 }, -- 5 Berlin (House Concrete)
+		{ x = 75, z = 225 }, -- 6 Miami (House Silk)
+	},
+}
+
+-- Real seasons: picked from the calendar month, honest and visible.
+Config.Seasons = {
+	{ id = "spring", name = "Spring", months = { 3, 4, 5 } },
+	{ id = "summer", name = "Summer", months = { 6, 7, 8 } },
+	{ id = "autumn", name = "Autumn", months = { 9, 10, 11 } },
+	{ id = "winter", name = "Winter", months = { 12, 1, 2 } },
+}
+
+--[[
 	Play Solo on an unpublished place. Live servers ignore these flags
 	because RunService:IsStudio() is false. Mock grants never persist
 	to a published universe.

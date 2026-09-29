@@ -27,6 +27,7 @@ Remotes.Events = {
 	PlayerData = "PlayerData",
 	Toast = "Toast",
 	Tutorial = "Tutorial",
+	SeasonChanged = "SeasonChanged",
 }
 
 Remotes.Functions = {
