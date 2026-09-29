@@ -246,6 +246,37 @@ function BoutiqueService.build(worldRoot: Folder)
 		stand(shell, look, x, z, accent)
 	end
 
+	-- SS27 Trend Drop wall: two rows of five hugging the side walls,
+	-- clear of the house rows (z 165/175) and the checkout counter.
+	local trendLooks: { any } = {}
+	for _, id in Catalog.TrendDrop do
+		local look = Catalog.getLook(id)
+		if look then
+			table.insert(trendLooks, look)
+		end
+	end
+	for i, look in trendLooks do
+		local row = math.floor((i - 1) / 5)
+		local col = (i - 1) % 5
+		local house = (Config.Houses :: any)[look.houseId]
+		local accent: Color3 = if house then house.accent else GOLD
+		local x = b.x - 12 + col * 6
+		local z = if row == 0 then b.z - 10 else b.z + 10
+		stand(shell, look, x, z, accent)
+	end
+
+	-- Trend Drop header sign on the north wall.
+	local dropSign = part({
+		Name = "TrendDropSign",
+		Size = Vector3.new(24, 2.5, 0.8),
+		Position = Vector3.new(b.x, 9, b.z - b.d / 2 + 1),
+		Color = Color3.fromRGB(20, 16, 24),
+		Material = Enum.Material.SmoothPlastic,
+		CanCollide = false,
+	})
+	dropSign.Parent = shell
+	billboard(dropSign, "SS27 TREND DROP — NEW THIS SEASON", 2.6, 420)
+
 	-- Checkout counter at the back.
 	local counter = part({
 		Name = "Checkout",
@@ -272,7 +303,11 @@ function BoutiqueService.build(worldRoot: Folder)
 	sign.Parent = shell
 	billboard(sign, "THIS WEEK: " .. string.upper(dropName), 3.6, 280)
 
-	print(string.format("[Rascal Runways] Boutique stocked: %d looks on display.", #looks))
+	print(string.format(
+		"[Rascal Runways] Boutique stocked: %d house looks + %d trend drop looks on display.",
+		#looks,
+		#trendLooks
+	))
 end
 
 return BoutiqueService

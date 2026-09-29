@@ -91,6 +91,31 @@ Also builds the checkout counter and the "THIS WEEK" drop sign driven by
 `LiveOps.theme()`. Cosmetic only — nothing here touches votes, score, or
 speed, per the monetization rules in `docs/MONETIZATION.md`.
 
+#### SS27 Trend Drop wall
+`Catalog.TrendDrop` curates ten runway-trend pieces as **original Rascal
+designs** (real-world brand names appear only in the `webAnalog` mapping —
+never as in-game item names on Roblox):
+
+| Piece | Trend inspiration | Track |
+|---|---|---|
+| Triple-Strap Belt (hero) | triple-strap it-belt w/ gold bit hardware | Robux, rare |
+| Atelier Shades | geometric statement eyewear | Robux, rare |
+| Cloudspun Knit | oversized chunky knit | Style Points 180 |
+| Coin-Trim Belt | coin-trim waist belt | Style Points 220, rare, earn-in-play |
+| Fringe Motion Top | runway fringe | Style Points 140 |
+| Scarf-Wrap Belt | scarf-as-belt | Style Points 150 |
+| Shoulder-Tied Cardi | tied-sweater styling trick | Style Points 160 |
+| Satin Cummerbund | borrowed-from-the-boys waistband | Style Points 190 |
+| Argyle Heritage Vest | argyle comeback | Style Points 120 |
+| Sheer Layer Skirt | day-sheer layering | Style Points 200 |
+
+The wall is two rows of five along the boutique's side walls under an
+"SS27 TREND DROP" sign. `LookVisuals.buildTrendProp` gives the hero pieces
+real geometry (triple straps + gold bit, visor shades, coins, fringe,
+sheer skirt) on both player avatars and the mannequins. The rare
+Coin-Trim Belt also drops as a gold pickup inside Fashion Week shows via
+`RoundService`.
+
 ### DistrictController (`Controllers/DistrictController.lua`)
 Client-side: polls the character position against `WorldDistricts` bounds and
 toasts on crossing (`— MILAN · Book Tote Finale —`); announces season changes

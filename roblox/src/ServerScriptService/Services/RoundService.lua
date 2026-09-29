@@ -153,7 +153,7 @@ local function spawnPickups(root: Folder)
 
 	local finishZ = root:GetAttribute("FinishZ") :: number
 	local startZ = root:GetAttribute("StartZ") :: number
-	local looks = { "nightfall-tee", "crest-polo", "concrete-tee", "nightfall-boots" }
+	local looks = { "nightfall-tee", "crest-polo", "concrete-tee", "nightfall-boots", "oblique-coin-belt" }
 	for i = 1, 10 do
 		local alpha = i / 11
 		local z = startZ + (finishZ - startZ) * alpha

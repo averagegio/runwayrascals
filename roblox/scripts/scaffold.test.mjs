@@ -394,4 +394,27 @@ describe('Rascal City world scaffold', () => {
         assert.match(world, /Boutique/);
         assert.match(world, /[Ss]eason/);
     });
+
+    it('SS27 trend drop is a shoppable catalog of original Rascal pieces', () => {
+        const catalog = read('src/ReplicatedStorage/Shared/Catalog.lua');
+        assert.match(catalog, /Catalog\.TrendDrop = \{/);
+        const dropBlock = catalog.match(/Catalog\.TrendDrop = \{([\s\S]*?)\}/)[1];
+        const ids = [...dropBlock.matchAll(/"([\w-]+)"/g)].map(m => m[1]);
+        assert.equal(ids.length, 10);
+        assert.equal(ids[0], 'nightfall-triple-belt');
+        for (const id of ids) assert.match(catalog, new RegExp(`id = "${id}"`));
+        // Real-world brand names stay in the webAnalog mapping only —
+        // they are never sold as in-game item names on Roblox.
+        const names = [...catalog.matchAll(/\n\t\tname = "([^"]+)"/g)].map(m => m[1]);
+        assert.ok(names.length > 10);
+        for (const n of names) assert.equal(/gucci|prada|marni/i.test(n), false);
+        const boutique = read('src/ServerScriptService/Services/BoutiqueService.lua');
+        assert.match(boutique, /Catalog\.TrendDrop/);
+        assert.match(boutique, /SS27 TREND DROP/);
+        const visuals = read('src/ReplicatedStorage/Shared/LookVisuals.lua');
+        assert.match(visuals, /buildTrendProp/);
+        assert.match(visuals, /silk-atelier-shades/);
+        const rounds = read('src/ServerScriptService/Services/RoundService.lua');
+        assert.match(rounds, /oblique-coin-belt/);
+    });
 });
