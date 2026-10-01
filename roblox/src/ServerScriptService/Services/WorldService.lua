@@ -352,7 +352,7 @@ local function buildBoutiqueShell(root: Folder, b: any)
 		Name = "BoutiqueFloor",
 		Size = Vector3.new(b.w, 1, b.d),
 		Position = Vector3.new(b.x, 1.5, b.z),
-		Color = Color3.fromRGB(52, 44, 58),
+		Color = Color3.fromRGB(206, 200, 188),
 		Material = Enum.Material.Marble,
 	})
 	floor.Parent = shell
@@ -363,7 +363,7 @@ local function buildBoutiqueShell(root: Folder, b: any)
 			Name = name,
 			Size = Vector3.new(w, b.h, d),
 			Position = Vector3.new(x, 2 + b.h / 2, z),
-			Color = Color3.fromRGB(34, 30, 42),
+			Color = Color3.fromRGB(178, 168, 152),
 			Material = Enum.Material.Concrete,
 		})
 		p.Parent = shell
@@ -382,7 +382,7 @@ local function buildBoutiqueShell(root: Folder, b: any)
 		Name = "BoutiqueRoof",
 		Size = Vector3.new(b.w + 2, 1.4, b.d + 2),
 		Position = Vector3.new(b.x, 2 + b.h + 0.7, b.z),
-		Color = Color3.fromRGB(26, 22, 34),
+		Color = Color3.fromRGB(112, 102, 94),
 		Material = Enum.Material.Slate,
 	})
 	roof.Parent = shell
