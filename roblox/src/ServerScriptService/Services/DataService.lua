@@ -231,7 +231,24 @@ end
 
 function DataService.addStylePoints(player: Player, amount: number)
 	local data = DataService.get(player)
-	data.stylePoints = math.max(0, data.stylePoints + math.floor(amount))
+	local gain = math.floor(amount)
+	data.stylePoints = math.max(0, data.stylePoints + gain)
+	if gain > 0 then
+		data.xp += gain
+	end
+end
+
+-- Style Levels: 300 XP per level. XP is earned 1:1 with Style Points.
+local XP_PER_LEVEL = 300
+
+function DataService.levelForXp(xp: number): number
+	return math.floor(math.max(0, xp) / XP_PER_LEVEL) + 1
+end
+
+function DataService.xpToNextLevel(xp: number): (number, number)
+	local level = DataService.levelForXp(xp)
+	local need = level * XP_PER_LEVEL - math.max(0, xp)
+	return level, need
 end
 
 -- Back-compat alias for older call sites.

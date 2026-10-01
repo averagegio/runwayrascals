@@ -203,7 +203,8 @@ local function stand(parent: Instance, look: any, x: number, z: number, accent: 
 		LookVisuals.applyToModel(dummy, look.id)
 	end)
 
-	billboard(platform, look.name, 6.5, 230)
+	-- Stand identity comes from the Try On / Buy prompts (name + price);
+	-- no floating tag, so the shop floor stays readable.
 
 	local function prompt(actionText: string, objectText: string): ProximityPrompt
 		local pr = Instance.new("ProximityPrompt")

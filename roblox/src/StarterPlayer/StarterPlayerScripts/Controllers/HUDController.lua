@@ -23,6 +23,8 @@ local hintLabel: TextLabel
 local statsLabel: TextLabel
 local toastLabel: TextLabel
 local stylePointsLabel: TextLabel
+local levelLabel: TextLabel
+local objectiveLabel: TextLabel
 local voteFrame: Frame
 local voteList: Frame
 local dressFrame: Frame
@@ -124,6 +126,29 @@ function HUD.mount()
 		TextXAlignment = Enum.TextXAlignment.Right,
 		Position = UDim2.new(0.72, 0, 0, 30),
 		Size = UDim2.new(0.28, 0, 0, 24),
+	}, top)
+
+	levelLabel = mk("TextLabel", {
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		Text = "LV 1",
+		TextColor3 = Color3.fromRGB(201, 165, 106),
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		Position = UDim2.new(0.72, 0, 0, 54),
+		Size = UDim2.new(0.28, 0, 0, 24),
+	}, top)
+
+	objectiveLabel = mk("TextLabel", {
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		Text = "OBJECTIVE: earn Style Points to level up",
+		TextColor3 = Color3.fromRGB(201, 165, 106),
+		TextSize = 14,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Position = UDim2.fromOffset(0, 72),
+		Size = UDim2.new(0.7, 0, 0, 24),
 	}, top)
 
 	toastLabel = mk("TextLabel", {
@@ -387,6 +412,8 @@ function HUD.setData(data: any)
 	if typeof(data) ~= "table" then
 		return
 	end
+	local prevXp = if lastData and type(lastData.xp) == "number" then lastData.xp else 0
+	local prevLevel = math.floor(math.max(0, prevXp) / 300) + 1
 	lastData = data
 	local sp = data.stylePoints
 	if type(sp) ~= "number" then
@@ -394,6 +421,22 @@ function HUD.setData(data: any)
 	end
 	if type(sp) == "number" then
 		HUD.setStylePoints(sp)
+	end
+	local xp = data.xp
+	if type(xp) ~= "number" then
+		xp = 0
+	end
+	local level = math.floor(math.max(0, xp) / 300) + 1
+	local need = level * 300 - math.max(0, xp)
+	if levelLabel then
+		levelLabel.Text = "LV " .. tostring(level)
+	end
+	if objectiveLabel then
+		objectiveLabel.Text = "OBJECTIVE: earn " .. tostring(need)
+			.. " more Style Points to hit LV " .. tostring(level + 1)
+	end
+	if level > prevLevel and prevXp > 0 then
+		HUD.toast("Style Level up! You are now LV " .. tostring(level) .. ".")
 	end
 	HUD.rebuildDress()
 end

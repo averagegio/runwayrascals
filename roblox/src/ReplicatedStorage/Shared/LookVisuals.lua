@@ -205,36 +205,45 @@ function LookVisuals.applyToModel(character: Model, lookId: string)
 
 	local slot = if look then look.slot else "base"
 	local lookId = if look then look.id else ""
+	-- Boutique mannequins are one tall part; shift garments up so they sit
+	-- on the "torso" half the way they do on a real character.
+	local dy = if isDummy then 1.0 else 0
 	if not buildTrendProp(lookId, folder, torso, head, pal, isDummy) then
-		if slot == "top" or slot == "finale" or slot == "base" then
-			local sash = Instance.new("Part")
-			sash.Name = "Sash"
-			sash.Size = Vector3.new(2.05, 0.28, 1.15)
-			sash.Material = Enum.Material.Fabric
-			sash.Color = pal.accent
-			sash.CFrame = torso.CFrame * CFrame.new(0, 0.35, -0.55)
-			sash.Parent = folder
-			weldTo(sash, torso)
+		if slot == "top" or slot == "base" or slot == "finale" or slot == "outer" then
+			-- Shirt: full torso cover in the look's primary color.
+			box(folder, torso, "Shirt", Vector3.new(2.15, 1.95, 1.15),
+				pal.primary, Enum.Material.Fabric, CFrame.new(0, 0.05 + dy, 0))
+			-- Accent collar stripe so the neckline reads.
+			box(folder, torso, "CollarTrim", Vector3.new(2.2, 0.28, 1.2),
+				pal.accent, Enum.Material.Fabric, CFrame.new(0, 0.85 + dy, 0))
+		end
+		if slot == "outer" then
+			-- Open jacket panels layered over the shirt.
+			box(folder, torso, "JacketL", Vector3.new(0.55, 1.9, 1.2),
+				pal.secondary, Enum.Material.Fabric, CFrame.new(-0.85, 0.05 + dy, 0))
+			box(folder, torso, "JacketR", Vector3.new(0.55, 1.9, 1.2),
+				pal.secondary, Enum.Material.Fabric, CFrame.new(0.85, 0.05 + dy, 0))
+		end
+		if slot == "bottoms" or slot == "finale" then
+			-- Pants: hip block plus leg covers.
+			box(folder, torso, "Pants", Vector3.new(2.1, 1.1, 1.1),
+				pal.primary, Enum.Material.Fabric, CFrame.new(0, -1.35 + dy, 0))
+			box(folder, torso, "LegL", Vector3.new(0.8, 1.7, 0.9),
+				pal.primary, Enum.Material.Fabric, CFrame.new(-0.5, -2.5 + dy, 0))
+			box(folder, torso, "LegR", Vector3.new(0.8, 1.7, 0.9),
+				pal.primary, Enum.Material.Fabric, CFrame.new(0.5, -2.5 + dy, 0))
 		end
 		if slot == "shoes" or slot == "finale" then
-			local boot = Instance.new("Part")
-			boot.Name = "BootCue"
-			boot.Size = Vector3.new(0.7, 0.45, 1.4)
-			boot.Material = Enum.Material.Leather
-			boot.Color = pal.accent
-			boot.CFrame = torso.CFrame * CFrame.new(0, -2.4, 0.2)
-			boot.Parent = folder
-			weldTo(boot, torso)
+			-- Boots on both feet.
+			box(folder, torso, "BootL", Vector3.new(0.85, 0.7, 1.35),
+				pal.accent, Enum.Material.Leather, CFrame.new(-0.5, -3.15 + dy, -0.15))
+			box(folder, torso, "BootR", Vector3.new(0.85, 0.7, 1.35),
+				pal.accent, Enum.Material.Leather, CFrame.new(0.5, -3.15 + dy, -0.15))
 		end
-		if slot == "outer" or lookId == "oblique-tote" then
-			local tote = Instance.new("Part")
-			tote.Name = "Tote"
-			tote.Size = Vector3.new(1.1, 1.4, 0.35)
-			tote.Material = Enum.Material.Fabric
-			tote.Color = pal.accent
-			tote.CFrame = torso.CFrame * CFrame.new(1.3, -0.2, 0)
-			tote.Parent = folder
-			weldTo(tote, torso)
+		if lookId == "oblique-tote" then
+			-- Tote bag only on the actual tote look.
+			box(folder, torso, "Tote", Vector3.new(1.1, 1.4, 0.35),
+				pal.accent, Enum.Material.Fabric, CFrame.new(1.35, -0.2 + dy, 0))
 		end
 	end
 
