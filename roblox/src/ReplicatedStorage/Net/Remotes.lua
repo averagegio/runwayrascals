@@ -24,6 +24,7 @@ Remotes.Events = {
 	RequestVote = "RequestVote",
 	RequestEquipLook = "RequestEquipLook",
 	RequestBuyLook = "RequestBuyLook",
+	RequestWalkStyle = "RequestWalkStyle",
 	PlayerData = "PlayerData",
 	Toast = "Toast",
 	Tutorial = "Tutorial",

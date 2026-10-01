@@ -185,7 +185,7 @@ function ArenaService.build(): Folder
 		Material = Enum.Material.Foil,
 	})
 	pose.Parent = root
-	billboard(pose, "FINALE", 6, 160)
+	billboard(pose, "GATE 27 · BOARDING", 6, 160)
 
 	local dress = part({
 		Name = "DressingRoom",

@@ -487,6 +487,18 @@ function HUD.rebuildDress()
 	local equipped = if lastData then lastData.equippedLookId else Config.DefaultLookId
 	local points = if lastData and type(lastData.stylePoints) == "number" then lastData.stylePoints else 0
 	local order = 0
+	local currentStyle = if lastData and type(lastData.walkStyle) == "string" then lastData.walkStyle else "model"
+	for _, style in { "sashay", "power", "model" } do
+		order += 1
+		local label = style
+		if style == currentStyle then
+			label ..= "  ·  on"
+		end
+		local btn = pill("Walk: " .. label, dressList, order)
+		btn.MouseButton1Click:Connect(function()
+			Remotes.event(Remotes.Events.RequestWalkStyle):FireServer(style)
+		end)
+	end
 	for _, look in Catalog.Looks do
 		order += 1
 		local has = table.find(owned, look.id) ~= nil
@@ -501,6 +513,14 @@ function HUD.rebuildDress()
 			suffix = "Robux"
 		end
 		local btn = pill(string.format("%s  ·  %s", look.name, suffix), dressList, order)
+		if look.speedBoost and look.speedBoost > 0 then
+			btn.Text = string.format(
+				"%s  ·  %s  ·  +%d%% speed",
+				look.name,
+				suffix,
+				math.floor(look.speedBoost * 100 + 0.5)
+			)
+		end
 		local lookId = look.id
 		btn.MouseButton1Click:Connect(function()
 			if has then
@@ -531,7 +551,7 @@ function HUD.setRound(state: any)
 	end
 	local left = math.max(0, math.ceil((state.endsAt or 0) - Workspace:GetServerTimeNow()))
 	local themeName = if type(state.theme) == "table" then state.theme.name else nil
-	local phaseName = string.upper(state.phase or "?")
+	local phaseName = if state.phase == "Run" then "✈ BOARDING" else string.upper(state.phase or "?")
 	if themeName then
 		phaseLabel.Text = string.format("%s  ·  %s  ·  %ds", phaseName, themeName, left)
 	else

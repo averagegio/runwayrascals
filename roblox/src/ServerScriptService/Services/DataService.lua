@@ -12,11 +12,14 @@ local Config = require(ReplicatedStorage.Shared.Config)
 local Catalog = require(ReplicatedStorage.Shared.Catalog)
 local Balance = require(ReplicatedStorage.Shared.Balance)
 
+export type WalkStyle = "sashay" | "power" | "model"
+
 export type PlayerData = {
 	stylePoints: number,
 	xp: number,
 	ownedLooks: { string },
 	equippedLookId: string,
+	walkStyle: WalkStyle,
 	unlockedCities: { string },
 	savedOutfits: { { [string]: string } },
 	stats: {
@@ -52,6 +55,7 @@ local function defaultData(): PlayerData
 		xp = 0,
 		ownedLooks = Catalog.starterOwned(),
 		equippedLookId = Config.DefaultLookId,
+		walkStyle = "model" :: WalkStyle,
 		unlockedCities = { "newyork" },
 		savedOutfits = {},
 		stats = {
@@ -91,6 +95,9 @@ local function merge(saved: any): PlayerData
 	end
 	if type(saved.equippedLookId) == "string" then
 		data.equippedLookId = saved.equippedLookId
+	end
+	if saved.walkStyle == "sashay" or saved.walkStyle == "power" or saved.walkStyle == "model" then
+		data.walkStyle = saved.walkStyle
 	end
 	if type(saved.unlockedCities) == "table" then
 		data.unlockedCities = saved.unlockedCities
@@ -204,6 +211,15 @@ function DataService.equipLook(player: Player, lookId: string): boolean
 	return true
 end
 
+function DataService.setWalkStyle(player: Player, style: string): boolean
+	if style ~= "sashay" and style ~= "power" and style ~= "model" then
+		return false
+	end
+	local data = DataService.get(player)
+	data.walkStyle = style :: WalkStyle
+	return true
+end
+
 function DataService.buyLookWithStylePoints(player: Player, lookId: string): (boolean, string)
 	local look = Catalog.getLook(lookId)
 	if not look then
@@ -225,6 +241,7 @@ function DataService.buyLookWithStylePoints(player: Player, lookId: string): (bo
 		return false, "Need " .. tostring(cost) .. " Style Points."
 	end
 	data.stylePoints -= cost
+	data.xp += math.floor(cost * 0.25)
 	DataService.grantLook(player, lookId)
 	return true, "Unlocked with Style Points."
 end

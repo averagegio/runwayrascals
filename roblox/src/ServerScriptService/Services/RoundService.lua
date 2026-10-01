@@ -46,6 +46,8 @@ export type Contestant = {
 	shield: number,
 	jumpT: number,
 	slideT: number,
+	swayT: number?,
+	npcStyle: string?,
 	cart: BasePart,
 	wantsRematch: boolean,
 	spectatingUserId: number?,
@@ -81,11 +83,37 @@ local function timings()
 	return Balance.normal
 end
 
-local function speed(): number
-	if tutorialRound then
-		return Balance.movement.tutorialSpeed
+-- Airport rush: moving-walkway strips that carry contestants faster.
+local travelatorZones: { { zTop: number, zBottom: number } } = {}
+
+local function onTravelator(z: number): boolean
+	for _, zone in travelatorZones do
+		if z <= zone.zTop and z >= zone.zBottom then
+			return true
+		end
 	end
-	return Balance.movement.normalSpeed
+	return false
+end
+
+local function equippedSpeedBoost(c: Contestant): number
+	if c.isNpc or not c.player then
+		return 0
+	end
+	local data = DataService.get(c.player)
+	local look = Catalog.getLook(data.equippedLookId)
+	if look and type(look.speedBoost) == "number" then
+		return look.speedBoost
+	end
+	return 0
+end
+
+local function contestantSpeed(c: Contestant): number
+	local base = if tutorialRound then Balance.movement.tutorialSpeed else Balance.movement.normalSpeed
+	local mult = 1 + equippedSpeedBoost(c)
+	if onTravelator(c.z) then
+		mult *= 1.6
+	end
+	return base * mult
 end
 
 local function humanCount(): number
@@ -144,50 +172,64 @@ local function clearPickups()
 	end
 end
 
-local function spawnPickups(root: Folder)
-	clearPickups()
-	local folder = Instance.new("Folder")
-	folder.Name = "Pickups"
-	folder.Parent = root
-	pickupFolder = folder
-
-	local finishZ = root:GetAttribute("FinishZ") :: number
+local function buildTravelator(root: Instance)
+	travelatorZones = {}
 	local startZ = root:GetAttribute("StartZ") :: number
-	local looks = { "nightfall-tee", "crest-polo", "concrete-tee", "nightfall-boots", "oblique-coin-belt" }
-	for i = 1, 10 do
-		local alpha = i / 11
-		local z = startZ + (finishZ - startZ) * alpha
-		local lane = (i % 3)
-		local lookId = looks[((i - 1) % #looks) + 1]
-		local look = Catalog.getLook(lookId)
-		local p = Instance.new("Part")
-		p.Name = lookId
-		p.Shape = Enum.PartType.Ball
-		p.Size = Vector3.new(2.4, 2.4, 2.4)
-		p.Anchored = true
-		p.CanCollide = false
-		p.Material = Enum.Material.Neon
-		p.Color = if look and look.rare then Color3.fromRGB(244, 196, 48) else Color3.fromRGB(236, 72, 153)
-		p.Position = Vector3.new(ArenaService.laneX(lane), 4, z)
-		p:SetAttribute("LookId", lookId)
-		p:SetAttribute("Rare", look ~= nil and look.rare == true)
-		p:SetAttribute("Lane", lane)
-		p.Parent = folder
-	end
-
-	for i = 1, 6 do
-		local z = startZ + (finishZ - startZ) * ((i + 0.5) / 8)
-		local lane = (i + 1) % 3
-		local barrier = Instance.new("Part")
-		barrier.Name = "Paparazzi"
-		barrier.Size = Vector3.new(3, 4, 1.2)
-		barrier.Anchored = true
-		barrier.CanCollide = false
-		barrier.Color = Color3.fromRGB(30, 30, 30)
-		barrier.Position = Vector3.new(ArenaService.laneX(lane), 3.2, z)
-		barrier:SetAttribute("Obstacle", true)
-		barrier:SetAttribute("Lane", lane)
-		barrier.Parent = folder
+	local finishZ = root:GetAttribute("FinishZ") :: number
+	local spans = { { 0.18, 0.38 }, { 0.58, 0.78 } }
+	for _, span in spans do
+		local zTop = startZ + (finishZ - startZ) * span[1]
+		local zBottom = startZ + (finishZ - startZ) * span[2]
+		table.insert(travelatorZones, { zTop = zTop, zBottom = zBottom })
+		local midZ = (zTop + zBottom) / 2
+		local len = math.abs(zTop - zBottom)
+		local strip = Instance.new("Part")
+		strip.Name = "Travelator"
+		strip.Size = Vector3.new(13, 0.2, len)
+		strip.Anchored = true
+		strip.CanCollide = false
+		strip.Transparency = 0.45
+		strip.Material = Enum.Material.Neon
+		strip.Color = Color3.fromRGB(64, 200, 255)
+		strip.Position = Vector3.new(ArenaService.laneX(1), 2.05, midZ)
+		strip.Parent = pickupFolder
+		-- Chevron slats pointing toward the gate.
+		for i = 1, 5 do
+			local cz = zTop - (i - 0.5) * (len / 5)
+			for _, sx in { -1, 1 } do
+				local slat = Instance.new("Part")
+				slat.Name = "Chevron"
+				slat.Size = Vector3.new(3.2, 0.25, 1.1)
+				slat.Anchored = true
+				slat.CanCollide = false
+				slat.Material = Enum.Material.Neon
+				slat.Color = Color3.fromRGB(235, 250, 255)
+				slat.CFrame = CFrame.new(ArenaService.laneX(1) + sx * 1.7, 2.2, cz)
+					* CFrame.Angles(0, sx * 0.5, 0)
+				slat.Parent = pickupFolder
+			end
+		end
+		local sign = Instance.new("Part")
+		sign.Name = "TravelatorSign"
+		sign.Size = Vector3.new(6, 1, 0.5)
+		sign.Anchored = true
+		sign.CanCollide = false
+		sign.Transparency = 1
+		sign.Position = Vector3.new(ArenaService.laneX(1), 7.5, zTop + 2)
+		sign.Parent = pickupFolder
+		local gui = Instance.new("BillboardGui")
+		gui.Size = UDim2.fromOffset(130, 26)
+		gui.AlwaysOnTop = false
+		gui.Adornee = sign
+		gui.Parent = sign
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.fromScale(1, 1)
+		label.BackgroundTransparency = 1
+		label.Font = Enum.Font.GothamBold
+		label.TextScaled = true
+		label.TextColor3 = Color3.fromRGB(160, 230, 255)
+		label.Text = "TRAVELATOR →"
+		label.Parent = gui
 	end
 end
 
@@ -397,8 +439,13 @@ local function startRun()
 		if c.player then
 			Remotes.event(Remotes.Events.Tutorial):FireClient(c.player, {
 				step = if tutorialRound then "run" else "live",
-				hint = "Swipe / A-D lanes · W jump · S slide · collect neon looks",
+				hint = "Catch your flight! A/D lanes · W jump · S slide · dodge paparazzi",
 			})
+		end
+	end
+	for _, c in contestants do
+		if c.player then
+			toast(c.player, "✈ Flight boarding — get to Gate 27!")
 		end
 	end
 	setPhase(Config.Phases.Run, timings().runSeconds)
@@ -429,7 +476,7 @@ local function maybeCollect(c: Contestant)
 			if c.shield > 0 or c.jumpT > 0 then
 				continue
 			end
-			if c.slideT > 0 and inst.Name == "Paparazzi" then
+			if c.slideT > 0 and (inst.Name == "Paparazzi" or inst.Name == "Luggage") then
 				continue
 			end
 			if tutorialRound and c.lives > 0 then
@@ -467,7 +514,191 @@ local function checkFinish(c: Contestant)
 		c.alive = false
 		table.insert(finishOrder, c.userId)
 		c.place = #finishOrder
-		toast(c.player, "Finale — hold a pose!")
+		if c.player then
+			DataService.addStylePoints(c.player, 50)
+			toast(c.player, "Made the flight! +50 Style Points ✈ Hold a pose!")
+		else
+			toast(c.player, "Finale — hold a pose!")
+		end
+	end
+end
+
+local function spawnPickups(root: Folder)
+	clearPickups()
+	local folder = Instance.new("Folder")
+	folder.Name = "Pickups"
+	folder.Parent = root
+	pickupFolder = folder
+
+	local finishZ = root:GetAttribute("FinishZ") :: number
+	local startZ = root:GetAttribute("StartZ") :: number
+	local looks = { "nightfall-tee", "crest-polo", "concrete-tee", "nightfall-boots", "oblique-coin-belt" }
+	for i = 1, 10 do
+		local alpha = i / 11
+		local z = startZ + (finishZ - startZ) * alpha
+		local lane = (i % 3)
+		local lookId = looks[((i - 1) % #looks) + 1]
+		local look = Catalog.getLook(lookId)
+		local p = Instance.new("Part")
+		p.Name = lookId
+		p.Shape = Enum.PartType.Ball
+		p.Size = Vector3.new(2.4, 2.4, 2.4)
+		p.Anchored = true
+		p.CanCollide = false
+		p.Material = Enum.Material.Neon
+		p.Color = if look and look.rare then Color3.fromRGB(244, 196, 48) else Color3.fromRGB(236, 72, 153)
+		p.Position = Vector3.new(ArenaService.laneX(lane), 4, z)
+		p:SetAttribute("LookId", lookId)
+		p:SetAttribute("Rare", look ~= nil and look.rare == true)
+		p:SetAttribute("Lane", lane)
+		p.Parent = folder
+	end
+
+	for i = 1, 6 do
+		local z = startZ + (finishZ - startZ) * ((i + 0.5) / 8)
+		local lane = (i + 1) % 3
+		local barrier = Instance.new("Part")
+		barrier.Name = "Paparazzi"
+		barrier.Size = Vector3.new(3, 4, 1.2)
+		barrier.Anchored = true
+		barrier.CanCollide = false
+		barrier.Color = Color3.fromRGB(30, 30, 30)
+		barrier.Position = Vector3.new(ArenaService.laneX(lane), 3.2, z)
+		barrier:SetAttribute("Obstacle", true)
+		barrier:SetAttribute("Lane", lane)
+		barrier.Parent = folder
+		-- Camera rig on top with a flash bulb that fires as a warning.
+		local cam = Instance.new("Part")
+		cam.Name = "Camera"
+		cam.Size = Vector3.new(1.3, 0.9, 1.7)
+		cam.Anchored = true
+		cam.CanCollide = false
+		cam.Color = Color3.fromRGB(12, 12, 16)
+		cam.Position = barrier.Position + Vector3.new(0, 2.7, 0)
+		cam.Parent = barrier
+		local lens = Instance.new("Part")
+		lens.Name = "Lens"
+		lens.Shape = Enum.PartType.Cylinder
+		lens.Size = Vector3.new(0.7, 0.7, 0.7)
+		lens.Anchored = true
+		lens.CanCollide = false
+		lens.Color = Color3.fromRGB(150, 200, 255)
+		lens.Material = Enum.Material.Neon
+		lens.CFrame = cam.CFrame * CFrame.new(0, 0, -1.1) * CFrame.Angles(0, 0, math.pi / 2)
+		lens.Parent = barrier
+		local bulb = Instance.new("PointLight")
+		bulb.Name = "FlashBulb"
+		bulb.Enabled = false
+		bulb.Brightness = 6
+		bulb.Range = 22
+		bulb.Color = Color3.fromRGB(255, 255, 255)
+		bulb.Parent = cam
+	end
+
+	for i = 1, 4 do
+		local z = startZ + (finishZ - startZ) * ((i + 0.25) / 6)
+		local lane = (i * 2) % 3
+		local lug = Instance.new("Part")
+		lug.Name = "Luggage"
+		lug.Size = Vector3.new(3, 2, 1.4)
+		lug.Anchored = true
+		lug.CanCollide = false
+		lug.Color = Color3.fromRGB(122, 72, 40)
+		lug.Material = Enum.Material.Fabric
+		lug.Position = Vector3.new(ArenaService.laneX(lane), 2.6, z)
+		lug:SetAttribute("Obstacle", true)
+		lug:SetAttribute("Lane", lane)
+		lug.Parent = folder
+		local strap = Instance.new("Part")
+		strap.Name = "Strap"
+		strap.Size = Vector3.new(3.1, 0.35, 1.5)
+		strap.Anchored = true
+		strap.CanCollide = false
+		strap.Color = Color3.fromRGB(201, 165, 106)
+		strap.Material = Enum.Material.Neon
+		strap.Position = lug.Position
+		strap.Parent = folder
+	end
+	buildTravelator(root)
+end
+
+
+local function paparazziFlash()
+	if not pickupFolder then
+		return
+	end
+	local now = os.clock()
+	for _, inst in pickupFolder:GetChildren() do
+		if not inst:IsA("BasePart") then
+			continue
+		end
+		if inst.Name ~= "Paparazzi" then
+			continue
+		end
+		local last = inst:GetAttribute("FlashAt") or 0
+		if now - last < 2.5 then
+			continue
+		end
+		for _, c in contestants do
+			if not c.alive or c.isNpc then
+				continue
+			end
+			if inst:GetAttribute("Lane") ~= c.lane then
+				continue
+			end
+			local dz = c.z - inst.Position.Z
+			if dz > 0 and dz < 26 then
+				inst:SetAttribute("FlashAt", now)
+				local cam = inst:FindFirstChild("Camera")
+				local bulb = if cam then cam:FindFirstChild("FlashBulb") else nil
+				if bulb and bulb:IsA("PointLight") then
+					bulb.Enabled = true
+					task.delay(0.22, function()
+						bulb.Enabled = false
+					end)
+				end
+				break
+			end
+		end
+	end
+end
+
+-- Procedural walk styles: Sashay, Power Walk, Model Walk.
+local WALK_STYLES = {
+	model = { swayAmp = 0.22, swayHz = 2.2, bobAmp = 0.05, armAmp = 0.35, armHz = 2.2, lean = 0 },
+	sashay = { swayAmp = 0.32, swayHz = 2.8, bobAmp = 0.14, armAmp = 0.5, armHz = 2.8, lean = -0.04 },
+	power = { swayAmp = 0.08, swayHz = 3.4, bobAmp = 0.03, armAmp = 0.62, armHz = 3.4, lean = 0.1 },
+}
+
+local function applyWalkStyle(c: Contestant, dt: number)
+	local model = c.model
+	if not model then
+		return
+	end
+	local styleId = "model"
+	if c.player and not c.isNpc then
+		styleId = DataService.get(c.player).walkStyle or "model"
+	elseif c.isNpc then
+		styleId = c.npcStyle or "model"
+	end
+	local st = WALK_STYLES[styleId] or WALK_STYLES.model
+	c.swayT = (c.swayT or 0) + dt
+	local t = c.swayT :: number
+	local upper = model:FindFirstChild("UpperTorso")
+	if not upper then
+		return
+	end
+	local waist = upper:FindFirstChild("Waist")
+	if waist and waist:IsA("Motor6D") then
+		waist.Transform = CFrame.new(0, math.abs(math.sin(t * st.swayHz)) * st.bobAmp, 0)
+			* CFrame.Angles(st.lean, 0, math.sin(t * st.swayHz) * st.swayAmp)
+	end
+	for _, side in { "Left", "Right" } do
+		local shoulder = upper:FindFirstChild(side .. "Shoulder")
+		if shoulder and shoulder:IsA("Motor6D") then
+			local phase = if side == "Left" then 0 else math.pi
+			shoulder.Transform = CFrame.Angles(math.sin(t * st.armHz + phase) * st.armAmp, 0, 0)
+		end
 	end
 end
 
@@ -485,12 +716,14 @@ local function tickRun(dt: number)
 		if c.slideT > 0 then
 			c.slideT -= dt
 		end
-		c.z -= speed() * 8 * dt
-		c.distance += speed() * 8 * dt
+		c.z -= contestantSpeed(c) * 8 * dt
+		c.distance += contestantSpeed(c) * 8 * dt
 		maybeCollect(c)
 		checkFinish(c)
 		placeCart(c)
+		applyWalkStyle(c, dt)
 	end
+	paparazziFlash()
 end
 
 local function allDone(): boolean
@@ -614,6 +847,7 @@ function RoundService.ensureStudioCast()
 			shield = 0,
 			jumpT = 0,
 			slideT = 0,
+			npcStyle = ({ "model", "sashay", "power" })[math.random(1, 3)],
 			cart = ensureCart(member.name),
 			wantsRematch = false,
 			spectatingUserId = nil,
@@ -769,6 +1003,15 @@ function RoundService.bind()
 			return
 		end
 		RoundService.input(player, action)
+	end)
+	Remotes.event(Remotes.Events.RequestWalkStyle).OnServerEvent:Connect(function(player, style)
+		if type(style) ~= "string" then
+			return
+		end
+		if DataService.setWalkStyle(player, style) then
+			Remotes.event(Remotes.Events.PlayerData):FireClient(player, DataService.get(player))
+			toast(player, "Walk style: " .. style)
+		end
 	end)
 	Remotes.event(Remotes.Events.RequestEquipLook).OnServerEvent:Connect(function(player, lookId)
 		if type(lookId) ~= "string" then

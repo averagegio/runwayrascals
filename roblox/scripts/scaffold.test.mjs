@@ -417,4 +417,33 @@ describe('Rascal City world scaffold', () => {
         const rounds = read('src/ServerScriptService/Services/RoundService.lua');
         assert.match(rounds, /oblique-coin-belt/);
     });
+
+    it('airport rush: travelator, walk styles, speed gear, and boarding theme', () => {
+        const catalog = read('src/ReplicatedStorage/Shared/Catalog.lua');
+        for (const id of ['silk-jet-sneakers', 'crest-tail-scarf', 'nightfall-first-bomber']) {
+            assert.match(catalog, new RegExp(`id = "${id}"`));
+        }
+        assert.match(catalog, /speedBoost = 0\.10/);
+        assert.match(catalog, /speedBoost = 0\.20/);
+
+        const data = read('src/ServerScriptService/Services/DataService.lua');
+        assert.match(data, /walkStyle/);
+        assert.match(data, /setWalkStyle/);
+        assert.match(data, /data\.xp \+= math\.floor\(cost \* 0\.25\)/);
+
+        const rounds = read('src/ServerScriptService/Services/RoundService.lua');
+        assert.match(rounds, /buildTravelator/);
+        assert.match(rounds, /contestantSpeed/);
+        assert.match(rounds, /equippedSpeedBoost/);
+        assert.match(rounds, /applyWalkStyle/);
+        assert.match(rounds, /paparazziFlash/);
+        assert.match(rounds, /Name = "Luggage"/);
+        assert.match(rounds, /Flight boarding/);
+        assert.match(rounds, /Made the flight/);
+        assert.match(rounds, /RequestWalkStyle/);
+
+        const hud = read('src/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.lua');
+        assert.match(hud, /BOARDING/);
+        assert.match(hud, /Walk: "/);
+    });
 });
