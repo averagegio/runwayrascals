@@ -33,9 +33,9 @@ end
 local function billboard(adornee: BasePart, text: string, offsetY: number, width: number?)
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Sign"
-	gui.Size = UDim2.fromOffset(width or 180, 40)
+	gui.Size = UDim2.fromOffset((width or 180) * 0.55, 22)
 	gui.StudsOffset = Vector3.new(0, offsetY, 0)
-	gui.AlwaysOnTop = true
+	gui.AlwaysOnTop = false
 	gui.Adornee = adornee
 	gui.Parent = adornee
 	local label = Instance.new("TextLabel")

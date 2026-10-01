@@ -45,7 +45,7 @@ local function billboard(adornee: BasePart, text: string, offsetY: number, width
 	gui.Name = "Sign"
 	gui.Size = UDim2.fromOffset((width or 180) * 0.55, 22)
 	gui.StudsOffset = Vector3.new(0, offsetY, 0)
-	gui.AlwaysOnTop = true
+	gui.AlwaysOnTop = false
 	gui.Adornee = adornee
 	gui.Parent = adornee
 	local label = Instance.new("TextLabel")
@@ -203,7 +203,7 @@ local function stand(parent: Instance, look: any, x: number, z: number, accent: 
 		LookVisuals.applyToModel(dummy, look.id)
 	end)
 
-	billboard(platform, look.name .. " — " .. priceText(look), 6.5, 230)
+	billboard(platform, look.name, 6.5, 230)
 
 	local function prompt(actionText: string, objectText: string): ProximityPrompt
 		local pr = Instance.new("ProximityPrompt")
