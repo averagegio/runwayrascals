@@ -442,102 +442,11 @@ local function publishDistricts()
 end
 
 function WorldService.build(): Folder
-	-- The Fashion Week venue (runway, seats, lights) stays exactly where the
-	-- round loop expects it; the city grows around it.
+	-- The airport terminal IS the world now: arrivals → bag check →
+	-- shopping mall → food court → power walkways → Gate 27.
+	-- The open-world city was retired; its builders stay below for reference.
 	local arena = ArenaService.build()
-	local worldCfg = Config.World
-
-	-- City ground slab: top surface at y=1 to match the venue floor.
-	-- Starts at z=50 so it never overlaps the venue's lobby plaza (z-fighting).
-	local ground = part({
-		Name = "CityGround",
-		Size = Vector3.new(280, 1, 230),
-		Position = Vector3.new(0, 0.5, 165),
-		Color = ASPHALT,
-		Material = Enum.Material.Asphalt,
-	})
-	ground.Parent = arena
-
-	-- Grand Avenue: venue gate → plaza.
-	local ave = worldCfg.avenue
-	local road = part({
-		Name = "GrandAvenue",
-		Size = Vector3.new(ave.halfWidth * 2, 0.3, ave.z1 - ave.z0),
-		Position = Vector3.new(ave.x, 1.1, (ave.z0 + ave.z1) / 2),
-		Color = Color3.fromRGB(30, 26, 36),
-		Material = Enum.Material.Asphalt,
-		CanCollide = false,
-	})
-	road.Parent = arena
-	for _, side in { -1, 1 } do
-		local walk = part({
-			Name = "Sidewalk",
-			Size = Vector3.new(4, 0.35, ave.z1 - ave.z0),
-			Position = Vector3.new(ave.x + side * (ave.halfWidth + 2), 1.12, (ave.z0 + ave.z1) / 2),
-			Color = SIDEWALK,
-			Material = Enum.Material.Concrete,
-			CanCollide = false,
-		})
-		walk.Parent = arena
-	end
-	-- Avenue center dashes.
-	for z = ave.z0 + 6, ave.z1 - 4, 12 do
-		local dash = part({
-			Name = "AveDash",
-			Size = Vector3.new(0.6, 0.36, 4),
-			Position = Vector3.new(ave.x, 1.14, z),
-			Color = GOLD,
-			Material = Enum.Material.Neon,
-			CanCollide = false,
-		})
-		dash.Parent = arena
-	end
-	for z = ave.z0 + 8, ave.z1 - 6, 20 do
-		lamp(arena, ave.x - ave.halfWidth - 1.5, z)
-		lamp(arena, ave.x + ave.halfWidth + 1.5, z + 10)
-	end
-
-	-- Venue gate: the Fashion Week Hall entrance.
-	arch(arena, worldCfg.venueGate.x, worldCfg.venueGate.z, 18, 12, "FASHION WEEK HALL", GOLD)
-
-	-- Central plaza (spawn heart).
-	buildPlaza(arena, worldCfg.plaza)
-
-	-- Move the lobby spawn to the plaza. Same instance name, so RoundService
-	-- (lobbyOrigin / releaseCharacter) keeps working with zero changes —
-	-- players now spawn in the city and return here after every show.
-	local spawn = arena:FindFirstChild("LobbySpawn")
-	if spawn and spawn:IsA("BasePart") then
-		spawn.Position = Vector3.new(worldCfg.plaza.x, 1.5, worldCfg.plaza.z - 20)
-	end
-
-	-- Six fashion districts.
-	for i, city in Config.Cities do
-		local d = worldCfg.districts[i]
-		if d then
-			buildDistrict(arena, city, d.x, d.z)
-		end
-	end
-
-	-- Flagship boutique shell on the plaza (BoutiqueService stocks it).
-	buildBoutiqueShell(arena, worldCfg.boutique)
-
-	-- Cross streets connecting district rows to the avenue.
-	-- Top at 1.33: above the district platforms (1.2), no z-fighting.
-	for _, z in { 95, 160, 225 } do
-		local cross = part({
-			Name = "CrossStreet",
-			Size = Vector3.new(150, 0.3, 10),
-			Position = Vector3.new(0, 1.18, z),
-			Color = Color3.fromRGB(28, 24, 34),
-			Material = Enum.Material.Asphalt,
-			CanCollide = false,
-		})
-		cross.Parent = arena
-	end
-
-	publishDistricts()
-
+	buildBoutiqueShell(arena, Config.World.boutique)
 	return arena
 end
 

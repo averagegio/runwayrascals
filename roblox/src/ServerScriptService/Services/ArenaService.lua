@@ -123,14 +123,16 @@ function ArenaService.build(): Folder
 	local length = 160
 	local width = 28
 	local laneSpacing = Balance.laneSpacingStuds
-	local startZ = 0
-	local finishZ = -length
+	-- The terminal: arrivals → bag check → mall → food court → gates,
+	-- then the power walkways run to Gate 27.
+	local startZ = -40
+	local finishZ = startZ - length
 	local gold = Color3.fromRGB(201, 165, 106)
 
 	local floor = part({
 		Name = "RunwayFloor",
-		Size = Vector3.new(width, 1, length + 40),
-		Position = Vector3.new(0, 0.5, startZ - length / 2),
+		Size = Vector3.new(width, 1, length + 12),
+		Position = Vector3.new(0, 0.5, startZ - length / 2 + 6),
 		Color = Color3.fromRGB(18, 14, 16),
 		Material = Enum.Material.Marble,
 	})
@@ -158,24 +160,167 @@ function ArenaService.build(): Folder
 		stripe.Parent = root
 	end
 
-	local lobby = part({
-		Name = "LobbyPlaza",
-		Size = Vector3.new(52, 1, 40),
-		Position = Vector3.new(0, 0.5, 30),
-		Color = Color3.fromRGB(28, 24, 32),
-		Material = Enum.Material.Slate,
+	-- ARRIVALS: spawn hall.
+	local arrivals = part({
+		Name = "ArrivalsHall",
+		Size = Vector3.new(44, 1, 28),
+		Position = Vector3.new(0, 0.5, 66),
+		Color = Color3.fromRGB(30, 30, 38),
+		Material = Enum.Material.Marble,
 	})
-	lobby.Parent = root
+	arrivals.Parent = root
+	billboard(arrivals, "ARRIVALS", 6, 200)
 
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "LobbySpawn"
 	spawn.Anchored = true
 	spawn.Size = Vector3.new(8, 1, 8)
-	spawn.Position = Vector3.new(0, 1.5, 30)
+	spawn.Position = Vector3.new(0, 1.5, 69)
 	spawn.Neutral = true
 	spawn.Duration = 0
 	spawn.Color = gold
 	spawn.Parent = root
+
+	-- BAG CHECK: security arches + conveyor.
+	local bagcheck = part({
+		Name = "BagCheck",
+		Size = Vector3.new(44, 1, 12),
+		Position = Vector3.new(0, 0.5, 46),
+		Color = Color3.fromRGB(26, 28, 34),
+		Material = Enum.Material.Slate,
+	})
+	bagcheck.Parent = root
+	billboard(bagcheck, "BAG CHECK · SECURITY", 6, 260)
+	for _, ax in { -10, 0, 10 } do
+		for _, px in { -2.4, 2.4 } do
+			local post = part({
+				Name = "SecurityPost",
+				Size = Vector3.new(0.7, 7, 0.7),
+				Position = Vector3.new(ax + px, 4.5, 46),
+				Color = Color3.fromRGB(60, 70, 90),
+				Material = Enum.Material.Metal,
+				CanCollide = false,
+			})
+			post.Parent = root
+		end
+		local beam = part({
+			Name = "SecurityBeam",
+			Size = Vector3.new(5.5, 1, 1),
+			Position = Vector3.new(ax, 8.2, 46),
+			Color = Color3.fromRGB(90, 200, 255),
+			Material = Enum.Material.Neon,
+			CanCollide = false,
+		})
+		beam.Parent = root
+	end
+	local belt = part({
+		Name = "BagBelt",
+		Size = Vector3.new(10, 1.4, 3),
+		Position = Vector3.new(17, 1.7, 46),
+		Color = Color3.fromRGB(40, 40, 48),
+		Material = Enum.Material.Metal,
+	})
+	belt.Parent = root
+
+	-- SHOPPING MALL: concourse with store fronts; the boutique anchor
+	-- store is built on the west side by WorldService.
+	local mall = part({
+		Name = "ShoppingMall",
+		Size = Vector3.new(60, 1, 40),
+		Position = Vector3.new(0, 0.5, 20),
+		Color = Color3.fromRGB(36, 30, 40),
+		Material = Enum.Material.Marble,
+	})
+	mall.Parent = root
+	billboard(mall, "SHOPPING MALL", 9, 260)
+	local storeNames = { "SILK ATELIER", "CREST", "NIGHTFALL", "OBLIQUE", "CONCRETE" }
+	for i, storeName in storeNames do
+		local sz = 40 - i * 8
+		local front = part({
+			Name = "StoreFront",
+			Size = Vector3.new(2, 9, 8),
+			Position = Vector3.new(29, 5.5, sz),
+			Color = Color3.fromRGB(46, 38, 54),
+			Material = Enum.Material.Concrete,
+		})
+		front.Parent = root
+		billboard(front, storeName, 6, 160)
+	end
+
+	-- FOOD COURT.
+	local food = part({
+		Name = "FoodCourt",
+		Size = Vector3.new(44, 1, 22),
+		Position = Vector3.new(0, 0.5, -11),
+		Color = Color3.fromRGB(40, 34, 30),
+		Material = Enum.Material.WoodPlanks,
+	})
+	food.Parent = root
+	billboard(food, "FOOD COURT", 6, 220)
+	for _, tx in { -12, 0, 12 } do
+		for _, tz in { -6, -16 } do
+			local top = part({
+				Name = "FoodTable",
+				Size = Vector3.new(4, 0.4, 4),
+				Position = Vector3.new(tx, 3.2, tz),
+				Color = Color3.fromRGB(70, 58, 44),
+				Material = Enum.Material.Wood,
+				CanCollide = false,
+			})
+			top.Parent = root
+			local leg = part({
+				Name = "TableLeg",
+				Size = Vector3.new(0.6, 2.4, 0.6),
+				Position = Vector3.new(tx, 1.8, tz),
+				Color = Color3.fromRGB(40, 36, 32),
+				CanCollide = false,
+			})
+			leg.Parent = root
+		end
+	end
+
+	-- WALKWAY GATES + the boarding trigger: crossing it starts the
+	-- flight countdown.
+	local gates = part({
+		Name = "WalkwayGates",
+		Size = Vector3.new(30, 1, 6),
+		Position = Vector3.new(0, 0.5, -25),
+		Color = Color3.fromRGB(28, 30, 38),
+		Material = Enum.Material.Slate,
+	})
+	gates.Parent = root
+	billboard(gates, "GATES · ALL FLIGHTS →", 7, 300)
+	for _, gx in { -7, 7 } do
+		for _, px in { -2.6, 2.6 } do
+			local post = part({
+				Name = "GatePost",
+				Size = Vector3.new(0.8, 8, 0.8),
+				Position = Vector3.new(gx + px, 5, -31),
+				Color = gold,
+				Material = Enum.Material.Metal,
+				CanCollide = false,
+			})
+			post.Parent = root
+		end
+		local beam = part({
+			Name = "GateBeam",
+			Size = Vector3.new(6, 1.2, 1),
+			Position = Vector3.new(gx, 9.4, -31),
+			Color = gold,
+			Material = Enum.Material.Neon,
+			CanCollide = false,
+		})
+		beam.Parent = root
+		billboard(beam, "GATE " .. (if gx < 0 then "26" else "27"), 2.4, 120)
+	end
+	local trigger = part({
+		Name = "BoardingTrigger",
+		Size = Vector3.new(28, 9, 5),
+		Position = Vector3.new(0, 5, -33),
+		Transparency = 1,
+		CanCollide = false,
+	})
+	trigger.Parent = root
 
 	local pose = part({
 		Name = "PosePlatform",
@@ -187,53 +332,13 @@ function ArenaService.build(): Folder
 	pose.Parent = root
 	billboard(pose, "GATE 27 · BOARDING", 6, 160)
 
-	local dress = part({
-		Name = "DressingRoom",
-		Size = Vector3.new(22, 1, 16),
-		Position = Vector3.new(-22, 1, 38),
-		Color = Color3.fromRGB(36, 28, 40),
-		Material = Enum.Material.WoodPlanks,
-	})
-	dress.Parent = root
-	billboard(dress, "DRESSING ROOM", 5, 200)
-
-	for m = 1, 3 do
-		local stand = part({
-			Name = "MannequinStand",
-			Size = Vector3.new(2.4, 0.4, 2.4),
-			Position = Vector3.new(-28 + m * 5, 1.4, 38),
-			Color = gold,
-			CanCollide = false,
-		})
-		stand.Parent = root
-		local dummy = part({
-			Name = "Mannequin",
-			Size = Vector3.new(1.4, 4.2, 1.1),
-			Position = Vector3.new(-28 + m * 5, 3.7, 38),
-			Color = Color3.fromRGB(232, 210, 190),
-			CanCollide = false,
-			Material = Enum.Material.SmoothPlastic,
-		})
-		dummy.Parent = root
-	end
-
-	local vip = part({
-		Name = "VipLounge",
-		Size = Vector3.new(16, 1, 16),
-		Position = Vector3.new(28, 1, 20),
-		Color = Color3.fromRGB(90, 70, 40),
-		Material = Enum.Material.Metal,
-	})
-	vip.Parent = root
-	billboard(vip, "FRONT ROW VIP", 4, 180)
-
-	-- Audience blocks (paparazzi / seats)
+	-- Audience blocks (paparazzi / seats) along the power walkways.
 	for side = -1, 1, 2 do
 		for n = 1, 10 do
 			local seat = part({
 				Name = "Seat",
 				Size = Vector3.new(3, 4, 3),
-				Position = Vector3.new(side * 16, 2.5, -n * 14),
+				Position = Vector3.new(side * 16, 2.5, startZ - n * 14),
 				Color = Color3.fromRGB(40, 36, 44),
 				CanCollide = false,
 			})
@@ -287,7 +392,7 @@ function ArenaService.build(): Folder
 	local banner = part({
 		Name = "ThemeBanner",
 		Size = Vector3.new(18, 8, 0.4),
-		Position = Vector3.new(0, 8, 48),
+		Position = Vector3.new(0, 10, 76),
 		Color = Color3.fromRGB(12, 10, 14),
 		CanCollide = false,
 		Material = Enum.Material.SmoothPlastic,
@@ -310,8 +415,8 @@ function ArenaService.build(): Folder
 		c.CFrame = CFrame.lookAt(position, lookAt)
 		c.Parent = cams
 	end
-	camPart("CamLobby", Vector3.new(0, 16, 58), Vector3.new(0, 3, -20))
-	camPart("CamRunway", Vector3.new(0, 10, 18), Vector3.new(0, 4, -40))
+	camPart("CamLobby", Vector3.new(0, 16, 78), Vector3.new(0, 3, 20))
+	camPart("CamRunway", Vector3.new(0, 10, -18), Vector3.new(0, 4, -80))
 	camPart("CamPose", Vector3.new(18, 10, finishZ + 8), Vector3.new(0, 4, finishZ - 4))
 
 	root:SetAttribute("StartZ", startZ)

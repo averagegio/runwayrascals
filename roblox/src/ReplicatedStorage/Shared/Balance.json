@@ -10,7 +10,9 @@
     "lives": 1,
     "rareTarget": 1,
     "startShieldSeconds": 5,
-    "winOnFinishLine": true
+    "winOnFinishLine": true,
+    "terminalSeconds": 25,
+    "boardingSeconds": 45
   },
   "normal": {
     "runSeconds": 75,
@@ -23,7 +25,9 @@
     "lives": 0,
     "rareTarget": 3,
     "startShieldSeconds": 2.5,
-    "winOnFinishLine": true
+    "winOnFinishLine": true,
+    "terminalSeconds": 75,
+    "boardingSeconds": 60
   },
   "movement": {
     "tutorialSpeed": 2.2,
@@ -41,7 +45,16 @@
     "rareStyleBonus": 50,
     "poseMax": 200,
     "votePoints": 80,
-    "placePoints": [300, 200, 140, 100, 70, 50, 35, 20],
+    "placePoints": [
+      300,
+      200,
+      140,
+      100,
+      70,
+      50,
+      35,
+      20
+    ],
     "stylePointsDivisor": 20,
     "dailyStylePoints": 40,
     "streakDay7StylePoints": 200

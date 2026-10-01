@@ -56,6 +56,8 @@ export type Contestant = {
 	poseQuality: number,
 	votesReceived: number,
 	votedFor: number?,
+	boarded: boolean,
+	boardDelay: number,
 }
 
 local RoundService = {}
@@ -68,6 +70,7 @@ local tutorialRound = true
 local heartbeatConn: RBXScriptConnection? = nil
 local pickupFolder: Folder? = nil
 local finishOrder: { number } = {}
+local boardingStarted = false
 
 local function toast(player: Player?, text: string)
 	if not player then
@@ -149,6 +152,7 @@ local function snapshot()
 		roundId = roundId,
 		phase = phase,
 		endsAt = phaseEndsAt,
+		boarding = boardingStarted,
 		tutorial = tutorialRound,
 		house = Config.Houses.nightfall,
 		city = "newyork",
@@ -410,14 +414,67 @@ local function scoreContestant(c: Contestant, place: number)
 	return result
 end
 
+local function boardContestant(c: Contestant)
+	if c.boarded or not c.alive then
+		return
+	end
+	local root = ArenaService.get()
+	local startZ = root:GetAttribute("StartZ") :: number
+	c.boarded = true
+	c.z = startZ
+	c.shield = timings().startShieldSeconds
+	attachCharacter(c)
+	placeCart(c)
+	if c.player then
+		toast(c.player, "You're boarded! Catch that flight!")
+	end
+	if not boardingStarted then
+		boardingStarted = true
+		phaseEndsAt = Workspace:GetServerTimeNow() + timings().boardingSeconds
+		broadcast()
+		for _, other in contestants do
+			if other.player then
+				toast(other.player, "✈ Boarding — flight leaves soon!")
+			end
+		end
+	end
+end
+
+local function bindBoardingTrigger()
+	local root = ArenaService.get()
+	local trigger = root:FindFirstChild("BoardingTrigger", true)
+	if not trigger or not trigger:IsA("BasePart") then
+		return
+	end
+	trigger.Touched:Connect(function(hit)
+		if phase ~= Config.Phases.Run then
+			return
+		end
+		local character = hit:FindFirstAncestorOfClass("Model")
+		local player = if character then Players:GetPlayerFromCharacter(character) else nil
+		if not player then
+			return
+		end
+		local c = contestants[player.UserId]
+		if c and not c.boarded and c.alive then
+			boardContestant(c)
+		end
+	end)
+end
+
 local function startRun()
 	local root = ArenaService.get()
 	local startZ = root:GetAttribute("StartZ") :: number
 	spawnPickups(root)
 	finishOrder = {}
+	boardingStarted = false
+	local origin = ArenaService.lobbyOrigin()
+	local i = 0
 	for _, c in contestants do
+		i += 1
 		c.z = startZ
 		c.alive = true
+		c.boarded = false
 		c.finished = false
 		c.looks = 0
 		c.rares = 0
@@ -433,22 +490,28 @@ local function startRun()
 		c.spectatingUserId = nil
 		if c.isNpc then
 			c.shield = 99
-		end
-		attachCharacter(c)
-		placeCart(c)
-		if c.player then
+			-- NPCs wait at the walkway start, then "walk the terminal".
+			c.boardDelay = 3 + math.random() * 10
+			placeCart(c)
+		elseif c.player then
+			-- Everyone starts the terminal journey at Arrivals, on foot.
+			releaseCharacter(c)
+			local character = c.player.Character
+			if character then
+				character:PivotTo(origin * CFrame.new((i % 4 - 1.5) * 4, 0, 0))
+			end
 			Remotes.event(Remotes.Events.Tutorial):FireClient(c.player, {
 				step = if tutorialRound then "run" else "live",
-				hint = "Catch your flight! A/D lanes · W jump · S slide · dodge paparazzi",
+				hint = "Walk the terminal — shops are open! Cross the gates to board your flight",
 			})
 		end
 	end
 	for _, c in contestants do
 		if c.player then
-			toast(c.player, "✈ Flight boarding — get to Gate 27!")
+			toast(c.player, "✈ Head to your gate — the flight won't wait!")
 		end
 	end
-	setPhase(Config.Phases.Run, timings().runSeconds)
+	setPhase(Config.Phases.Run, timings().terminalSeconds)
 end
 
 local function maybeCollect(c: Contestant)
@@ -707,6 +770,17 @@ local function tickRun(dt: number)
 		if not c.alive then
 			continue
 		end
+		if not c.boarded then
+			-- Terminal stage: humans walk the terminal on foot; NPCs
+			-- board on a timer that simulates the walk.
+			if c.isNpc then
+				c.boardDelay -= dt
+				if c.boardDelay <= 0 then
+					boardContestant(c)
+				end
+			end
+			continue
+		end
 		if c.shield > 0 then
 			c.shield -= dt
 		end
@@ -856,6 +930,8 @@ function RoundService.ensureStudioCast()
 			poseQuality = 0.5,
 			votesReceived = 0,
 			votedFor = nil,
+			boarded = false,
+			boardDelay = 5,
 		}
 	end
 	broadcast()
@@ -893,6 +969,8 @@ function RoundService.join(player: Player)
 		poseQuality = 0.5,
 		votesReceived = 0,
 		votedFor = nil,
+		boarded = false,
+		boardDelay = 5,
 	}
 	local data = DataService.get(player)
 	LookVisuals.applyToPlayer(player, data.equippedLookId)
@@ -982,6 +1060,7 @@ function RoundService.bind()
 	roundId = 1
 	tutorialRound = true
 	setPhase(Config.Phases.Lobby, Balance.tutorial.lobbySeconds)
+	bindBoardingTrigger()
 
 	Remotes.event(Remotes.Events.RequestJoin).OnServerEvent:Connect(function(player)
 		RoundService.join(player)

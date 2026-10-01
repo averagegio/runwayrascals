@@ -176,6 +176,7 @@ local function stand(parent: Instance, look: any, x: number, z: number, accent: 
 		Position = Vector3.new(x, 2.2, z),
 		Color = Color3.fromRGB(44, 38, 52),
 		Material = Enum.Material.Marble,
+		CanCollide = false,
 	})
 	platform.Parent = parent
 

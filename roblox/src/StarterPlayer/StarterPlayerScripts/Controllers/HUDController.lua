@@ -551,7 +551,9 @@ function HUD.setRound(state: any)
 	end
 	local left = math.max(0, math.ceil((state.endsAt or 0) - Workspace:GetServerTimeNow()))
 	local themeName = if type(state.theme) == "table" then state.theme.name else nil
-	local phaseName = if state.phase == "Run" then "✈ BOARDING" else string.upper(state.phase or "?")
+	local phaseName = if state.phase == "Run"
+		then (if state.boarding then "✈ BOARDING" else "✈ TO YOUR GATE")
+		else string.upper(state.phase or "?")
 	if themeName then
 		phaseLabel.Text = string.format("%s  ·  %s  ·  %ds", phaseName, themeName, left)
 	else

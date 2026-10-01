@@ -243,7 +243,7 @@ Config.World = {
 	plaza = { x = 0, z = 175, radius = 42 },
 	avenue = { x = 0, z0 = 52, z1 = 148, halfWidth = 9 },
 	venueGate = { x = 0, z = 58 },
-	boutique = { x = -48, z = 170, w = 34, d = 26, h = 14 },
+	boutique = { x = -14, z = 20, w = 28, d = 36, h = 12 },
 	districtSize = 46,
 	districts = {
 		{ x = -75, z = 95 }, -- 1 New York (House Nightfall)

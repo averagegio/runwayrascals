@@ -159,11 +159,12 @@ describe('Luau uses real Roblox APIs', () => {
 });
 
 describe('Studio Play Solo', () => {
-    it('clears the default Baseplate so Connect → Play starts on the plaza', () => {
+    it('clears the default Baseplate so Connect → Play starts in the terminal', () => {
         const arena = read('src/ServerScriptService/Services/ArenaService.lua');
         assert.match(arena, /clearDefaultMap/);
         assert.match(arena, /Baseplate/);
-        assert.match(arena, /DressingRoom/);
+        assert.match(arena, /ArrivalsHall/);
+        assert.match(arena, /BoardingTrigger/);
         assert.match(arena, /CamLobby/);
         assert.match(arena, /CamPose/);
         assert.match(arena, /Atmosphere/);
@@ -351,8 +352,9 @@ describe('Rascal City world scaffold', () => {
         ]) assert.equal(existsSync(path.join(root, f)), true, f);
         const bootstrap = read('src/ServerScriptService/Bootstrap.server.lua');
         assert.match(bootstrap, /WorldService\.build\(\)/);
-        assert.match(bootstrap, /SeasonService\.apply\(/);
         assert.match(bootstrap, /BoutiqueService\.build\(/);
+        // The open-world city was retired: no plaza for seasonal decor.
+        assert.doesNotMatch(bootstrap, /SeasonService\.apply\(worldRoot\)/);
         const client = read('src/StarterPlayer/StarterPlayerScripts/ClientBootstrap.client.lua');
         assert.match(client, /DistrictController\.bind\(\)/);
     });
@@ -438,7 +440,20 @@ describe('Rascal City world scaffold', () => {
         assert.match(rounds, /applyWalkStyle/);
         assert.match(rounds, /paparazziFlash/);
         assert.match(rounds, /Name = "Luggage"/);
-        assert.match(rounds, /Flight boarding/);
+        assert.match(rounds, /BoardingTrigger/);
+        assert.match(rounds, /boardContestant/);
+        assert.match(rounds, /terminalSeconds/);
+        assert.match(rounds, /boardingSeconds/);
+
+        const arena = read('src/ServerScriptService/Services/ArenaService.lua');
+        for (const zone of ['ArrivalsHall', 'BagCheck', 'ShoppingMall', 'FoodCourt', 'WalkwayGates', 'BoardingTrigger']) {
+            assert.match(arena, new RegExp(`Name = "${zone}"`));
+        }
+        const hudCtl = read('src/StarterPlayer/StarterPlayerScripts/Controllers/HUDController.lua');
+        assert.match(hudCtl, /TO YOUR GATE/);
+        const balance = JSON.parse(read('src/ReplicatedStorage/Shared/Balance.json'));
+        assert.ok(balance.normal.terminalSeconds > 0);
+        assert.ok(balance.normal.boardingSeconds > 0);
         assert.match(rounds, /Made the flight/);
         assert.match(rounds, /RequestWalkStyle/);
 

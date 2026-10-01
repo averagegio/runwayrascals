@@ -247,23 +247,7 @@ function LookVisuals.applyToModel(character: Model, lookId: string)
 		end
 	end
 
-	if head and head:IsA("BasePart") and not isDummy then
-		local tag = Instance.new("BillboardGui")
-		tag.Name = "LookTag"
-		tag.Size = UDim2.fromOffset(140, 22)
-		tag.StudsOffset = Vector3.new(0, 2.4, 0)
-		tag.AlwaysOnTop = true
-		tag.Parent = folder
-		tag.Adornee = head
-		local label = Instance.new("TextLabel")
-		label.BackgroundTransparency = 1
-		label.Size = UDim2.fromScale(1, 1)
-		label.Font = Enum.Font.GothamBold
-		label.TextScaled = true
-		label.TextColor3 = pal.accent
-		label.Text = if look then look.name else Config.Houses.crest.name
-		label.Parent = tag
-	end
+	-- No floating name tags: equipping a look never adds a label.
 end
 
 function LookVisuals.applyToPlayer(player: Player, lookId: string)

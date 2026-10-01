@@ -30,7 +30,8 @@ local currentId: string? = nil
 local player = Players.LocalPlayer
 
 local function loadDistricts()
-	local folder = ReplicatedStorage:WaitForChild("WorldDistricts", 30)
+	-- No city, no districts: the terminal is one building.
+	local folder = ReplicatedStorage:FindFirstChild("WorldDistricts")
 	if not folder then
 		return
 	end

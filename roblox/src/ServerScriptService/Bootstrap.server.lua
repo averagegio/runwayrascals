@@ -20,7 +20,8 @@ DataService.bind()
 MonetizationService.bind()
 SocialHookService.bind()
 RoundService.bind()
-SeasonService.apply(worldRoot)
+-- SeasonService.apply skipped: the open-world city was retired, so there is
+-- no plaza for seasonal decor to anchor to.
 BoutiqueService.build(worldRoot)
 
 Remotes.fn(Remotes.Functions.GetPlayerData).OnServerInvoke = function(player)
