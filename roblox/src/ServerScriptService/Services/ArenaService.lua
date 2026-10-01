@@ -60,25 +60,25 @@ local function clearDefaultMap()
 end
 
 local function styleLighting()
-	Lighting.ClockTime = 20.35
-	Lighting.Brightness = 2.4
-	Lighting.Ambient = Color3.fromRGB(46, 40, 52)
-	Lighting.OutdoorAmbient = Color3.fromRGB(56, 48, 64)
-	Lighting.EnvironmentDiffuseScale = 0.4
+	Lighting.ClockTime = 14.5
+	Lighting.Brightness = 3
+	Lighting.Ambient = Color3.fromRGB(115, 110, 120)
+	Lighting.OutdoorAmbient = Color3.fromRGB(135, 130, 145)
+	Lighting.EnvironmentDiffuseScale = 0.7
 	Lighting.EnvironmentSpecularScale = 0.55
 	Lighting.GlobalShadows = true
-	Lighting.FogColor = Color3.fromRGB(28, 18, 32)
-	Lighting.FogStart = 80
-	Lighting.FogEnd = 420
+	Lighting.FogColor = Color3.fromRGB(176, 168, 188)
+	Lighting.FogStart = 160
+	Lighting.FogEnd = 700
 
 	if not Lighting:FindFirstChildOfClass("Atmosphere") then
 		local atm = Instance.new("Atmosphere")
-		atm.Density = 0.26
+		atm.Density = 0.22
 		atm.Offset = 0.12
-		atm.Color = Color3.fromRGB(48, 28, 52)
-		atm.Decay = Color3.fromRGB(90, 42, 28)
-		atm.Glare = 0.22
-		atm.Haze = 1.3
+		atm.Color = Color3.fromRGB(140, 130, 150)
+		atm.Decay = Color3.fromRGB(180, 160, 170)
+		atm.Glare = 0.15
+		atm.Haze = 0.6
 		atm.Parent = Lighting
 	end
 
