@@ -462,11 +462,71 @@ local function bindBoardingTrigger()
 	end)
 end
 
+-- Terminal power-walkway: 1.6x WalkSpeed while riding the mall belt.
+local terminalBoosted: { [number]: boolean } = {}
+
+local function bindTerminalTravelator()
+	local root = ArenaService.get()
+	for _, strip in ipairs(root:GetDescendants()) do
+		if strip:IsA("BasePart") and strip.Name == "TerminalTravelator" then
+			strip.Touched:Connect(function(hit)
+				local character = hit:FindFirstAncestorOfClass("Model")
+				local player = if character then Players:GetPlayerFromCharacter(character) else nil
+				local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
+				if player and humanoid and humanoid.WalkSpeed == 16 then
+					humanoid.WalkSpeed = 26
+					terminalBoosted[player.UserId] = true
+				end
+			end)
+			strip.TouchEnded:Connect(function(hit)
+				local character = hit:FindFirstAncestorOfClass("Model")
+				local player = if character then Players:GetPlayerFromCharacter(character) else nil
+				local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
+				if player and humanoid and terminalBoosted[player.UserId] and humanoid.WalkSpeed == 26 then
+					humanoid.WalkSpeed = 16
+				end
+				if player then
+					terminalBoosted[player.UserId] = nil
+				end
+			end)
+		end
+	end
+end
+
+-- Reaching the aircraft door: one-time style bonus per round.
+local planeDoorClaimed: { [number]: boolean } = {}
+
+local function bindPlaneDoor()
+	local root = ArenaService.get()
+	for _, door in ipairs(root:GetDescendants()) do
+		if door:IsA("BasePart") and door.Name == "PlaneDoor" then
+			door.Touched:Connect(function(hit)
+				if phase ~= Config.Phases.Run then
+					return
+				end
+				local character = hit:FindFirstAncestorOfClass("Model")
+				local player = if character then Players:GetPlayerFromCharacter(character) else nil
+				if not player or planeDoorClaimed[player.UserId] then
+					return
+				end
+				local c = contestants[player.UserId]
+				if c and c.boarded then
+					return
+				end
+				planeDoorClaimed[player.UserId] = true
+				DataService.addStylePoints(player, 25)
+				toast(player, "You reached your aircraft! +25 Style Points")
+			end)
+		end
+	end
+end
+
 local function startRun()
 	local root = ArenaService.get()
 	local startZ = root:GetAttribute("StartZ") :: number
 	spawnPickups(root)
 	finishOrder = {}
+	planeDoorClaimed = {}
 	boardingStarted = false
 	local origin = ArenaService.lobbyOrigin()
 	local i = 0
@@ -1061,6 +1121,8 @@ function RoundService.bind()
 	tutorialRound = true
 	setPhase(Config.Phases.Lobby, Balance.tutorial.lobbySeconds)
 	bindBoardingTrigger()
+	bindTerminalTravelator()
+	bindPlaneDoor()
 
 	Remotes.event(Remotes.Events.RequestJoin).OnServerEvent:Connect(function(player)
 		RoundService.join(player)
