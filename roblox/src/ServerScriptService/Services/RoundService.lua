@@ -521,6 +521,104 @@ local function bindPlaneDoor()
 	end
 end
 
+-- Instant-equip pickups: touch a gold orb to wear the look immediately.
+local function equipDisplayName(lookId: string): string
+	local look = Catalog.getLook(lookId)
+	if look and type(look.name) == "string" then
+		return look.name :: string
+	end
+	return lookId
+end
+
+local function bindSingleEquipPickup(orb: BasePart)
+	orb.Touched:Connect(function(hit)
+		if orb:GetAttribute("Collected") then
+			return
+		end
+		local character = hit:FindFirstAncestorOfClass("Model")
+		local player = if character then Players:GetPlayerFromCharacter(character) else nil
+		if not player then
+			return
+		end
+		local lookId = orb:GetAttribute("LookId")
+		if type(lookId) ~= "string" then
+			return
+		end
+		orb:SetAttribute("Collected", true)
+		DataService.grantLook(player, lookId)
+		if DataService.equipLook(player, lookId) then
+			LookVisuals.applyToPlayer(player, lookId)
+			Remotes.event(Remotes.Events.PlayerData):FireClient(player, DataService.get(player))
+			toast(player, "Wearing " .. equipDisplayName(lookId))
+		end
+		orb.Transparency = 1
+	end)
+end
+
+local function bindEquipPickups()
+	local root = ArenaService.get()
+	root.DescendantAdded:Connect(function(inst)
+		if inst:IsA("BasePart") and inst.Name == "EquipPickup" then
+			bindSingleEquipPickup(inst)
+		end
+	end)
+	for _, inst in ipairs(root:GetDescendants()) do
+		if inst:IsA("BasePart") and inst.Name == "EquipPickup" then
+			bindSingleEquipPickup(inst)
+		end
+	end
+end
+
+-- VELOCE Cabin Roller: touch to ride at 2x speed for 60 seconds.
+local veloceActive: { [number]: boolean } = {}
+
+local function bindSingleVeloce(roller: BasePart)
+	roller.Touched:Connect(function(hit)
+		if roller:GetAttribute("Collected") then
+			return
+		end
+		local character = hit:FindFirstAncestorOfClass("Model")
+		local player = if character then Players:GetPlayerFromCharacter(character) else nil
+		if not player then
+			return
+		end
+		if veloceActive[player.UserId] then
+			return
+		end
+		local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
+		if not humanoid then
+			return
+		end
+		roller:SetAttribute("Collected", true)
+		roller.Transparency = 1
+		veloceActive[player.UserId] = true
+		humanoid.WalkSpeed = 32
+		toast(player, "VELOCE Roller — 60s first-class speed!")
+		task.delay(60, function()
+			veloceActive[player.UserId] = nil
+			local char = player.Character
+			local hum = if char then char:FindFirstChildOfClass("Humanoid") else nil
+			if hum then
+				hum.WalkSpeed = 16
+			end
+		end)
+	end)
+end
+
+local function bindVeloceRoller()
+	local root = ArenaService.get()
+	root.DescendantAdded:Connect(function(inst)
+		if inst:IsA("BasePart") and inst.Name == "VeloceRoller" then
+			bindSingleVeloce(inst)
+		end
+	end)
+	for _, inst in ipairs(root:GetDescendants()) do
+		if inst:IsA("BasePart") and inst.Name == "VeloceRoller" then
+			bindSingleVeloce(inst)
+		end
+	end
+end
+
 -- Ambient life: the terminal feels alive in every phase.
 local ambientParts = nil
 local ambientT = 0
@@ -601,6 +699,7 @@ local function startRun()
 	spawnPickups(root)
 	finishOrder = {}
 	planeDoorClaimed = {}
+	veloceActive = {}
 	boardingStarted = false
 	local origin = ArenaService.lobbyOrigin()
 	local i = 0
@@ -815,6 +914,99 @@ local function spawnPickups(root: Folder)
 		strap.Material = Enum.Material.Neon
 		strap.Position = lug.Position
 		strap.Parent = folder
+	end
+	-- Instant-equip fashion pickups: touch to wear the look right away.
+	local equipLooks: { { any } } = {
+		{ "nightfall-first-bomber", 55 }, { "crest-tail-scarf", 38 },
+		{ "silk-jet-sneakers", 22 }, { "silk-atelier-shades", 6 },
+		{ "oblique-coin-belt", -10 }, { "crest-cloud-knit", -26 },
+	}
+	for i, entry in ipairs(equipLooks) do
+		local lookId = entry[1] :: string
+		local z = entry[2] :: number
+		local px = ArenaService.laneX((i - 1) % 3)
+		local ped = Instance.new("Part")
+		ped.Name = "EquipPedestal"
+		ped.Size = Vector3.new(2, 1.6, 2)
+		ped.Anchored = true
+		ped.CanCollide = false
+		ped.Material = Enum.Material.Marble
+		ped.Color = Color3.fromRGB(225, 220, 210)
+		ped.Position = Vector3.new(px, 1.8, z)
+		ped.Parent = folder
+		local orb = Instance.new("Part")
+		orb.Name = "EquipPickup"
+		orb.Shape = Enum.PartType.Ball
+		orb.Size = Vector3.new(2.4, 2.4, 2.4)
+		orb.Anchored = true
+		orb.CanCollide = false
+		orb.Material = Enum.Material.Neon
+		orb.Color = Color3.fromRGB(244, 196, 48)
+		orb.Position = ped.Position + Vector3.new(0, 2.6, 0)
+		orb:SetAttribute("LookId", lookId)
+		orb.Parent = folder
+	end
+
+	-- VELOCE Cabin Roller: ride it for 60s of first-class speed.
+	for _, vz in ipairs({ 30, -5 }) do
+		local case = Instance.new("Part")
+		case.Name = "VeloceRoller"
+		case.Size = Vector3.new(1.6, 2.2, 1)
+		case.Anchored = true
+		case.CanCollide = false
+		case.Material = Enum.Material.SmoothPlastic
+		case.Color = Color3.fromRGB(212, 175, 105)
+		case.Position = Vector3.new(0, 2.4, vz)
+		case.Parent = folder
+		local trim = Instance.new("Part")
+		trim.Name = "VeloceTrim"
+		trim.Size = Vector3.new(1.7, 0.3, 1.1)
+		trim.Anchored = true
+		trim.CanCollide = false
+		trim.Material = Enum.Material.Neon
+		trim.Color = Color3.fromRGB(255, 250, 240)
+		trim.Position = case.Position + Vector3.new(0, 0.4, 0)
+		trim.Parent = folder
+		local handle = Instance.new("Part")
+		handle.Name = "VeloceHandle"
+		handle.Size = Vector3.new(0.25, 1.6, 0.25)
+		handle.Anchored = true
+		handle.CanCollide = false
+		handle.Color = Color3.fromRGB(60, 60, 66)
+		handle.Position = case.Position + Vector3.new(0, 1.9, 0)
+		handle.Parent = folder
+		for _, wx in ipairs({ -0.5, 0.5 }) do
+			local wheel = Instance.new("Part")
+			wheel.Name = "VeloceWheel"
+			wheel.Shape = Enum.PartType.Ball
+			wheel.Size = Vector3.new(0.6, 0.6, 0.6)
+			wheel.Anchored = true
+			wheel.CanCollide = false
+			wheel.Color = Color3.fromRGB(25, 25, 28)
+			wheel.Position = case.Position + Vector3.new(wx, -1.2, 0)
+			wheel.Parent = folder
+		end
+		local vsign = Instance.new("Part")
+		vsign.Name = "VeloceSign"
+		vsign.Size = Vector3.new(2, 1, 0.3)
+		vsign.Anchored = true
+		vsign.CanCollide = false
+		vsign.Transparency = 1
+		vsign.Position = case.Position + Vector3.new(0, 3.6, 0)
+		vsign.Parent = folder
+		local gui = Instance.new("BillboardGui")
+		gui.Size = UDim2.fromOffset(120, 24)
+		gui.AlwaysOnTop = false
+		gui.Adornee = vsign
+		gui.Parent = vsign
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.fromScale(1, 1)
+		label.BackgroundTransparency = 1
+		label.Font = Enum.Font.GothamBold
+		label.TextScaled = true
+		label.TextColor3 = Color3.fromRGB(212, 175, 105)
+		label.Text = "VELOCE"
+		label.Parent = gui
 	end
 	buildTravelator(root)
 end
@@ -1197,6 +1389,8 @@ function RoundService.bind()
 	bindBoardingTrigger()
 	bindTerminalTravelator()
 	bindPlaneDoor()
+	bindEquipPickups()
+	bindVeloceRoller()
 
 	Remotes.event(Remotes.Events.RequestJoin).OnServerEvent:Connect(function(player)
 		RoundService.join(player)
