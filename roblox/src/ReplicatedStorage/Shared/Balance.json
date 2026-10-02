@@ -11,7 +11,7 @@
     "rareTarget": 1,
     "startShieldSeconds": 5,
     "winOnFinishLine": true,
-    "terminalSeconds": 25,
+    "terminalSeconds": 60,
     "boardingSeconds": 45
   },
   "normal": {

@@ -235,19 +235,33 @@ local function buildDropOffJourney(root: Folder)
 		local brand = shop[2] :: Color3
 		local side = if i % 2 == 1 then -1 else 1
 		local sz = 38 - (i - 1) * 8
-		dp({ Name = "BoutiqueRow", Size = Vector3.new(1, 10, 12),
-			Position = Vector3.new(side * 37, 5.5, sz), Color = brand,
+		-- Wide back wall so the shops read as real storefronts.
+		dp({ Name = "BoutiqueRow", Size = Vector3.new(1.2, 12, 16),
+			Position = Vector3.new(side * 38, 6, sz), Color = brand,
 			Material = Enum.Material.Concrete })
-		local front = dp({ Name = "BoutiqueFront", Size = Vector3.new(0.4, 8, 10),
-			Position = Vector3.new(side * 30.5, 5, sz), Color = Color3.fromRGB(170, 200, 215),
+		local front = dp({ Name = "BoutiqueFront", Size = Vector3.new(0.4, 10, 14),
+			Position = Vector3.new(side * 30, 5, sz), Color = Color3.fromRGB(170, 200, 215),
 			Transparency = 0.4, Material = Enum.Material.Glass, CanCollide = false })
-		billboard(front, shopName, 5.5, 260, Color3.fromRGB(255, 255, 255))
-		dp({ Name = "BoutiquePed", Size = Vector3.new(1.6, 2, 1.6),
-			Position = Vector3.new(side * 27, 2, sz), Color = Color3.fromRGB(225, 220, 210),
-			Material = Enum.Material.Marble })
-		dp({ Name = "BoutiqueBag", Size = Vector3.new(0.9, 1.1, 0.5),
-			Position = Vector3.new(side * 27, 3.6, sz), Color = brand,
-			Material = Enum.Material.Leather, CanCollide = false })
+		-- Neon sign band in the brand color.
+		local band = dp({ Name = "BoutiqueSignBand", Size = Vector3.new(0.6, 2, 14),
+			Position = Vector3.new(side * 29.5, 9.5, sz), Color = brand,
+			Material = Enum.Material.Neon, CanCollide = false })
+		billboard(band, shopName, 0, 350, Color3.fromRGB(255, 255, 255))
+		billboard(front, shopName, 6, 260, Color3.fromRGB(255, 255, 255))
+		-- Warm interior light so the shops glow from the concourse.
+		local glow = Instance.new("PointLight")
+		glow.Brightness = 2
+		glow.Range = 18
+		glow.Color = Color3.fromRGB(255, 214, 150)
+		glow.Parent = band
+		for _, pz in ipairs({ sz - 2, sz + 2 }) do
+			dp({ Name = "BoutiquePed", Size = Vector3.new(1.6, 2, 1.6),
+				Position = Vector3.new(side * 27, 2, pz), Color = Color3.fromRGB(225, 220, 210),
+				Material = Enum.Material.Marble })
+			dp({ Name = "BoutiqueBag", Size = Vector3.new(0.9, 1.1, 0.5),
+				Position = Vector3.new(side * 27, 3.6, pz), Color = brand,
+				Material = Enum.Material.Leather, CanCollide = false })
+		end
 	end
 
 	-- Paparazzi pits with flashing camera rigs along the runway edges.
@@ -298,6 +312,9 @@ local function buildDropOffJourney(root: Folder)
 	end
 	travelator(-12, -5, 30)
 	travelator(12, -35, 30)
+	-- Power walkways flanking the runway: a real airport interior.
+	travelator(-11, -80, 70)
+	travelator(11, -80, 70)
 
 	-- Jumpable obstacles: luggage carts and rope barriers.
 	local function luggageCart(x: number, z: number)
@@ -315,26 +332,53 @@ local function buildDropOffJourney(root: Folder)
 			end
 		end
 	end
-	luggageCart(-6, -45)
-	luggageCart(6, -70)
-	local function ropeBarrier(x: number, z: number)
-		for _, px in ipairs({ x - 2.5, x + 2.5 }) do
-			dp({ Name = "RopePost", Shape = Enum.PartType.Cylinder, Size = Vector3.new(2.2, 0.4, 0.4),
-				CFrame = CFrame.new(px, 2.1, z) * CFrame.Angles(0, 0, math.pi / 2),
-				Color = Color3.fromRGB(180, 150, 90), Material = Enum.Material.Metal })
-		end
-		dp({ Name = "RopeBarrier", Size = Vector3.new(5, 0.4, 0.4),
-			Position = Vector3.new(x, 2.9, z), Color = Color3.fromRGB(140, 30, 50),
-			Material = Enum.Material.Fabric })
+	luggageCart(-11, -60)
+	luggageCart(11, -85)
+	-- Chrome stanchions with sagging navy belts: real airport queue rails.
+	local function beltSeg(x1: number, y1: number, x2: number, y2: number, z: number)
+		local dx, dy = x2 - x1, y2 - y1
+		local len = math.sqrt(dx * dx + dy * dy)
+		dp({ Name = "StanchionBelt", Size = Vector3.new(len, 0.35, 0.15),
+			CFrame = CFrame.new((x1 + x2) / 2, (y1 + y2) / 2, z)
+				* CFrame.Angles(0, 0, math.atan2(dy, dx)),
+			Color = Color3.fromRGB(25, 35, 90), Material = Enum.Material.Fabric,
+			CanCollide = false })
 	end
-	ropeBarrier(0, -55)
-	ropeBarrier(-8, -95)
-	ropeBarrier(8, -120)
+	local function stanchionRow(x: number, z: number, width: number)
+		local posts: { number } = {}
+		local px = x - width / 2
+		while px <= x + width / 2 + 0.01 do
+			table.insert(posts, px)
+			dp({ Name = "StanchionBase", Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.2, 0.9, 0.9),
+				CFrame = CFrame.new(px, 1.1, z) * CFrame.Angles(0, 0, math.pi / 2),
+				Color = Color3.fromRGB(160, 160, 165), Material = Enum.Material.Metal,
+				CanCollide = false })
+			dp({ Name = "StanchionPost", Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(2.6, 0.5, 0.5),
+				CFrame = CFrame.new(px, 2.4, z) * CFrame.Angles(0, 0, math.pi / 2),
+				Color = Color3.fromRGB(160, 160, 165), Material = Enum.Material.Metal,
+				CanCollide = false })
+			dp({ Name = "StanchionTop", Shape = Enum.PartType.Ball,
+				Size = Vector3.new(0.7, 0.7, 0.7), Position = Vector3.new(px, 3.75, z),
+				Color = Color3.fromRGB(201, 165, 106), Material = Enum.Material.Neon,
+				CanCollide = false })
+			px += 2.5
+		end
+		for i = 1, #posts - 1 do
+			local x1, x2 = posts[i], posts[i + 1]
+			local xm = (x1 + x2) / 2
+			beltSeg(x1, 3.4, xm, 3.15, z)
+			beltSeg(xm, 3.15, x2, 3.4, z)
+		end
+	end
+	stanchionRow(0, 40, 16)
+	stanchionRow(0, -18, 16)
 
 	-- Jump platforms: stacked luggage and benches, zigzag, 1-3 studs tall.
 	local platHeights = { 1, 2, 3, 1.5, 2.5, 1, 3, 2 }
 	for i, h in ipairs(platHeights) do
-		local px = if i % 2 == 1 then -8 else 8
+		local px = if i % 2 == 1 then -11 else 11
 		local pz = -45 - (i - 1) * 14
 		local col = if i % 2 == 1 then Color3.fromRGB(150, 105, 65) else Color3.fromRGB(120, 90, 60)
 		dp({ Name = "JumpPlatform", Size = Vector3.new(5, h, 5),
@@ -342,6 +386,16 @@ local function buildDropOffJourney(root: Folder)
 			Material = Enum.Material.Wood })
 		dp({ Name = "PlatTrim", Size = Vector3.new(5.2, 0.3, 5.2),
 			Position = Vector3.new(px, 1 + h + 0.15, pz), Color = Color3.fromRGB(201, 165, 106),
+			Material = Enum.Material.Neon, CanCollide = false })
+	end
+	-- Mall platforms: jumpable on foot in the shopping concourse.
+	for _, mp in ipairs({ { -11, 14, 1.5 }, { 11, 14, 2.5 }, { -11, 26, 2 }, { 11, 26, 1.5 } }) do
+		local mx, mz, mh = mp[1], mp[2], mp[3]
+		dp({ Name = "JumpPlatform", Size = Vector3.new(5, mh, 5),
+			Position = Vector3.new(mx, 1 + mh / 2, mz), Color = Color3.fromRGB(150, 105, 65),
+			Material = Enum.Material.Wood })
+		dp({ Name = "PlatTrim", Size = Vector3.new(5.2, 0.3, 5.2),
+			Position = Vector3.new(mx, 1 + mh + 0.15, mz), Color = Color3.fromRGB(201, 165, 106),
 			Material = Enum.Material.Neon, CanCollide = false })
 	end
 
@@ -724,7 +778,7 @@ local function buildPhxTerminal(root: Folder)
 	belt(0, 47, 8, 47)
 
 	-- Gold guide chevrons: one singular route through the terminal.
-	for _, cz in ipairs({ 74, 67, 60, 44, 40, 33, 26, 19, 12, 5, -2, -9, -16, -23, -28 }) do
+	for _, cz in ipairs({ 74, 67, 60, 44, 40, 33, 26, 19, 12, 5, -2, -9, -16, -23, -28, -33 }) do
 		for _, qx in ipairs({ -1, 1 }) do
 			pp({ Name = "GuideChevron", Size = Vector3.new(2.2, 0.15, 0.8),
 				CFrame = CFrame.new(qx * 1.1, 1.12, cz) * CFrame.Angles(0, qx * 0.5, 0),
@@ -973,55 +1027,70 @@ local function buildPhxTerminal(root: Folder)
 	pp({ Name = "PlaneDoor", Size = Vector3.new(3, 7, 5),
 		Position = Vector3.new(76.5, 4.5, -24), Transparency = 1, CanCollide = false })
 
-	-- Gate 27 at the END of the runway: the run connects to the aircraft.
-	pp({ Name = "ArrivalHall", Size = Vector3.new(44, 1, 20),
-		Position = Vector3.new(0, 0.5, -210), Color = TERRAZZO,
-		Material = Enum.Material.Marble, CanCollide = true })
-	waySign("GATE 27", 0, -208, 14)
-	pp({ Name = "GateBridgeFloor", Size = Vector3.new(5, 0.6, 12),
-		Position = Vector3.new(8, 1.0, -224), Color = Color3.fromRGB(120, 118, 115),
-		Material = Enum.Material.Concrete, CanCollide = true })
-	pp({ Name = "GateBridgeRoof", Size = Vector3.new(5.6, 0.5, 12),
-		Position = Vector3.new(8, 5.85, -224), Color = Color3.fromRGB(90, 88, 86),
-		Material = Enum.Material.Metal, CanCollide = false })
-	for _, bx in ipairs({ 5.5, 10.5 }) do
-		pp({ Name = "GateBridgeWall", Size = Vector3.new(0.4, 3, 12),
-			Position = Vector3.new(bx, 2.8, -224), Color = Color3.fromRGB(150, 148, 144),
-			Material = Enum.Material.Metal, CanCollide = true })
-		pp({ Name = "GateBridgeGlass", Size = Vector3.new(0.3, 1.4, 12),
-			Position = Vector3.new(bx, 5.0, -224), Color = Color3.fromRGB(170, 200, 215),
-			Transparency = 0.45, Material = Enum.Material.Glass, CanCollide = false })
+	-- Gate 27 at the END of the tunnel: the run connects to the aircraft.
+	-- Local frame: +lx runs along the tunnel toward the aircraft.
+	local gateC = Vector3.new(62, 0, -214)
+	local gateRot = CFrame.new(gateC) * CFrame.Angles(0, math.rad(30), 0)
+	local function gp(props: { [string]: any }, lx: number, ly: number, lz: number): Part
+		props.CFrame = gateRot * CFrame.new(lx, ly, lz)
+		return pp(props)
 	end
-	pp({ Name = "GateBellows", Size = Vector3.new(5, 5, 2.5),
-		Position = Vector3.new(8, 3.5, -229.5), Color = Color3.fromRGB(30, 30, 35),
-		Material = Enum.Material.Fabric, CanCollide = false })
-	local white = Color3.fromRGB(235, 235, 240)
-	pp({ Name = "GateFuselage", Shape = Enum.PartType.Cylinder, Size = Vector3.new(26, 4.4, 4.4),
-		Position = Vector3.new(0, 6.5, -232), Color = white,
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	pp({ Name = "GateNose", Shape = Enum.PartType.Ball, Size = Vector3.new(4.4, 4.4, 4.4),
-		Position = Vector3.new(13, 6.5, -232), Color = white,
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	pp({ Name = "GateStripe", Size = Vector3.new(24, 0.9, 4.7),
-		Position = Vector3.new(0, 6.5, -232), Color = PLANEBLUE,
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	pp({ Name = "GateWing", Size = Vector3.new(5.5, 0.6, 30),
-		Position = Vector3.new(0, 6, -232), Color = white,
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	pp({ Name = "GateTailfin", Size = Vector3.new(4.5, 7, 0.8),
-		Position = Vector3.new(-11, 10.5, -232), Color = PLANEBLUE,
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	pp({ Name = "GateHStab", Size = Vector3.new(3, 0.5, 11),
-		Position = Vector3.new(-11.5, 7.5, -232), Color = white,
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	for _, ez in ipairs({ -239, -225 }) do
-		pp({ Name = "GateEngine", Shape = Enum.PartType.Cylinder, Size = Vector3.new(4.5, 2.2, 2.2),
-			Position = Vector3.new(0, 4.4, ez), Color = white,
-			Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	gp({ Name = "ArrivalHall", Size = Vector3.new(38, 1, 26),
+		Color = TERRAZZO, Material = Enum.Material.Marble }, 0, 0.5, 0)
+	local gsign = gp({ Name = "Gate27Sign", Size = Vector3.new(14, 2.2, 0.7),
+		Color = PHXBLUE, CanCollide = false }, 0, 10, 0)
+	billboard(gsign, "GATE 27", 0, 350, Color3.fromRGB(255, 255, 255))
+	local gpose = gp({ Name = "PosePlatform", Size = Vector3.new(18, 1.4, 14),
+		Color = Color3.fromRGB(201, 165, 106), Material = Enum.Material.Foil }, -2, 1.2, 3.5)
+	billboard(gpose, "GATE 27 · BOARDING", 6, 160)
+	-- Jet bridge along +lx to the waiting aircraft.
+	gp({ Name = "GateBridgeFloor", Size = Vector3.new(14, 0.6, 5),
+		Color = Color3.fromRGB(120, 118, 115), Material = Enum.Material.Concrete }, 25, 1.0, 0)
+	for _, gs in ipairs({ -1, 1 }) do
+		gp({ Name = "GateBridgeWall", Size = Vector3.new(14, 3, 0.4),
+			Color = Color3.fromRGB(150, 148, 144), Material = Enum.Material.Metal }, 25, 2.8, gs * 2.5)
+		gp({ Name = "GateBridgeGlass", Size = Vector3.new(14, 1.4, 0.3),
+			Color = Color3.fromRGB(170, 200, 215), Transparency = 0.45,
+			Material = Enum.Material.Glass, CanCollide = false }, 25, 5.0, gs * 2.5)
 	end
-	pp({ Name = "GateAircraftDoor", Size = Vector3.new(3, 5, 0.3),
-		Position = Vector3.new(8, 4, -229.7), Color = Color3.fromRGB(20, 24, 32),
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	gp({ Name = "GateBridgeRoof", Size = Vector3.new(14.6, 0.5, 5.6),
+		Color = Color3.fromRGB(90, 88, 86), Material = Enum.Material.Metal,
+		CanCollide = false }, 25, 5.85, 0)
+	gp({ Name = "GateBellows", Size = Vector3.new(2.5, 5, 5),
+		Color = Color3.fromRGB(30, 30, 35), Material = Enum.Material.Fabric,
+		CanCollide = false }, 32, 3.5, 0)
+	local gwhite = Color3.fromRGB(235, 235, 240)
+	gp({ Name = "GateFuselage", Shape = Enum.PartType.Cylinder, Size = Vector3.new(26, 4.4, 4.4),
+		Color = gwhite, Material = Enum.Material.SmoothPlastic, CanCollide = false }, 40, 6.5, 0)
+	gp({ Name = "GateNose", Shape = Enum.PartType.Ball, Size = Vector3.new(4.4, 4.4, 4.4),
+		Color = gwhite, Material = Enum.Material.SmoothPlastic, CanCollide = false }, 53, 6.5, 0)
+	gp({ Name = "GateStripe", Size = Vector3.new(24, 0.9, 4.7),
+		Color = PLANEBLUE, Material = Enum.Material.SmoothPlastic, CanCollide = false }, 40, 6.5, 0)
+	gp({ Name = "GateWing", Size = Vector3.new(5.5, 0.6, 30),
+		Color = gwhite, Material = Enum.Material.SmoothPlastic, CanCollide = false }, 40, 6, 0)
+	gp({ Name = "GateTailfin", Size = Vector3.new(4.5, 7, 0.8),
+		Color = PLANEBLUE, Material = Enum.Material.SmoothPlastic, CanCollide = false }, 29, 10.5, 0)
+	gp({ Name = "GateHStab", Size = Vector3.new(3, 0.5, 11),
+		Color = gwhite, Material = Enum.Material.SmoothPlastic, CanCollide = false }, 28.5, 7.5, 0)
+	for _, gs in ipairs({ -1, 1 }) do
+		gp({ Name = "GateEngine", Shape = Enum.PartType.Cylinder, Size = Vector3.new(4.5, 2.2, 2.2),
+			Color = gwhite, Material = Enum.Material.SmoothPlastic, CanCollide = false }, 40, 4.4, gs * 7)
+	end
+	-- The aircraft door: touching it during the run grants style points.
+	gp({ Name = "PlaneDoor", Size = Vector3.new(3, 5, 0.3),
+		Color = Color3.fromRGB(20, 24, 32), Material = Enum.Material.SmoothPlastic,
+		CanCollide = false }, 33.5, 4, 2.8)
+
+	-- Gate lounge seating + departure board just past the tunnel exit.
+	depBoard(52, -202)
+	gateSeats(56, -208)
+	gateSeats(68, -208)
+
+	-- Seating flanking the runway: a real airport interior.
+	for _, ssz in ipairs({ -45, -60, -75, -90, -105, -120 }) do
+		gateSeats(-17, ssz)
+		gateSeats(17, ssz)
+	end
 
 	-- The arrival journey: taxi drop-off street into the terminal.
 	buildDropOffJourney(root)
@@ -1038,7 +1107,7 @@ function ArenaService.build(): Folder
 	local root = Instance.new("Folder")
 	root.Name = Config.ARENA_NAME
 
-	local length = 160
+	local length = 95
 	local width = 28
 	local laneSpacing = Balance.laneSpacingStuds
 	-- The terminal: arrivals → bag check → mall → food court → gates,
@@ -1232,38 +1301,37 @@ function ArenaService.build(): Folder
 		beam.Parent = root
 		billboard(beam, "GATE " .. (if gx < 0 then "26" else "27"), 2.4, 120)
 	end
+	-- Boarding arch: step onto the runway and the race + timer start.
+	for _, ax in ipairs({ -8, 8 }) do
+		local apost = part({
+			Name = "BoardingArchPost",
+			Size = Vector3.new(1, 10, 1),
+			Position = Vector3.new(ax, 5, -36),
+			Color = gold,
+			Material = Enum.Material.Metal,
+			CanCollide = false,
+		})
+		apost.Parent = root
+	end
+	local abeam = part({
+		Name = "BoardingArchBeam",
+		Size = Vector3.new(17, 1.5, 1),
+		Position = Vector3.new(0, 10.5, -36),
+		Color = gold,
+		Material = Enum.Material.Neon,
+		CanCollide = false,
+	})
+	abeam.Parent = root
+	billboard(abeam, "RUNWAY · BOARD NOW →", 0, 420)
+
 	local trigger = part({
 		Name = "BoardingTrigger",
-		Size = Vector3.new(28, 9, 5),
-		Position = Vector3.new(0, 5, -33),
+		Size = Vector3.new(44, 12, 10),
+		Position = Vector3.new(0, 6, -36),
 		Transparency = 1,
 		CanCollide = false,
 	})
 	trigger.Parent = root
-
-	local pose = part({
-		Name = "PosePlatform",
-		Size = Vector3.new(18, 1.4, 14),
-		Position = Vector3.new(0, 1.2, finishZ - 4),
-		Color = gold,
-		Material = Enum.Material.Foil,
-	})
-	pose.Parent = root
-	billboard(pose, "GATE 27 · BOARDING", 6, 160)
-
-	-- Audience blocks (paparazzi / seats) along the power walkways.
-	for side = -1, 1, 2 do
-		for n = 1, 10 do
-			local seat = part({
-				Name = "Seat",
-				Size = Vector3.new(3, 4, 3),
-				Position = Vector3.new(side * 16, 2.5, startZ - n * 14),
-				Color = Color3.fromRGB(40, 36, 44),
-				CanCollide = false,
-			})
-			seat.Parent = root
-		end
-	end
 
 	-- Runway spots
 	for i = 1, 8 do
@@ -1299,7 +1367,7 @@ function ArenaService.build(): Folder
 		local block = part({
 			Name = "Skyline",
 			Size = Vector3.new(10 + i % 3 * 4, 18 + (i % 4) * 10, 8),
-			Position = Vector3.new(-70 + i * 22, 12, finishZ - 64),
+			Position = Vector3.new(-70 + i * 22, 12, -270),
 			Color = Color3.fromRGB(16, 12, 22),
 			CanCollide = false,
 			Material = Enum.Material.Slate,
@@ -1336,10 +1404,10 @@ function ArenaService.build(): Folder
 	end
 	camPart("CamLobby", Vector3.new(0, 16, 78), Vector3.new(0, 3, 20))
 	camPart("CamRunway", Vector3.new(0, 10, -18), Vector3.new(0, 4, -80))
-	camPart("CamPose", Vector3.new(18, 10, finishZ + 8), Vector3.new(0, 4, finishZ - 4))
+	camPart("CamPose", Vector3.new(80, 10, -198), Vector3.new(62, 4, -212))
 
 	root:SetAttribute("StartZ", startZ)
-	root:SetAttribute("FinishZ", finishZ)
+	root:SetAttribute("FinishZ", -210)
 	root:SetAttribute("LaneSpacing", laneSpacing)
 	root:SetAttribute("Length", length)
 

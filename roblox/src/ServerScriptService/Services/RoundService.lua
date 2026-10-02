@@ -37,6 +37,7 @@ export type Contestant = {
 	isNpc: boolean,
 	lane: number,
 	z: number,
+	s: number,
 	alive: boolean,
 	lives: number,
 	looks: number,
@@ -71,6 +72,41 @@ local heartbeatConn: RBXScriptConnection? = nil
 local pickupFolder: Folder? = nil
 local finishOrder: { number } = {}
 local boardingStarted = false
+
+-- ONE route: the cart race follows this waypoint polyline (x, z) from the
+-- boarding arch, down the runway, through the curve and neon tube tunnel,
+-- to Gate 27. s = distance travelled along the route in studs.
+local ROUTE = {
+	Vector3.new(0, 0, -40),
+	Vector3.new(0, 0, -125),
+	Vector3.new(1.46, 0, -140.85),
+	Vector3.new(5.76, 0, -154.09),
+	Vector3.new(12.72, 0, -166.15),
+	Vector3.new(22.03, 0, -176.50),
+	Vector3.new(27.24, 0, -181.18),
+	Vector3.new(44.56, 0, -191.18),
+	Vector3.new(61.88, 0, -201.18),
+	Vector3.new(62, 0, -210),
+}
+local routeCum = { 0 } -- cumulative segment lengths
+local routeTotal = 0
+for i = 2, #ROUTE do
+	routeTotal += (ROUTE[i] - ROUTE[i - 1]).Magnitude
+	routeCum[i] = routeTotal
+end
+local function routePoint(s: number): (Vector3, Vector3)
+	s = math.clamp(s, 0, routeTotal)
+	local i = 1
+	while i < #ROUTE and routeCum[i + 1] < s do
+		i += 1
+	end
+	local a, b = ROUTE[i], ROUTE[i + 1]
+	local segLen = (b - a).Magnitude
+	local t = if segLen > 0 then (s - routeCum[i]) / segLen else 0
+	local pos = a:Lerp(b, t)
+	local dir = if segLen > 0 then (b - a).Unit else Vector3.new(0, 0, -1)
+	return pos, dir
+end
 
 local function toast(player: Player?, text: string)
 	if not player then
@@ -180,7 +216,7 @@ local function buildTravelator(root: Instance)
 	travelatorZones = {}
 	local startZ = root:GetAttribute("StartZ") :: number
 	local finishZ = root:GetAttribute("FinishZ") :: number
-	local spans = { { 0.18, 0.38 }, { 0.58, 0.78 } }
+	local spans = { { 0.02, 0.2 }, { 0.3, 0.5 } }
 	for _, span in spans do
 		local zTop = startZ + (finishZ - startZ) * span[1]
 		local zBottom = startZ + (finishZ - startZ) * span[2]
@@ -289,8 +325,10 @@ local function placeCart(c: Contestant)
 	if c.slideT > 0 then
 		y -= 1.1
 	end
-	local x = ArenaService.laneX(c.lane)
-	c.cart.CFrame = CFrame.new(x, y, c.z) * CFrame.Angles(0, math.pi, 0)
+	local pos, dir = routePoint(c.s)
+	local perp = Vector3.new(-dir.Z, 0, dir.X)
+	local p = pos + perp * ArenaService.laneX(c.lane)
+	c.cart.CFrame = CFrame.lookAt(Vector3.new(p.X, y, p.Z), Vector3.new(p.X, y, p.Z) + dir)
 	if c.model then
 		c.model:PivotTo(c.cart.CFrame * CFrame.new(0, 2.2, 0))
 		return
@@ -419,9 +457,18 @@ local function boardContestant(c: Contestant)
 		return
 	end
 	local root = ArenaService.get()
-	local startZ = root:GetAttribute("StartZ") :: number
+	c.s = 0
+	local rp = routePoint(c.s)
+	c.z = rp.Z
 	c.boarded = true
-	c.z = startZ
+	-- Drop any VELOCE mini so the cart race looks clean.
+	local rider = c.player and c.player.Character or c.model
+	if rider then
+		local oldMini = rider:FindFirstChild("VeloceMini")
+		if oldMini then
+			oldMini:Destroy()
+		end
+	end
 	c.shield = timings().startShieldSeconds
 	attachCharacter(c)
 	placeCart(c)
@@ -593,7 +640,36 @@ local function bindSingleVeloce(roller: BasePart)
 		roller.Transparency = 1
 		veloceActive[player.UserId] = true
 		humanoid.WalkSpeed = 32
+		-- Weld a mini golden suitcase to the rider: visibly equipped.
+		local mini: BasePart? = nil
+		local hrp = if character then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
+		if hrp then
+			mini = Instance.new("Part")
+			mini.Name = "VeloceMini"
+			mini.Size = Vector3.new(1.1, 1.5, 0.7)
+			mini.Color = Color3.fromRGB(212, 175, 105)
+			mini.Material = Enum.Material.SmoothPlastic
+			mini.CanCollide = false
+			mini.Anchored = false
+			mini.CFrame = hrp.CFrame * CFrame.new(1.4, -0.5, 0)
+			mini.Parent = character
+			local w = Instance.new("WeldConstraint")
+			w.Part0 = hrp
+			w.Part1 = mini
+			w.Parent = mini
+		end
 		toast(player, "VELOCE Roller — 60s first-class speed!")
+		task.delay(60, function()
+			veloceActive[player.UserId] = nil
+			if mini then
+				mini:Destroy()
+			end
+			local char = player.Character
+			local hum = if char then char:FindFirstChildOfClass("Humanoid") else nil
+			if hum and hum.WalkSpeed == 32 then
+				hum.WalkSpeed = 16
+			end
+		end)
 		task.delay(60, function()
 			veloceActive[player.UserId] = nil
 			local char = player.Character
@@ -705,6 +781,7 @@ local function startRun()
 	local i = 0
 	for _, c in contestants do
 		i += 1
+		c.s = 0
 		c.z = startZ
 		c.alive = true
 		c.boarded = false
@@ -758,11 +835,8 @@ local function maybeCollect(c: Contestant)
 		if inst:GetAttribute("Collected") then
 			continue
 		end
-		local lane = inst:GetAttribute("Lane")
-		if lane ~= c.lane then
-			continue
-		end
-		if math.abs(inst.Position.Z - c.z) > 3.2 then
+		local cartPos = c.cart.Position
+		if (inst.Position - cartPos).Magnitude > 4.5 then
 			continue
 		end
 		if inst:GetAttribute("Obstacle") then
@@ -803,9 +877,7 @@ local function maybeCollect(c: Contestant)
 end
 
 local function checkFinish(c: Contestant)
-	local root = ArenaService.get()
-	local finishZ = root:GetAttribute("FinishZ") :: number
-	if c.z <= finishZ and c.alive and not c.finished then
+	if c.s >= routeTotal - 3 and c.alive and not c.finished then
 		c.finished = true
 		c.alive = false
 		table.insert(finishOrder, c.userId)
@@ -826,13 +898,14 @@ local function spawnPickups(root: Folder)
 	folder.Parent = root
 	pickupFolder = folder
 
-	local finishZ = root:GetAttribute("FinishZ") :: number
-	local startZ = root:GetAttribute("StartZ") :: number
+	-- Pickups ride the waypoint route: s = studs from the boarding arch.
 	local looks = { "nightfall-tee", "crest-polo", "concrete-tee", "nightfall-boots", "oblique-coin-belt" }
 	for i = 1, 10 do
-		local alpha = i / 11
-		local z = startZ + (finishZ - startZ) * alpha
+		local s = 12 + (i - 1) * ((routeTotal - 30) / 9)
+		local rpos, rdir = routePoint(s)
+		local rperp = Vector3.new(-rdir.Z, 0, rdir.X)
 		local lane = (i % 3)
+		local rp3 = rpos + rperp * ArenaService.laneX(lane)
 		local lookId = looks[((i - 1) % #looks) + 1]
 		local look = Catalog.getLook(lookId)
 		local p = Instance.new("Part")
@@ -843,7 +916,7 @@ local function spawnPickups(root: Folder)
 		p.CanCollide = false
 		p.Material = Enum.Material.Neon
 		p.Color = if look and look.rare then Color3.fromRGB(244, 196, 48) else Color3.fromRGB(236, 72, 153)
-		p.Position = Vector3.new(ArenaService.laneX(lane), 4, z)
+		p.Position = Vector3.new(rp3.X, 4, rp3.Z)
 		p:SetAttribute("LookId", lookId)
 		p:SetAttribute("Rare", look ~= nil and look.rare == true)
 		p:SetAttribute("Lane", lane)
@@ -851,17 +924,21 @@ local function spawnPickups(root: Folder)
 	end
 
 	for i = 1, 6 do
-		local z = startZ + (finishZ - startZ) * ((i + 0.5) / 8)
+		local s = 30 + (i - 1) * 24
+		local rpos, rdir = routePoint(s)
+		local rperp = Vector3.new(-rdir.Z, 0, rdir.X)
 		local lane = (i + 1) % 3
+		local rp3 = rpos + rperp * ArenaService.laneX(lane)
 		local barrier = Instance.new("Part")
 		barrier.Name = "Paparazzi"
 		barrier.Size = Vector3.new(3, 4, 1.2)
 		barrier.Anchored = true
 		barrier.CanCollide = false
 		barrier.Color = Color3.fromRGB(30, 30, 30)
-		barrier.Position = Vector3.new(ArenaService.laneX(lane), 3.2, z)
+		barrier.Position = Vector3.new(rp3.X, 3.2, rp3.Z)
 		barrier:SetAttribute("Obstacle", true)
 		barrier:SetAttribute("Lane", lane)
+		barrier:SetAttribute("RouteS", s)
 		barrier.Parent = folder
 		-- Camera rig on top with a flash bulb that fires as a warning.
 		local cam = Instance.new("Part")
@@ -892,8 +969,11 @@ local function spawnPickups(root: Folder)
 	end
 
 	for i = 1, 4 do
-		local z = startZ + (finishZ - startZ) * ((i + 0.25) / 6)
+		local s = 45 + (i - 1) * 32
+		local rpos, rdir = routePoint(s)
+		local rperp = Vector3.new(-rdir.Z, 0, rdir.X)
 		local lane = (i * 2) % 3
+		local rp3 = rpos + rperp * ArenaService.laneX(lane)
 		local lug = Instance.new("Part")
 		lug.Name = "Luggage"
 		lug.Size = Vector3.new(3, 2, 1.4)
@@ -901,9 +981,10 @@ local function spawnPickups(root: Folder)
 		lug.CanCollide = false
 		lug.Color = Color3.fromRGB(122, 72, 40)
 		lug.Material = Enum.Material.Fabric
-		lug.Position = Vector3.new(ArenaService.laneX(lane), 2.6, z)
+		lug.Position = Vector3.new(rp3.X, 2.6, rp3.Z)
 		lug:SetAttribute("Obstacle", true)
 		lug:SetAttribute("Lane", lane)
+		lug:SetAttribute("RouteS", s)
 		lug.Parent = folder
 		local strap = Instance.new("Part")
 		strap.Name = "Strap"
@@ -948,10 +1029,10 @@ local function spawnPickups(root: Folder)
 	end
 
 	-- VELOCE Cabin Roller: ride it for 60s of first-class speed.
-	for _, vz in ipairs({ 30, -5 }) do
+	for _, vz in ipairs({ 20, -32 }) do
 		local case = Instance.new("Part")
 		case.Name = "VeloceRoller"
-		case.Size = Vector3.new(1.6, 2.2, 1)
+		case.Size = Vector3.new(2.2, 3, 1.4)
 		case.Anchored = true
 		case.CanCollide = false
 		case.Material = Enum.Material.SmoothPlastic
@@ -960,13 +1041,27 @@ local function spawnPickups(root: Folder)
 		case.Parent = folder
 		local trim = Instance.new("Part")
 		trim.Name = "VeloceTrim"
-		trim.Size = Vector3.new(1.7, 0.3, 1.1)
+		trim.Size = Vector3.new(2.3, 0.35, 1.5)
 		trim.Anchored = true
 		trim.CanCollide = false
 		trim.Material = Enum.Material.Neon
 		trim.Color = Color3.fromRGB(255, 250, 240)
 		trim.Position = case.Position + Vector3.new(0, 0.4, 0)
 		trim.Parent = folder
+		local band = Instance.new("Part")
+		band.Name = "VeloceTrimGold"
+		band.Size = Vector3.new(2.3, 0.25, 1.5)
+		band.Anchored = true
+		band.CanCollide = false
+		band.Material = Enum.Material.Neon
+		band.Color = Color3.fromRGB(212, 175, 105)
+		band.Position = case.Position + Vector3.new(0, -0.6, 0)
+		band.Parent = folder
+		local glow = Instance.new("PointLight")
+		glow.Brightness = 2
+		glow.Range = 16
+		glow.Color = Color3.fromRGB(212, 175, 105)
+		glow.Parent = case
 		local handle = Instance.new("Part")
 		handle.Name = "VeloceHandle"
 		handle.Size = Vector3.new(0.25, 1.6, 0.25)
@@ -995,7 +1090,7 @@ local function spawnPickups(root: Folder)
 		vsign.Position = case.Position + Vector3.new(0, 3.6, 0)
 		vsign.Parent = folder
 		local gui = Instance.new("BillboardGui")
-		gui.Size = UDim2.fromOffset(120, 24)
+		gui.Size = UDim2.fromOffset(220, 40)
 		gui.AlwaysOnTop = false
 		gui.Adornee = vsign
 		gui.Parent = vsign
@@ -1005,7 +1100,7 @@ local function spawnPickups(root: Folder)
 		label.Font = Enum.Font.GothamBold
 		label.TextScaled = true
 		label.TextColor3 = Color3.fromRGB(212, 175, 105)
-		label.Text = "VELOCE"
+		label.Text = "RIDE THE VELOCE " .. string.char(194, 183) .. " 60s SPEED"
 		label.Parent = gui
 	end
 	buildTravelator(root)
@@ -1035,8 +1130,12 @@ local function paparazziFlash()
 			if inst:GetAttribute("Lane") ~= c.lane then
 				continue
 			end
-			local dz = c.z - inst.Position.Z
-			if dz > 0 and dz < 26 then
+			local ps = inst:GetAttribute("RouteS")
+			if type(ps) ~= "number" then
+				continue
+			end
+			local ds = (ps :: number) - c.s
+			if ds > 0 and ds < 26 then
 				inst:SetAttribute("FlashAt", now)
 				local cam = inst:FindFirstChild("Camera")
 				local bulb = if cam then cam:FindFirstChild("FlashBulb") else nil
@@ -1096,6 +1195,14 @@ local function tickRun(dt: number)
 		if not c.alive then
 			continue
 		end
+		-- Stepping onto the runway boards you: race + timer start at the arch.
+		if not c.boarded and not c.isNpc and phase == Config.Phases.Run then
+			local character = c.player and c.player.Character
+			local hrp = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			if hrp and hrp.Position.Z < -33 then
+				boardContestant(c)
+			end
+		end
 		if not c.boarded then
 			-- Terminal stage: humans walk the terminal on foot; NPCs
 			-- board on a timer that simulates the walk.
@@ -1116,8 +1223,11 @@ local function tickRun(dt: number)
 		if c.slideT > 0 then
 			c.slideT -= dt
 		end
-		c.z -= contestantSpeed(c) * 8 * dt
-		c.distance += contestantSpeed(c) * 8 * dt
+		local adv = contestantSpeed(c) * 8 * dt
+		c.s = math.min(c.s + adv, routeTotal)
+		c.distance += adv
+		local rp = routePoint(c.s)
+		c.z = rp.Z
 		maybeCollect(c)
 		checkFinish(c)
 		placeCart(c)
@@ -1238,6 +1348,7 @@ function RoundService.ensureStudioCast()
 			isNpc = true,
 			lane = member.lane,
 			z = 0,
+			s = 0,
 			alive = false,
 			lives = 0,
 			looks = 0,
@@ -1278,6 +1389,7 @@ function RoundService.join(player: Player)
 		isNpc = false,
 		lane = 1,
 		z = 0,
+		s = 0,
 		alive = false,
 		lives = lives,
 		looks = 0,
