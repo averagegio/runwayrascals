@@ -148,6 +148,11 @@ local function buildPhxTerminal(root: Folder)
 		return q
 	end
 
+	-- The world sits on the ground: one big slab under everything.
+	pp({ Name = "Ground", Size = Vector3.new(600, 1, 600),
+		Position = Vector3.new(40, -0.5, -60), Color = Color3.fromRGB(116, 113, 108),
+		Material = Enum.Material.Concrete, CanCollide = true })
+
 	-- Glass curtain wall with bronze mullions, sill and header.
 	local function glassWallX(x: number, z0: number, z1: number)
 		local len = z1 - z0
@@ -310,11 +315,6 @@ local function buildPhxTerminal(root: Folder)
 	depBoard(-10, 76)
 	depBoard(12, -22)
 
-	-- "Terminal 4" accent wall at arrivals.
-	local twall = pp({ Name = "T4Wall", Size = Vector3.new(26, 9, 1),
-		Position = Vector3.new(0, 5.5, 79), Color = Color3.fromRGB(24, 24, 30),
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	billboard(twall, "Terminal 4", 0, 500, Color3.fromRGB(255, 255, 255))
 
 
 	-- Gate seating (black beam seats).
@@ -695,6 +695,56 @@ local function buildPhxTerminal(root: Folder)
 		Material = Enum.Material.SmoothPlastic, CanCollide = false })
 	pp({ Name = "PlaneDoor", Size = Vector3.new(3, 7, 5),
 		Position = Vector3.new(76.5, 4.5, -24), Transparency = 1, CanCollide = false })
+
+	-- Gate 27 at the END of the runway: the run connects to the aircraft.
+	pp({ Name = "ArrivalHall", Size = Vector3.new(44, 1, 20),
+		Position = Vector3.new(0, 0.5, -210), Color = TERRAZZO,
+		Material = Enum.Material.Marble, CanCollide = true })
+	waySign("GATE 27", 0, -208, 14)
+	pp({ Name = "GateBridgeFloor", Size = Vector3.new(5, 0.6, 12),
+		Position = Vector3.new(8, 1.0, -224), Color = Color3.fromRGB(120, 118, 115),
+		Material = Enum.Material.Concrete, CanCollide = true })
+	pp({ Name = "GateBridgeRoof", Size = Vector3.new(5.6, 0.5, 12),
+		Position = Vector3.new(8, 5.85, -224), Color = Color3.fromRGB(90, 88, 86),
+		Material = Enum.Material.Metal, CanCollide = false })
+	for _, bx in ipairs({ 5.5, 10.5 }) do
+		pp({ Name = "GateBridgeWall", Size = Vector3.new(0.4, 3, 12),
+			Position = Vector3.new(bx, 2.8, -224), Color = Color3.fromRGB(150, 148, 144),
+			Material = Enum.Material.Metal, CanCollide = true })
+		pp({ Name = "GateBridgeGlass", Size = Vector3.new(0.3, 1.4, 12),
+			Position = Vector3.new(bx, 5.0, -224), Color = Color3.fromRGB(170, 200, 215),
+			Transparency = 0.45, Material = Enum.Material.Glass, CanCollide = false })
+	end
+	pp({ Name = "GateBellows", Size = Vector3.new(5, 5, 2.5),
+		Position = Vector3.new(8, 3.5, -229.5), Color = Color3.fromRGB(30, 30, 35),
+		Material = Enum.Material.Fabric, CanCollide = false })
+	local white = Color3.fromRGB(235, 235, 240)
+	pp({ Name = "GateFuselage", Shape = Enum.PartType.Cylinder, Size = Vector3.new(26, 4.4, 4.4),
+		Position = Vector3.new(0, 6.5, -232), Color = white,
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	pp({ Name = "GateNose", Shape = Enum.PartType.Ball, Size = Vector3.new(4.4, 4.4, 4.4),
+		Position = Vector3.new(13, 6.5, -232), Color = white,
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	pp({ Name = "GateStripe", Size = Vector3.new(24, 0.9, 4.7),
+		Position = Vector3.new(0, 6.5, -232), Color = PLANEBLUE,
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	pp({ Name = "GateWing", Size = Vector3.new(5.5, 0.6, 30),
+		Position = Vector3.new(0, 6, -232), Color = white,
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	pp({ Name = "GateTailfin", Size = Vector3.new(4.5, 7, 0.8),
+		Position = Vector3.new(-11, 10.5, -232), Color = PLANEBLUE,
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	pp({ Name = "GateHStab", Size = Vector3.new(3, 0.5, 11),
+		Position = Vector3.new(-11.5, 7.5, -232), Color = white,
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	for _, ez in ipairs({ -239, -225 }) do
+		pp({ Name = "GateEngine", Shape = Enum.PartType.Cylinder, Size = Vector3.new(4.5, 2.2, 2.2),
+			Position = Vector3.new(0, 4.4, ez), Color = white,
+			Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	end
+	pp({ Name = "GateAircraftDoor", Size = Vector3.new(3, 5, 0.3),
+		Position = Vector3.new(8, 4, -229.7), Color = Color3.fromRGB(20, 24, 32),
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
 end
 
 function ArenaService.build(): Folder
@@ -968,7 +1018,7 @@ function ArenaService.build(): Folder
 		local block = part({
 			Name = "Skyline",
 			Size = Vector3.new(10 + i % 3 * 4, 18 + (i % 4) * 10, 8),
-			Position = Vector3.new(-70 + i * 22, 12, finishZ - 48),
+			Position = Vector3.new(-70 + i * 22, 12, finishZ - 64),
 			Color = Color3.fromRGB(16, 12, 22),
 			CanCollide = false,
 			Material = Enum.Material.Slate,

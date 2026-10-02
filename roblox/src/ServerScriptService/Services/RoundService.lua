@@ -521,6 +521,80 @@ local function bindPlaneDoor()
 	end
 end
 
+-- Ambient life: the terminal feels alive in every phase.
+local ambientParts = nil
+local ambientT = 0
+local boardT = 0
+local boardIdx = 1
+local boardTexts = {
+	"RR 27   NEW YORK      BOARDING\nRR 114  DENVER        ON TIME\nRR 208  CHICAGO       ON TIME\nRR 312  DALLAS        DELAYED\nRR 425  LOS ANGELES   BOARDING",
+	"RR 118  MIAMI         ON TIME\nRR 27   NEW YORK      BOARDING\nRR 330  SEATTLE       ON TIME\nRR 114  DENVER        BOARDING\nRR 512  PHOENIX       ON TIME",
+	"RR 208  CHICAGO       BOARDING\nRR 425  LOS ANGELES   ON TIME\nRR 312  DALLAS        BOARDING\nRR 118  MIAMI         DELAYED\nRR 27   NEW YORK      DEPARTED",
+}
+
+local function scanAmbient()
+	local root = ArenaService.get()
+	local ap = { liftCabs = {}, chevrons = {}, agentParts = {}, boards = {} }
+	local agentIdx = 0
+	for _, folder in ipairs(root:GetDescendants()) do
+		if folder:IsA("Folder") and folder.Name == "Agent" then
+			agentIdx += 1
+			for _, q in ipairs(folder:GetDescendants()) do
+				if q:IsA("BasePart") then
+					table.insert(ap.agentParts, { part = q, baseY = q.Position.Y, phase = agentIdx * 1.7 })
+				end
+			end
+		end
+	end
+	for _, d in ipairs(root:GetDescendants()) do
+		if d:IsA("BasePart") then
+			if d.Name == "LiftCab" then
+				table.insert(ap.liftCabs, d)
+			elseif d.Name == "BeltChevron" then
+				table.insert(ap.chevrons, { part = d, base = d.CFrame, offset = 0 })
+			end
+		elseif d:IsA("TextLabel") and d.Parent and d.Parent.Name == "BoardSign" then
+			table.insert(ap.boards, d)
+		end
+	end
+	ambientParts = ap
+end
+
+local function tickAmbient(dt: number)
+	if not ambientParts then
+		scanAmbient()
+	end
+	local ap = ambientParts
+	if not ap then
+		return
+	end
+	ambientT += dt
+	local t = ambientT
+	for _, cab in ap.liftCabs do
+		cab.Position = Vector3.new(cab.Position.X, 6.4 + 3.0 * math.sin(t * 0.7), cab.Position.Z)
+	end
+	for _, c in ap.chevrons do
+		c.offset += 10 * dt
+		if c.offset >= 30 then
+			c.offset -= 30
+		end
+		local bp = c.base.Position
+		local rot = c.base - c.base.Position
+		c.part.CFrame = CFrame.new(bp.X, bp.Y, bp.Z - c.offset) * rot
+	end
+	for _, a in ap.agentParts do
+		a.part.Position = Vector3.new(a.part.Position.X, a.baseY + 0.12 * math.sin(t * 2.2 + a.phase), a.part.Position.Z)
+	end
+	boardT += dt
+	if boardT >= 4 then
+		boardT = 0
+		boardIdx = boardIdx % #boardTexts + 1
+		for _, label in ap.boards do
+			label.Text = boardTexts[boardIdx]
+		end
+	end
+end
+
 local function startRun()
 	local root = ArenaService.get()
 	local startZ = root:GetAttribute("StartZ") :: number
@@ -1187,6 +1261,7 @@ function RoundService.bind()
 		if phase == Config.Phases.Run then
 			tickRun(dt)
 		end
+		tickAmbient(dt)
 		nextPhaseIfDue()
 	end)
 	heartbeatConn = heartbeatConn
