@@ -381,46 +381,6 @@ local function buildDropOffJourney(root: Folder)
 	end
 	luggageCart(-11, -60)
 	luggageCart(11, -85)
-	-- Chrome stanchions with sagging navy belts: real airport queue rails.
-	local function beltSeg(x1: number, y1: number, x2: number, y2: number, z: number)
-		local dx, dy = x2 - x1, y2 - y1
-		local len = math.sqrt(dx * dx + dy * dy)
-		dp({ Name = "StanchionBelt", Size = Vector3.new(len, 0.35, 0.15),
-			CFrame = CFrame.new((x1 + x2) / 2, (y1 + y2) / 2, z)
-				* CFrame.Angles(0, 0, math.atan2(dy, dx)),
-			Color = Color3.fromRGB(25, 35, 90), Material = Enum.Material.Fabric,
-			CanCollide = false })
-	end
-	local function stanchionRow(x: number, z: number, width: number)
-		local posts: { number } = {}
-		local px = x - width / 2
-		while px <= x + width / 2 + 0.01 do
-			table.insert(posts, px)
-			dp({ Name = "StanchionBase", Shape = Enum.PartType.Cylinder,
-				Size = Vector3.new(0.2, 0.9, 0.9),
-				CFrame = CFrame.new(px, 1.1, z) * CFrame.Angles(0, 0, math.pi / 2),
-				Color = Color3.fromRGB(160, 160, 165), Material = Enum.Material.Metal,
-				CanCollide = false })
-			dp({ Name = "StanchionPost", Shape = Enum.PartType.Cylinder,
-				Size = Vector3.new(2.6, 0.5, 0.5),
-				CFrame = CFrame.new(px, 2.4, z) * CFrame.Angles(0, 0, math.pi / 2),
-				Color = Color3.fromRGB(160, 160, 165), Material = Enum.Material.Metal,
-				CanCollide = false })
-			dp({ Name = "StanchionTop", Shape = Enum.PartType.Ball,
-				Size = Vector3.new(0.7, 0.7, 0.7), Position = Vector3.new(px, 3.75, z),
-				Color = Color3.fromRGB(201, 165, 106), Material = Enum.Material.Neon,
-				CanCollide = false })
-			px += 2.5
-		end
-		for i = 1, #posts - 1 do
-			local x1, x2 = posts[i], posts[i + 1]
-			local xm = (x1 + x2) / 2
-			beltSeg(x1, 3.4, xm, 3.15, z)
-			beltSeg(xm, 3.15, x2, 3.4, z)
-		end
-	end
-	stanchionRow(0, 40, 16)
-	stanchionRow(0, -18, 16)
 
 	-- Jump platforms: stacked luggage and benches, zigzag, 1-3 studs tall.
 	local platHeights = { 1, 2, 3, 1.5, 2.5, 1, 3, 2 }
@@ -496,15 +456,72 @@ local function buildDropOffJourney(root: Folder)
 		Material = Enum.Material.SmoothPlastic, CanCollide = false })
 	billboard(cbeam, "CONCOURSE B · TRAIN TUNNEL →", 1.5, 420, Color3.fromRGB(255, 255, 255))
 
-	-- Interactive stairs: mall floor up to the mezzanine.
-	for i = 0, 9 do
-		dp({ Name = "JourneyStairs", Size = Vector3.new(4, 0.5, 0.75),
-			Position = Vector3.new(8, 1.75 + i * 0.667, 29.5 + i * 0.7),
+	-- Interactive stairs: mall floor up to the mezzanine (top step flush with MezzFloor).
+	for i = 0, 12 do
+		dp({ Name = "JourneyStairs", Size = Vector3.new(6, 0.5, 1.0),
+			Position = Vector3.new(8, 1.5 + i * 0.5, 27 + i * 1.0),
 			Color = Color3.fromRGB(148, 108, 72), Material = Enum.Material.Wood })
 	end
-	dp({ Name = "StairRail", Size = Vector3.new(0.3, 2.4, 7.5),
-		CFrame = CFrame.new(10.2, 4.6, 32.6) * CFrame.Angles(-0.72, 0, 0),
-		Color = BRONZE, Material = Enum.Material.Metal, CanCollide = false })
+	for _, rx in ipairs({ 4.8, 11.2 }) do
+		dp({ Name = "StairRail", Size = Vector3.new(0.3, 1.2, 13.5),
+			CFrame = CFrame.new(rx, 5.4, 33.5) * CFrame.Angles(-0.46, 0, 0),
+			Color = BRONZE, Material = Enum.Material.Metal, CanCollide = false })
+	end
+
+	-- VELOCE display pedestals: permanent grooved cabin cases you can equip.
+	local function veloceDisplay(x: number, z: number)
+		dp({ Name = "VelocePedestal", Size = Vector3.new(2.4, 1.6, 2.4),
+			Position = Vector3.new(x, 1.8, z), Color = Color3.fromRGB(225, 220, 210),
+			Material = Enum.Material.Marble, CanCollide = false })
+		local silver = Color3.fromRGB(200, 205, 215)
+		local groove = Color3.fromRGB(140, 145, 155)
+		local dark = Color3.fromRGB(30, 30, 34)
+		local function vp(props: { [string]: any }): Part
+			local q = dp(props)
+			q.Name = "VeloceRoller"
+			q.Anchored = true
+			q.CanCollide = false
+			return q
+		end
+		local box = vp({ Size = Vector3.new(2.2, 3, 1.4), Position = Vector3.new(x, 4.1, z),
+			Color = silver, Material = Enum.Material.SmoothPlastic })
+		for _, gy in ipairs({ 3.0, 3.7, 4.4, 5.1 }) do
+			vp({ Size = Vector3.new(2.25, 0.12, 1.45), Position = Vector3.new(x, gy, z),
+				Color = groove, Material = Enum.Material.SmoothPlastic })
+		end
+		for _, cx in ipairs({ -1.0, 1.0 }) do
+			for _, cy in ipairs({ 2.75, 5.45 }) do
+				for _, cz in ipairs({ -0.6, 0.6 }) do
+					vp({ Size = Vector3.new(0.35, 0.35, 0.35),
+						Position = Vector3.new(x + cx, cy, z + cz),
+						Color = dark, Material = Enum.Material.SmoothPlastic })
+				end
+			end
+		end
+		for _, hx in ipairs({ -0.45, 0.45 }) do
+			vp({ Size = Vector3.new(0.15, 1.2, 0.15), Position = Vector3.new(x + hx, 6.1, z),
+				Color = dark, Material = Enum.Material.Metal })
+		end
+		vp({ Size = Vector3.new(1.05, 0.15, 0.15), Position = Vector3.new(x, 6.7, z),
+			Color = dark, Material = Enum.Material.Metal })
+		for _, wx in ipairs({ -0.8, 0.8 }) do
+			for _, wz in ipairs({ -0.45, 0.45 }) do
+				vp({ Shape = Enum.PartType.Ball, Size = Vector3.new(0.4, 0.4, 0.4),
+					Position = Vector3.new(x + wx, 2.45, z + wz),
+					Color = dark, Material = Enum.Material.SmoothPlastic })
+			end
+		end
+		local vglow = Instance.new("PointLight")
+		vglow.Brightness = 2
+		vglow.Range = 14
+		vglow.Color = Color3.fromRGB(212, 175, 105)
+		vglow.Parent = box
+		local vsign = dp({ Name = "VeloceSign", Size = Vector3.new(2.4, 1, 0.3),
+			Position = Vector3.new(x, 8.2, z), Transparency = 1, CanCollide = false })
+		billboard(vsign, "VELOCE · RIDE ME", 0, 300, Color3.fromRGB(212, 175, 105))
+	end
+	veloceDisplay(0, 20)
+	veloceDisplay(0, -30)
 
 	-- Interactive elevator: ProximityPrompt rides the glass lift.
 	local cab = root:FindFirstChild("LiftCab")

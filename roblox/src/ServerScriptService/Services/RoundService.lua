@@ -482,13 +482,20 @@ local function boardContestant(c: Contestant)
 	local rp = routePoint(c.s)
 	c.z = rp.Z
 	c.boarded = true
-	-- Drop any VELOCE mini so the cart race looks clean.
+	-- Drop any VELOCE roller tool so the cart race looks clean.
 	local rider = c.player and c.player.Character or c.model
 	if rider then
-		local oldMini = rider:FindFirstChild("VeloceMini")
-		if oldMini then
-			oldMini:Destroy()
+		local oldTool = rider:FindFirstChild("VELOCE Roller")
+		if oldTool then
+			oldTool:Destroy()
 		end
+	end
+	if c.player then
+		local oldPack = c.player.Backpack:FindFirstChild("VELOCE Roller")
+		if oldPack then
+			oldPack:Destroy()
+		end
+		c.player:SetAttribute("HasVeloce", nil)
 	end
 	-- Suitcase Rush settles when you board: bonus paid, suitcase off.
 	settleSuitcase(c)
@@ -639,70 +646,118 @@ local function bindEquipPickups()
 	end
 end
 
--- VELOCE Cabin Roller: touch to ride at 2x speed for 60 seconds.
+-- VELOCE Cabin Roller: touch a display case to equip a rolling suitcase Tool.
+-- While the roller is held out, you roll at 2x speed for 60 seconds.
 local veloceActive: { [number]: boolean } = {}
+
+local function makeVeloceTool(): Tool
+	local tool = Instance.new("Tool")
+	tool.Name = "VELOCE Roller"
+	tool.RequiresHandle = true
+	tool.CanBeDropped = false
+	tool.GripForward = Vector3.new(0, 0, 1)
+	tool.GripPos = Vector3.new(0, -0.9, 0)
+	local silver = Color3.fromRGB(200, 205, 215)
+	local groove = Color3.fromRGB(140, 145, 155)
+	local dark = Color3.fromRGB(30, 30, 34)
+	local handle = Instance.new("Part")
+	handle.Name = "Handle"
+	handle.Size = Vector3.new(1.1, 1.5, 0.7)
+	handle.Color = silver
+	handle.Material = Enum.Material.SmoothPlastic
+	handle.CanCollide = false
+	handle.TopSurface = Enum.SurfaceType.Smooth
+	handle.BottomSurface = Enum.SurfaceType.Smooth
+	handle.Parent = tool
+	for _, gy in ipairs({ -0.35, 0.35 }) do
+		local strip = Instance.new("Part")
+		strip.Name = "Groove"
+		strip.Size = Vector3.new(1.15, 0.1, 0.75)
+		strip.Color = groove
+		strip.Material = Enum.Material.SmoothPlastic
+		strip.CanCollide = false
+		strip.TopSurface = Enum.SurfaceType.Smooth
+		strip.BottomSurface = Enum.SurfaceType.Smooth
+		strip.CFrame = CFrame.new(0, gy, 0)
+		strip.Parent = tool
+		local w = Instance.new("WeldConstraint")
+		w.Part0 = handle
+		w.Part1 = strip
+		w.Parent = handle
+	end
+	local grip = Instance.new("Part")
+	grip.Name = "GripBar"
+	grip.Size = Vector3.new(0.7, 0.12, 0.12)
+	grip.Color = dark
+	grip.Material = Enum.Material.Metal
+	grip.CanCollide = false
+	grip.TopSurface = Enum.SurfaceType.Smooth
+	grip.BottomSurface = Enum.SurfaceType.Smooth
+	grip.CFrame = CFrame.new(0, 1.05, 0)
+	grip.Parent = tool
+	local w2 = Instance.new("WeldConstraint")
+	w2.Part0 = handle
+	w2.Part1 = grip
+	w2.Parent = handle
+	return tool
+end
 
 local function bindSingleVeloce(roller: BasePart)
 	roller.Touched:Connect(function(hit)
-		if roller:GetAttribute("Collected") then
-			return
-		end
 		local character = hit:FindFirstAncestorOfClass("Model")
 		local player = if character then Players:GetPlayerFromCharacter(character) else nil
 		if not player then
 			return
 		end
-		if veloceActive[player.UserId] then
+		if player:GetAttribute("HasVeloce") then
 			return
 		end
 		local humanoid = if character then character:FindFirstChildOfClass("Humanoid") else nil
 		if not humanoid then
 			return
 		end
-		roller:SetAttribute("Collected", true)
-		roller.Transparency = 1
+		player:SetAttribute("HasVeloce", true)
 		veloceActive[player.UserId] = true
-		humanoid.WalkSpeed = 32
-		-- Weld a mini golden suitcase to the rider: visibly equipped.
-		local mini: BasePart? = nil
-		local hrp = if character then character:FindFirstChild("HumanoidRootPart") :: BasePart? else nil
-		if hrp then
-			mini = Instance.new("Part")
-			mini.Name = "VeloceMini"
-			mini.Size = Vector3.new(1.1, 1.5, 0.7)
-			mini.Color = Color3.fromRGB(212, 175, 105)
-			mini.Material = Enum.Material.SmoothPlastic
-			mini.CanCollide = false
-			mini.Anchored = false
-			mini.CFrame = hrp.CFrame * CFrame.new(1.4, -0.5, 0)
-			mini.Parent = character
-			local w = Instance.new("WeldConstraint")
-			w.Part0 = hrp
-			w.Part1 = mini
-			w.Parent = mini
-		end
-		toast(player, "VELOCE Roller — 60s first-class speed!")
-		task.delay(60, function()
-			veloceActive[player.UserId] = nil
-			if mini then
-				mini:Destroy()
+		local tool = makeVeloceTool()
+		tool.Equipped:Connect(function()
+			local char = player.Character
+			local hum = if char then char:FindFirstChildOfClass("Humanoid") else nil
+			if hum then
+				hum.WalkSpeed = 32
 			end
+		end)
+		tool.Unequipped:Connect(function()
 			local char = player.Character
 			local hum = if char then char:FindFirstChildOfClass("Humanoid") else nil
 			if hum and hum.WalkSpeed == 32 then
 				hum.WalkSpeed = 16
 			end
 		end)
+		tool.Parent = player.Backpack
+		humanoid:EquipTool(tool)
+		toast(player, "VELOCE Roller equipped — rolling at 2x speed for 60s!")
 		task.delay(60, function()
 			veloceActive[player.UserId] = nil
+			player:SetAttribute("HasVeloce", nil)
+			local pack = player.Backpack:FindFirstChild("VELOCE Roller")
+			if pack then
+				pack:Destroy()
+			end
 			local char = player.Character
+			if char then
+				local held = char:FindFirstChild("VELOCE Roller")
+				if held then
+					held:Destroy()
+				end
+			end
 			local hum = if char then char:FindFirstChildOfClass("Humanoid") else nil
-			if hum then
+			if hum and hum.WalkSpeed == 32 then
 				hum.WalkSpeed = 16
 			end
 		end)
 	end)
 end
+
 
 local function bindVeloceRoller()
 	local root = ArenaService.get()
@@ -846,6 +901,20 @@ local function startRun()
 	finishOrder = {}
 	planeDoorClaimed = {}
 	veloceActive = {}
+	for _, p in ipairs(Players:GetPlayers()) do
+		p:SetAttribute("HasVeloce", nil)
+		local oldPack = p.Backpack:FindFirstChild("VELOCE Roller")
+		if oldPack then
+			oldPack:Destroy()
+		end
+		local ch = p.Character
+		if ch then
+			local oldHeld = ch:FindFirstChild("VELOCE Roller")
+			if oldHeld then
+				oldHeld:Destroy()
+			end
+		end
+	end
 	boardingStarted = false
 	local origin = ArenaService.lobbyOrigin()
 	local i = 0
@@ -1116,82 +1185,6 @@ local function spawnPickups(root: Folder)
 		orb.Position = ped.Position + Vector3.new(0, 2.6, 0)
 		orb:SetAttribute("LookId", lookId)
 		orb.Parent = folder
-	end
-
-	-- VELOCE Cabin Roller: ride it for 60s of first-class speed.
-	for _, vz in ipairs({ 20, -32 }) do
-		local case = Instance.new("Part")
-		case.Name = "VeloceRoller"
-		case.Size = Vector3.new(2.2, 3, 1.4)
-		case.Anchored = true
-		case.CanCollide = false
-		case.Material = Enum.Material.SmoothPlastic
-		case.Color = Color3.fromRGB(212, 175, 105)
-		case.Position = Vector3.new(0, 2.4, vz)
-		case.Parent = folder
-		local trim = Instance.new("Part")
-		trim.Name = "VeloceTrim"
-		trim.Size = Vector3.new(2.3, 0.35, 1.5)
-		trim.Anchored = true
-		trim.CanCollide = false
-		trim.Material = Enum.Material.Neon
-		trim.Color = Color3.fromRGB(255, 250, 240)
-		trim.Position = case.Position + Vector3.new(0, 0.4, 0)
-		trim.Parent = folder
-		local band = Instance.new("Part")
-		band.Name = "VeloceTrimGold"
-		band.Size = Vector3.new(2.3, 0.25, 1.5)
-		band.Anchored = true
-		band.CanCollide = false
-		band.Material = Enum.Material.Neon
-		band.Color = Color3.fromRGB(212, 175, 105)
-		band.Position = case.Position + Vector3.new(0, -0.6, 0)
-		band.Parent = folder
-		local glow = Instance.new("PointLight")
-		glow.Brightness = 2
-		glow.Range = 16
-		glow.Color = Color3.fromRGB(212, 175, 105)
-		glow.Parent = case
-		local handle = Instance.new("Part")
-		handle.Name = "VeloceHandle"
-		handle.Size = Vector3.new(0.25, 1.6, 0.25)
-		handle.Anchored = true
-		handle.CanCollide = false
-		handle.Color = Color3.fromRGB(60, 60, 66)
-		handle.Position = case.Position + Vector3.new(0, 1.9, 0)
-		handle.Parent = folder
-		for _, wx in ipairs({ -0.5, 0.5 }) do
-			local wheel = Instance.new("Part")
-			wheel.Name = "VeloceWheel"
-			wheel.Shape = Enum.PartType.Ball
-			wheel.Size = Vector3.new(0.6, 0.6, 0.6)
-			wheel.Anchored = true
-			wheel.CanCollide = false
-			wheel.Color = Color3.fromRGB(25, 25, 28)
-			wheel.Position = case.Position + Vector3.new(wx, -1.2, 0)
-			wheel.Parent = folder
-		end
-		local vsign = Instance.new("Part")
-		vsign.Name = "VeloceSign"
-		vsign.Size = Vector3.new(2, 1, 0.3)
-		vsign.Anchored = true
-		vsign.CanCollide = false
-		vsign.Transparency = 1
-		vsign.Position = case.Position + Vector3.new(0, 3.6, 0)
-		vsign.Parent = folder
-		local gui = Instance.new("BillboardGui")
-		gui.Size = UDim2.fromOffset(220, 40)
-		gui.AlwaysOnTop = false
-		gui.Adornee = vsign
-		gui.Parent = vsign
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.fromScale(1, 1)
-		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.GothamBold
-		label.TextScaled = true
-		label.TextColor3 = Color3.fromRGB(212, 175, 105)
-		label.Text = "RIDE THE VELOCE " .. string.char(194, 183) .. " 60s SPEED"
-		label.Parent = gui
 	end
 
 	-- Suitcase Rush: 8 rare looks scattered across the on-foot terminal.
