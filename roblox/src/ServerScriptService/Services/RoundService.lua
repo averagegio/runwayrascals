@@ -473,6 +473,195 @@ local function settleSuitcase(c: Contestant)
 	end
 end
 
+-- Ride system: "Ride" game action (E key / mobile RIDE button) mounts and
+-- dismounts rides contextually. Priority: riding suitcase -> dismount;
+-- riding walkway -> dismount; VELOCE tool equipped -> mount suitcase;
+-- standing on a walkway zone -> mount walkway. Jump also dismounts.
+type RideState = {
+	mode: string, -- "walkway" | "suitcase"
+	platform: BasePart?,
+	weld: WeldConstraint?,
+	zone: { x: number, z: number, len: number }?,
+	baseY: number,
+}
+local rides: { [number]: RideState } = {}
+
+-- Static rideable walkway zones, matching the ArenaService travelator placements.
+local WALKWAY_ZONES = {
+	{ x = 12, z = 21, len = 34 },
+	{ x = -12, z = -5, len = 30 },
+	{ x = 12, z = -35, len = 30 },
+}
+local WALKWAY_DIR = Vector3.new(0, 0, -1) -- toward the gates
+local WALKWAY_SPEED = 22
+local SUITCASE_SPEED = 32
+local RIDE_SILVER = Color3.fromRGB(200, 205, 215)
+local RIDE_GROOVE = Color3.fromRGB(140, 145, 155)
+
+local function rideRoot(player: Player): (BasePart?, Humanoid?)
+	local character = player.Character
+	local root = if character then character:FindFirstChild("HumanoidRootPart") else nil
+	local hum = if character then character:FindFirstChildOfClass("Humanoid") else nil
+	if root and root:IsA("BasePart") and hum and hum.Health > 0 then
+		return root, hum
+	end
+	return nil, nil
+end
+
+local function dismountRide(player: Player?)
+	if not player then
+		return
+	end
+	local ride = rides[player.UserId]
+	if not ride then
+		return
+	end
+	rides[player.UserId] = nil
+	if ride.weld then
+		ride.weld:Destroy()
+	end
+	if ride.platform then
+		ride.platform:Destroy()
+	end
+end
+
+local function dismountAllRides()
+	for userId, _ in rides do
+		local p = Players:GetPlayerByUserId(userId)
+		if p then
+			dismountRide(p)
+		end
+	end
+	table.clear(rides)
+end
+
+local function walkwayZoneAt(character: Model?): { x: number, z: number, len: number }?
+	local root = if character then character:FindFirstChild("HumanoidRootPart") else nil
+	if not root or not root:IsA("BasePart") then
+		return nil
+	end
+	local p = root.Position
+	for _, zone in WALKWAY_ZONES do
+		if math.abs(p.X - zone.x) < 3.2 and math.abs(p.Z - zone.z) <= zone.len / 2 + 2 then
+			return zone
+		end
+	end
+	return nil
+end
+
+local function mountWalkway(player: Player, zone: { x: number, z: number, len: number })
+	local root, hum = rideRoot(player)
+	if not root or not hum then
+		return
+	end
+	dismountRide(player)
+	local feetY = root.Position.Y - root.Size.Y / 2 - hum.HipHeight
+	local platform = Instance.new("Part")
+	platform.Name = "RidePlatform"
+	platform.Size = Vector3.new(4, 0.6, 4)
+	platform.Transparency = 1
+	platform.Anchored = true
+	platform.CanCollide = false
+	platform.CFrame = CFrame.new(root.Position.X, feetY - 0.3, root.Position.Z)
+	platform.Parent = Workspace
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = root
+	weld.Part1 = platform
+	weld.Parent = platform
+	rides[player.UserId] = { mode = "walkway", platform = platform, weld = weld, zone = zone, baseY = feetY - 0.3 }
+	toast(player, "Riding the power walkway — E / Jump to hop off")
+end
+
+-- VELOCE suitcase as a rideable vehicle: stand on the case, steer with
+-- movement input, the held tool is the handle.
+local function mountSuitcase(player: Player)
+	local root, hum = rideRoot(player)
+	if not root or not hum then
+		return
+	end
+	dismountRide(player)
+	local feetY = root.Position.Y - root.Size.Y / 2 - hum.HipHeight
+	local case = Instance.new("Part")
+	case.Name = "RideCase"
+	case.Size = Vector3.new(1.8, 1.1, 1.2)
+	case.Color = RIDE_SILVER
+	case.Material = Enum.Material.SmoothPlastic
+	case.TopSurface = Enum.SurfaceType.Smooth
+	case.BottomSurface = Enum.SurfaceType.Smooth
+	case.Anchored = true
+	case.CanCollide = false
+	case.CFrame = CFrame.new(root.Position.X, feetY + 0.55, root.Position.Z)
+	case.Parent = Workspace
+	for _, gy in ipairs({ -0.25, 0.25 }) do
+		local strip = Instance.new("Part")
+		strip.Name = "RideGroove"
+		strip.Size = Vector3.new(1.85, 0.1, 1.25)
+		strip.Color = RIDE_GROOVE
+		strip.Material = Enum.Material.SmoothPlastic
+		strip.CanCollide = false
+		strip.TopSurface = Enum.SurfaceType.Smooth
+		strip.BottomSurface = Enum.SurfaceType.Smooth
+		strip.CFrame = case.CFrame * CFrame.new(0, gy, 0)
+		strip.Parent = case
+		local w = Instance.new("WeldConstraint")
+		w.Part0 = case
+		w.Part1 = strip
+		w.Parent = case
+	end
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = root
+	weld.Part1 = case
+	weld.Parent = case
+	rides[player.UserId] = { mode = "suitcase", platform = case, weld = weld, zone = nil, baseY = feetY + 0.55 }
+	toast(player, "Riding the VELOCE — steer with movement keys, E / Jump to hop off")
+end
+
+local function tickRides(dt: number)
+	if phase ~= Config.Phases.Run then
+		dismountAllRides()
+		return
+	end
+	for userId, ride in rides do
+		local player = Players:GetPlayerByUserId(userId)
+		local root: BasePart? = nil
+		local hum: Humanoid? = nil
+		if player then
+			root, hum = rideRoot(player)
+		end
+		local platform = ride.platform
+		if not player or not root or not hum or not platform or not platform.Parent then
+			if player then
+				dismountRide(player)
+			else
+				rides[userId] = nil
+			end
+			continue
+		end
+		if ride.mode == "walkway" then
+			local zone = ride.zone
+			if not zone then
+				dismountRide(player)
+				continue
+			end
+			platform.CFrame += WALKWAY_DIR * WALKWAY_SPEED * dt
+			if platform.Position.Z < zone.z - zone.len / 2 then
+				dismountRide(player)
+				toast(player, "End of the walkway")
+			end
+		elseif ride.mode == "suitcase" then
+			local move = hum.MoveDirection
+			local flat = Vector3.new(move.X, 0, move.Z)
+			if flat.Magnitude > 0.05 then
+				local dir = flat.Unit
+				local newPos = platform.Position + dir * SUITCASE_SPEED * dt
+				platform.CFrame = CFrame.new(newPos.X, ride.baseY, newPos.Z)
+					* CFrame.Angles(0, math.atan2(dir.X, dir.Z), 0)
+			end
+		end
+	end
+end
+
+
 local function boardContestant(c: Contestant)
 	if c.boarded or not c.alive then
 		return
@@ -491,6 +680,7 @@ local function boardContestant(c: Contestant)
 		end
 	end
 	if c.player then
+		dismountRide(c.player)
 		local oldPack = c.player.Backpack:FindFirstChild("VELOCE Roller")
 		if oldPack then
 			oldPack:Destroy()
@@ -647,7 +837,7 @@ local function bindEquipPickups()
 end
 
 -- VELOCE Cabin Roller: touch a display case to equip a rolling suitcase Tool.
--- While the roller is held out, you roll at 2x speed for 60 seconds.
+-- Equipping mounts the rideable suitcase vehicle (E / Jump / 60s to dismount).
 local veloceActive: { [number]: boolean } = {}
 
 local function makeVeloceTool(): Tool
@@ -720,25 +910,20 @@ local function bindSingleVeloce(roller: BasePart)
 		veloceActive[player.UserId] = true
 		local tool = makeVeloceTool()
 		tool.Equipped:Connect(function()
-			local char = player.Character
-			local hum = if char then char:FindFirstChildOfClass("Humanoid") else nil
-			if hum then
-				hum.WalkSpeed = 32
+			if phase == Config.Phases.Run then
+				mountSuitcase(player)
 			end
 		end)
 		tool.Unequipped:Connect(function()
-			local char = player.Character
-			local hum = if char then char:FindFirstChildOfClass("Humanoid") else nil
-			if hum and hum.WalkSpeed == 32 then
-				hum.WalkSpeed = 16
-			end
+			dismountRide(player)
 		end)
 		tool.Parent = player.Backpack
 		humanoid:EquipTool(tool)
-		toast(player, "VELOCE Roller equipped — rolling at 2x speed for 60s!")
+		toast(player, "VELOCE Roller equipped — press E to ride it!")
 		task.delay(60, function()
 			veloceActive[player.UserId] = nil
 			player:SetAttribute("HasVeloce", nil)
+			dismountRide(player)
 			local pack = player.Backpack:FindFirstChild("VELOCE Roller")
 			if pack then
 				pack:Destroy()
@@ -769,6 +954,49 @@ local function bindVeloceRoller()
 	for _, inst in ipairs(root:GetDescendants()) do
 		if inst:IsA("BasePart") and inst.Name == "VeloceRoller" then
 			bindSingleVeloce(inst)
+		end
+	end
+end
+
+-- UGC STORE (template): coin purchases for the blocky accessories on the
+-- mall pedestals. Each entry maps a pedestal prompt to a catalog look.
+-- TEMPLATE — assetId = 0 is a placeholder. To sell real UGC, replace assetId
+-- with the real catalog asset id and call
+-- MarketplaceService:PromptPurchase(player, assetId) here (fulfilling the
+-- grant in MarketplaceService.ProcessReceipt) instead of the coin path below.
+local UGC_CATALOG = {
+	{ id = "star-shades", name = "Star Shades", price = 150, assetId = 0, lookId = "silk-atelier-shades" },
+	{ id = "pixel-cap", name = "Pixel Cap", price = 200, assetId = 0, lookId = "crest-polo" },
+	{ id = "boombox", name = "Boombox Buddy", price = 250, assetId = 0, lookId = "concrete-stack" },
+	{ id = "gold-chain", name = "Gold Chain", price = 300, assetId = 0, lookId = "nightfall-boots" },
+}
+
+local function bindUgcStore()
+	local root = ArenaService.get()
+	for _, inst in ipairs(root:GetDescendants()) do
+		if inst:IsA("ProximityPrompt") and inst.Name == "UgcBuy" then
+			local prompt = inst
+			prompt.Triggered:Connect(function(player: Player)
+				local itemId = prompt:GetAttribute("ItemId")
+				local entry = nil
+				for _, e in UGC_CATALOG do
+					if e.id == itemId then
+						entry = e
+						break
+					end
+				end
+				if not entry then
+					return
+				end
+				if DataService.spendCoins(player, entry.price) then
+					DataService.grantLook(player, entry.lookId)
+					Remotes.event(Remotes.Events.PlayerData):FireClient(player, DataService.get(player))
+					toast(player, "Purchased " .. entry.name .. "!")
+				else
+					local data = DataService.get(player)
+					toast(player, "Need " .. tostring(entry.price) .. "c — you have " .. tostring(math.floor(data.stylePoints)) .. "c")
+				end
+			end)
 		end
 	end
 end
@@ -901,6 +1129,7 @@ local function startRun()
 	finishOrder = {}
 	planeDoorClaimed = {}
 	veloceActive = {}
+	dismountAllRides()
 	for _, p in ipairs(Players:GetPlayers()) do
 		p:SetAttribute("HasVeloce", nil)
 		local oldPack = p.Backpack:FindFirstChild("VELOCE Roller")
@@ -1601,12 +1830,39 @@ function RoundService.input(player: Player, action: string)
 	elseif action == "Right" then
 		c.lane = math.min(2, c.lane + 1)
 	elseif action == "Jump" then
-		if c.jumpT <= 0 and c.slideT <= 0 then
+		if rides[player.UserId] then
+			-- Riding: Jump hops off instead of jumping.
+			dismountRide(player)
+		elseif c.jumpT <= 0 and c.slideT <= 0 then
 			c.jumpT = Balance.movement.jumpSeconds
 		end
 	elseif action == "Slide" then
 		if c.jumpT <= 0 and c.slideT <= 0 then
 			c.slideT = Balance.movement.slideSeconds
+		end
+	elseif action == "Ride" then
+		-- Context-aware ride action. Priority: dismount suitcase,
+		-- dismount walkway, mount suitcase (tool equipped), mount walkway.
+		if rides[player.UserId] then
+			dismountRide(player)
+			toast(player, "Hopped off")
+		elseif not c.boarded and not c.isNpc then
+			local character = player.Character
+			local tool = if character then character:FindFirstChild("VELOCE Roller") else nil
+			if tool and tool:IsA("Tool") then
+				mountSuitcase(player)
+			else
+				local pack = player.Backpack:FindFirstChild("VELOCE Roller")
+				local hum = if character then character:FindFirstChildOfClass("Humanoid") else nil
+				if pack and pack:IsA("Tool") and hum then
+					hum:EquipTool(pack) -- Equipped handler mounts the suitcase
+				else
+					local zone = walkwayZoneAt(character)
+					if zone then
+						mountWalkway(player, zone)
+					end
+				end
+			end
 		end
 	end
 end
@@ -1621,6 +1877,7 @@ function RoundService.bind()
 	bindEquipPickups()
 	bindVeloceRoller()
 	bindRarePickups()
+	bindUgcStore()
 
 	Remotes.event(Remotes.Events.RequestJoin).OnServerEvent:Connect(function(player)
 		RoundService.join(player)
@@ -1685,6 +1942,7 @@ function RoundService.bind()
 		if phase == Config.Phases.Run then
 			tickRun(dt)
 		end
+		tickRides(dt)
 		tickAmbient(dt)
 		nextPhaseIfDue()
 	end)

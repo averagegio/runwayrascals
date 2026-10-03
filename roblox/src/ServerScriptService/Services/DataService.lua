@@ -273,6 +273,17 @@ function DataService.addCoins(player: Player, amount: number)
 	DataService.addStylePoints(player, amount)
 end
 
+-- Spend coins (style points are the coin balance). Returns true on success.
+function DataService.spendCoins(player: Player, amount: number): boolean
+	local data = DataService.get(player)
+	local cost = math.max(0, math.floor(amount))
+	if data.stylePoints < cost then
+		return false
+	end
+	data.stylePoints -= cost
+	return true
+end
+
 function DataService.extendVip(player: Player, days: number)
 	local data = DataService.get(player)
 	local now = os.time()

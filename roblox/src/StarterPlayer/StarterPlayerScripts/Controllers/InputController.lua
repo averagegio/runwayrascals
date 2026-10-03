@@ -1,4 +1,5 @@
 --!strict
+local ContextActionService = game:GetService("ContextActionService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -11,6 +12,15 @@ local function fire(action: string)
 end
 
 function InputController.bind()
+	-- Ride: context-aware mount/dismount (E key + on-screen button on touch).
+	ContextActionService:BindAction("Ride", function(_, state, _)
+		if state == Enum.UserInputState.Begin then
+			fire("Ride")
+		end
+		return Enum.ContextActionResult.Sink
+	end, true, Enum.KeyCode.E)
+	ContextActionService:SetTitle("Ride", "RIDE")
+	ContextActionService:SetPosition("Ride", UDim2.new(1, -90, 1, -170))
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed then
 			return

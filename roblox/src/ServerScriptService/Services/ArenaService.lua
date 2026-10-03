@@ -1319,6 +1319,148 @@ function ArenaService.build(): Folder
 		billboard(front, storeName, 6, 160)
 	end
 
+	-- UGC STORE (template): west-side shop selling blocky accessories for coins.
+	-- Each pedestal has a ProximityPrompt ("UgcBuy") bound by RoundService.
+	local ugc = part({
+		Name = "UgcBackWall",
+		Size = Vector3.new(1, 10, 16),
+		Position = Vector3.new(-30, 5.5, 2),
+		Color = Color3.fromRGB(40, 32, 48),
+		Material = Enum.Material.Concrete,
+	})
+	ugc.Parent = root
+	for _, wz in ipairs({ -6, 10 }) do
+		local side = part({
+			Name = "UgcSideWall",
+			Size = Vector3.new(7, 9, 1),
+			Position = Vector3.new(-26.5, 5, wz),
+			Color = Color3.fromRGB(40, 32, 48),
+			Material = Enum.Material.Concrete,
+		})
+		side.Parent = root
+	end
+	local uglass = part({
+		Name = "UgcGlassFront",
+		Size = Vector3.new(0.4, 8, 14),
+		Position = Vector3.new(-24, 5, 2),
+		Color = Color3.fromRGB(170, 200, 215),
+		Transparency = 0.4,
+		Material = Enum.Material.Glass,
+		CanCollide = false,
+	})
+	uglass.Parent = root
+	local usign = part({
+		Name = "UgcSignBand",
+		Size = Vector3.new(0.6, 2, 14),
+		Position = Vector3.new(-24, 9.6, 2),
+		Color = Color3.fromRGB(150, 80, 200),
+		Material = Enum.Material.SmoothPlastic,
+		CanCollide = false,
+	})
+	usign.Parent = root
+	billboard(usign, "UGC STORE", 0, 300, Color3.fromRGB(255, 255, 255))
+	local ugcItems = {
+		{ id = "star-shades", name = "Star Shades", price = 150 },
+		{ id = "pixel-cap", name = "Pixel Cap", price = 200 },
+		{ id = "boombox", name = "Boombox Buddy", price = 250 },
+		{ id = "gold-chain", name = "Gold Chain", price = 300 },
+	}
+	for i, item in ipairs(ugcItems) do
+		local pz = -3 + (i - 1) * 3.5
+		local ped = part({
+			Name = "UgcPedestal",
+			Size = Vector3.new(1.6, 2, 1.6),
+			Position = Vector3.new(-27.5, 2, pz),
+			Color = Color3.fromRGB(225, 220, 210),
+			Material = Enum.Material.Marble,
+			CanCollide = false,
+		})
+		ped.Parent = root
+		local display: Part
+		if item.id == "star-shades" then
+			display = part({
+				Name = "UgcDisplay",
+				Size = Vector3.new(0.5, 0.25, 0.3),
+				Position = Vector3.new(-27.5, 3.75, pz),
+				Color = Color3.fromRGB(20, 20, 24),
+				Material = Enum.Material.SmoothPlastic,
+				CanCollide = false,
+			})
+			display.Parent = root
+			for _, ex in ipairs({ -26.8, -28.2 }) do
+				local lens = part({
+					Name = "UgcDisplay",
+					Size = Vector3.new(1.2, 0.8, 0.3),
+					Position = Vector3.new(ex, 3.6, pz),
+					Color = Color3.fromRGB(20, 20, 24),
+					Material = Enum.Material.SmoothPlastic,
+					CanCollide = false,
+				})
+				lens.Parent = root
+			end
+		elseif item.id == "pixel-cap" then
+			display = part({
+				Name = "UgcDisplay",
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.new(1.5, 1.5, 1.5),
+				Position = Vector3.new(-27.5, 3.9, pz),
+				Color = Color3.fromRGB(200, 60, 60),
+				Material = Enum.Material.SmoothPlastic,
+				CanCollide = false,
+			})
+			display.Parent = root
+			local brim = part({
+				Name = "UgcDisplay",
+				Size = Vector3.new(1.2, 0.25, 2.0),
+				Position = Vector3.new(-26.9, 3.35, pz),
+				Color = Color3.fromRGB(200, 60, 60),
+				Material = Enum.Material.SmoothPlastic,
+				CanCollide = false,
+			})
+			brim.Parent = root
+		elseif item.id == "boombox" then
+			display = part({
+				Name = "UgcDisplay",
+				Size = Vector3.new(1.7, 1.1, 0.9),
+				Position = Vector3.new(-27.5, 3.7, pz),
+				Color = Color3.fromRGB(90, 90, 96),
+				Material = Enum.Material.Metal,
+				CanCollide = false,
+			})
+			display.Parent = root
+			for _, sz in ipairs({ -0.4, 0.4 }) do
+				local speaker = part({
+					Name = "UgcDisplay",
+					Size = Vector3.new(0.2, 0.7, 0.7),
+					Position = Vector3.new(-26.6, 3.7, pz + sz),
+					Color = Color3.fromRGB(25, 25, 28),
+					Material = Enum.Material.SmoothPlastic,
+					CanCollide = false,
+				})
+				speaker.Parent = root
+			end
+		else
+			display = part({
+				Name = "UgcDisplay",
+				Size = Vector3.new(0.35, 2.2, 2.2),
+				Position = Vector3.new(-27.5, 3.9, pz),
+				Color = Color3.fromRGB(212, 175, 105),
+				Material = Enum.Material.Metal,
+				CanCollide = false,
+			})
+			display.Parent = root
+		end
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = "UgcBuy"
+		prompt.ActionText = "Buy"
+		prompt.ObjectText = item.name .. " — " .. tostring(item.price) .. "c"
+		prompt.HoldDuration = 0.4
+		prompt.MaxActivationDistance = 12
+		prompt.RequiresLineOfSight = false
+		prompt:SetAttribute("ItemId", item.id)
+		prompt.Parent = display
+	end
+
 	-- FOOD COURT.
 	local food = part({
 		Name = "FoodCourt",
