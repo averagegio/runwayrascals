@@ -295,7 +295,7 @@ local function buildDropOffJourney(root: Folder)
 		for _, ex in ipairs({ x - 2.8, x + 2.8 }) do
 			dp({ Name = "BeltEdge", Size = Vector3.new(0.3, 0.3, len),
 				Position = Vector3.new(ex, 1.2, z), Color = Color3.fromRGB(220, 180, 60),
-				Material = Enum.Material.Neon, CanCollide = false })
+				Material = Enum.Material.SmoothPlastic, CanCollide = false })
 		end
 		for i = 1, 4 do
 			local cz = z + len / 2 - (i - 0.5) * (len / 4)
@@ -386,7 +386,7 @@ local function buildDropOffJourney(root: Folder)
 			Material = Enum.Material.Wood })
 		dp({ Name = "PlatTrim", Size = Vector3.new(5.2, 0.3, 5.2),
 			Position = Vector3.new(px, 1 + h + 0.15, pz), Color = Color3.fromRGB(201, 165, 106),
-			Material = Enum.Material.Neon, CanCollide = false })
+			Material = Enum.Material.SmoothPlastic, CanCollide = false })
 	end
 	-- Mall platforms: jumpable on foot in the shopping concourse.
 	for _, mp in ipairs({ { -11, 14, 1.5 }, { 11, 14, 2.5 }, { -11, 26, 2 }, { 11, 26, 1.5 } }) do
@@ -396,7 +396,7 @@ local function buildDropOffJourney(root: Folder)
 			Material = Enum.Material.Wood })
 		dp({ Name = "PlatTrim", Size = Vector3.new(5.2, 0.3, 5.2),
 			Position = Vector3.new(mx, 1 + mh + 0.15, mz), Color = Color3.fromRGB(201, 165, 106),
-			Material = Enum.Material.Neon, CanCollide = false })
+			Material = Enum.Material.SmoothPlastic, CanCollide = false })
 	end
 
 	-- Curved runway: 5 segments bending east toward the gate.
@@ -955,7 +955,7 @@ local function buildPhxTerminal(root: Folder)
 	for _, ex in ipairs({ 9.2, 14.8 }) do
 		pp({ Name = "BeltEdge", Size = Vector3.new(0.3, 0.3, 34),
 			Position = Vector3.new(ex, 1.2, 21), Color = Color3.fromRGB(220, 180, 60),
-			Material = Enum.Material.Neon, CanCollide = false })
+			Material = Enum.Material.SmoothPlastic, CanCollide = false })
 	end
 	for i = 1, 5 do
 		local cz = 36 - (i - 0.5) * (32 / 5)
