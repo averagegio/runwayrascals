@@ -206,6 +206,53 @@ local function buildDropOffJourney(root: Folder)
 		Position = Vector3.new(1.4, 1.5, 112), Color = Color3.fromRGB(60, 60, 66),
 		Material = Enum.Material.Metal })
 
+	-- Blue Mustang ("Blucifer") rearing outside the drop-off road, facing the terminal.
+	dp({ Name = "MustangPedestal", Size = Vector3.new(8, 2, 8),
+		Position = Vector3.new(-32, 1, 118), Color = Color3.fromRGB(150, 150, 155),
+		Material = Enum.Material.Concrete })
+	local mustangBlue = Color3.fromRGB(35, 80, 150)
+	dp({ Name = "MustangBody", Size = Vector3.new(2.2, 2.4, 6),
+		Position = Vector3.new(-32, 4.2, 118), Color = mustangBlue,
+		Material = Enum.Material.SmoothPlastic })
+	for _, lx in ipairs({ -32.7, -31.3 }) do
+		for _, lz in ipairs({ 116, 120 }) do
+			dp({ Name = "MustangLeg", Shape = Enum.PartType.Cylinder, Size = Vector3.new(3, 0.7, 0.7),
+				CFrame = CFrame.new(lx, 2.5, lz) * CFrame.Angles(0, 0, math.pi / 2),
+				Color = mustangBlue, Material = Enum.Material.SmoothPlastic })
+		end
+	end
+	dp({ Name = "MustangNeck", Size = Vector3.new(1.4, 3.5, 1.4),
+		CFrame = CFrame.new(-32, 6.6, 115.2) * CFrame.Angles(-0.5, 0, 0),
+		Color = mustangBlue, Material = Enum.Material.SmoothPlastic })
+	dp({ Name = "MustangHead", Size = Vector3.new(1.6, 1.8, 2.4),
+		Position = Vector3.new(-32, 8.3, 113.4), Color = mustangBlue,
+		Material = Enum.Material.SmoothPlastic })
+	dp({ Name = "MustangMane", Size = Vector3.new(0.5, 3.2, 1),
+		CFrame = CFrame.new(-32, 7.3, 116) * CFrame.Angles(-0.5, 0, 0),
+		Color = Color3.fromRGB(20, 45, 95), Material = Enum.Material.SmoothPlastic,
+		CanCollide = false })
+	dp({ Name = "MustangTail", Size = Vector3.new(0.5, 2.5, 0.5),
+		CFrame = CFrame.new(-32, 5, 121.2) * CFrame.Angles(0.3, 0, 0),
+		Color = Color3.fromRGB(20, 45, 95), Material = Enum.Material.SmoothPlastic,
+		CanCollide = false })
+	for _, ex in ipairs({ -32.5, -31.5 }) do
+		dp({ Name = "MustangEye", Shape = Enum.PartType.Ball, Size = Vector3.new(0.7, 0.7, 0.7),
+			Position = Vector3.new(ex, 8.6, 112.2), Color = Color3.fromRGB(255, 30, 30),
+			Material = Enum.Material.Neon, CanCollide = false })
+	end
+	local mhead = dp({ Name = "MustangGlow", Size = Vector3.new(1, 1, 1),
+		Position = Vector3.new(-32, 8.3, 113.4), Color = mustangBlue,
+		Material = Enum.Material.SmoothPlastic, Transparency = 1, CanCollide = false })
+	local mlight = Instance.new("PointLight")
+	mlight.Color = Color3.fromRGB(255, 30, 30)
+	mlight.Brightness = 3
+	mlight.Range = 20
+	mlight.Parent = mhead
+	local msign = dp({ Name = "MustangSign", Size = Vector3.new(6, 1.2, 0.4),
+		Position = Vector3.new(-32, 3.2, 122.2), Color = Color3.fromRGB(20, 30, 60),
+		CanCollide = false })
+	billboard(msign, "BLUE MUSTANG", 1.2, 200, Color3.fromRGB(255, 255, 255))
+
 	-- Glass lobby doors from the street into the terminal.
 	for _, dx in ipairs({ -3, 3 }) do
 		dp({ Name = "LobbyDoors", Size = Vector3.new(5, 9, 0.4),
@@ -217,7 +264,7 @@ local function buildDropOffJourney(root: Folder)
 	end
 	local dsign = dp({ Name = "EntranceSign", Size = Vector3.new(12, 1.6, 0.6),
 		Position = Vector3.new(0, 11.4, 93), Color = PHXBLUE, CanCollide = false })
-	billboard(dsign, "TERMINAL 4 · ENTRANCE", 0, 320, Color3.fromRGB(255, 255, 255))
+	billboard(dsign, "DEN · JEPPESEN TERMINAL", 0, 320, Color3.fromRGB(255, 255, 255))
 
 	-- Boutique row: 8 upscale shops along the runway, alternating sides.
 	local shops = {
@@ -438,6 +485,17 @@ local function buildDropOffJourney(root: Folder)
 			CanCollide = false })
 	end
 
+	-- Concourse B arch over the race path where the runway starts to curve.
+	for _, ax in ipairs({ -9, 9 }) do
+		dp({ Name = "ConcoursePost", Size = Vector3.new(1, 11, 1),
+			Position = Vector3.new(ax, 6.5, -125), Color = BRONZE,
+			Material = Enum.Material.Metal, CanCollide = false })
+	end
+	local cbeam = dp({ Name = "ConcourseBeam", Size = Vector3.new(19, 1.6, 1),
+		Position = Vector3.new(0, 12, -125), Color = PHXBLUE,
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	billboard(cbeam, "CONCOURSE B · TRAIN TUNNEL →", 1.5, 420, Color3.fromRGB(255, 255, 255))
+
 	-- Interactive stairs: mall floor up to the mezzanine.
 	for i = 0, 9 do
 		dp({ Name = "JourneyStairs", Size = Vector3.new(4, 0.5, 0.75),
@@ -592,14 +650,23 @@ local function buildPhxTerminal(root: Folder)
 			Material = Enum.Material.SmoothPlastic, CanCollide = false })
 	end
 
-	-- Slatted wood wave ceiling (the Terminal 4 signature).
-	local z = -34
-	while z <= 80 do
-		local y = 14 + 1.6 * math.sin(z * 0.12)
-		pp({ Name = "CeilSlat", Size = Vector3.new(48, 0.5, 1.7),
-			Position = Vector3.new(0, y, z), Color = WOODSLAT,
-			Material = Enum.Material.Wood, CanCollide = false })
-		z += 2.3
+	-- DEN tent roof: white peaked tents (Jeppesen Terminal signature).
+	for tz = -34, 80, 12 do
+		for _, side in ipairs({ -1, 1 }) do
+			local wedge = pp({ Name = "TentRoof", Shape = Enum.PartType.Wedge,
+				Size = Vector3.new(24, 8, 12),
+				Color = Color3.fromRGB(240, 242, 245), Material = Enum.Material.SmoothPlastic,
+				CanCollide = false })
+			if side < 0 then
+				wedge.CFrame = CFrame.new(-12, 18, tz) * CFrame.Angles(0, math.pi, 0)
+			else
+				wedge.CFrame = CFrame.new(12, 18, tz)
+			end
+		end
+		pp({ Name = "TentMast", Shape = Enum.PartType.Cylinder, Size = Vector3.new(8, 0.8, 0.8),
+			CFrame = CFrame.new(0, 18, tz) * CFrame.Angles(0, 0, math.pi / 2),
+			Color = Color3.fromRGB(200, 205, 212), Material = Enum.Material.Metal,
+			CanCollide = false })
 	end
 
 	-- Bronze columns.
@@ -627,7 +694,7 @@ local function buildPhxTerminal(root: Folder)
 			Position = Vector3.new(x + w / 3, 13.2, sz), Color = BRONZE, CanCollide = false })
 		billboard(box, text, 0, w * 25, Color3.fromRGB(255, 255, 255))
 	end
-	waySign("TERMINAL 4 · PHX", 0, 74, 18)
+	waySign("DEN · JEPPESEN TERMINAL", 0, 74, 18)
 	waySign("SECURITY · BAG CHECK", 0, 52, 20)
 	waySign("SHOPS · DINING", 0, 38, 18)
 	waySign("GATES 26 – 27", 0, -20, 18)
@@ -1156,7 +1223,7 @@ function ArenaService.build(): Folder
 		Material = Enum.Material.Marble,
 	})
 	arrivals.Parent = root
-	billboard(arrivals, "TERMINAL 4 \u{c2}· PHX", 6, 260)
+	billboard(arrivals, "DEN \u{c2}· JEPPESEN TERMINAL", 6, 260)
 
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "LobbySpawn"

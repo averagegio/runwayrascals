@@ -452,6 +452,27 @@ local function scoreContestant(c: Contestant, place: number)
 	return result
 end
 
+-- Suitcase Rush: remove the event suitcase and pay the packing bonus once.
+local function settleSuitcase(c: Contestant)
+	local player = c.player
+	local char = if player then player.Character else c.model
+	if char then
+		local mini = char:FindFirstChild("EventSuitcase")
+		if mini then
+			mini:Destroy()
+		end
+	end
+	if player and not player:GetAttribute("SuitcaseBonusPaid") then
+		player:SetAttribute("SuitcaseBonusPaid", true)
+		local raw = player:GetAttribute("SuitcaseRares")
+		local n = if type(raw) == "number" then raw else 0
+		if n > 0 then
+			DataService.addStylePoints(player, n * 60)
+			toast(player, "Suitcase bonus +" .. (n * 60) .. " Style Points")
+		end
+	end
+end
+
 local function boardContestant(c: Contestant)
 	if c.boarded or not c.alive then
 		return
@@ -469,6 +490,8 @@ local function boardContestant(c: Contestant)
 			oldMini:Destroy()
 		end
 	end
+	-- Suitcase Rush settles when you board: bonus paid, suitcase off.
+	settleSuitcase(c)
 	c.shield = timings().startShieldSeconds
 	attachCharacter(c)
 	placeCart(c)
@@ -695,6 +718,53 @@ local function bindVeloceRoller()
 	end
 end
 
+-- Suitcase Rush: touch a purple orb to pack the rare look into your suitcase.
+local function bindSingleRarePickup(orb: BasePart)
+	orb.Touched:Connect(function(hit)
+		if phase ~= Config.Phases.Run then
+			return
+		end
+		if orb:GetAttribute("Collected") then
+			return
+		end
+		local character = hit:FindFirstAncestorOfClass("Model")
+		local player = if character then Players:GetPlayerFromCharacter(character) else nil
+		if not player then
+			return
+		end
+		local lookId = orb:GetAttribute("LookId")
+		if type(lookId) ~= "string" then
+			return
+		end
+		orb:SetAttribute("Collected", true)
+		DataService.grantLook(player, lookId)
+		local raw = player:GetAttribute("SuitcaseRares")
+		local n = (if type(raw) == "number" then raw else 0) + 1
+		player:SetAttribute("SuitcaseRares", n)
+		orb.Transparency = 1
+		for _, child in ipairs(orb:GetChildren()) do
+			if child:IsA("PointLight") then
+				child.Enabled = false
+			end
+		end
+		toast(player, "Packed " .. equipDisplayName(lookId) .. " (" .. n .. "/8)")
+	end)
+end
+
+local function bindRarePickups()
+	local root = ArenaService.get()
+	root.DescendantAdded:Connect(function(inst)
+		if inst:IsA("BasePart") and inst.Name == "RarePickup" then
+			bindSingleRarePickup(inst)
+		end
+	end)
+	for _, inst in ipairs(root:GetDescendants()) do
+		if inst:IsA("BasePart") and inst.Name == "RarePickup" then
+			bindSingleRarePickup(inst)
+		end
+	end
+end
+
 -- Ambient life: the terminal feels alive in every phase.
 local ambientParts = nil
 local ambientT = 0
@@ -702,7 +772,7 @@ local boardT = 0
 local boardIdx = 1
 local boardTexts = {
 	"RR 27   NEW YORK      BOARDING\nRR 114  DENVER        ON TIME\nRR 208  CHICAGO       ON TIME\nRR 312  DALLAS        DELAYED\nRR 425  LOS ANGELES   BOARDING",
-	"RR 118  MIAMI         ON TIME\nRR 27   NEW YORK      BOARDING\nRR 330  SEATTLE       ON TIME\nRR 114  DENVER        BOARDING\nRR 512  PHOENIX       ON TIME",
+	"RR 118  MIAMI         ON TIME\nRR 27   NEW YORK      BOARDING\nRR 330  SEATTLE       ON TIME\nRR 114  DENVER        BOARDING\nRR 512  DENVER        ON TIME",
 	"RR 208  CHICAGO       BOARDING\nRR 425  LOS ANGELES   ON TIME\nRR 312  DALLAS        BOARDING\nRR 118  MIAMI         DELAYED\nRR 27   NEW YORK      DEPARTED",
 }
 
@@ -809,7 +879,26 @@ local function startRun()
 			local character = c.player.Character
 			if character then
 				character:PivotTo(origin * CFrame.new((i % 4 - 1.5) * 4, 0, 0))
+				-- Suitcase Rush: strap the event suitcase on for the terminal walk.
+				local hrp = character:FindFirstChild("HumanoidRootPart")
+				if hrp and hrp:IsA("BasePart") then
+					local mini = Instance.new("Part")
+					mini.Name = "EventSuitcase"
+					mini.Size = Vector3.new(1.1, 1.5, 0.7)
+					mini.Color = Color3.fromRGB(120, 80, 50)
+					mini.Material = Enum.Material.Leather
+					mini.CanCollide = false
+					mini.Anchored = false
+					mini.CFrame = hrp.CFrame * CFrame.new(1.4, -0.5, 0)
+					mini.Parent = character
+					local w = Instance.new("WeldConstraint")
+					w.Part0 = hrp
+					w.Part1 = mini
+					w.Parent = mini
+				end
 			end
+			c.player:SetAttribute("SuitcaseRares", 0)
+			c.player:SetAttribute("SuitcaseBonusPaid", false)
 			Remotes.event(Remotes.Events.Tutorial):FireClient(c.player, {
 				step = if tutorialRound then "run" else "live",
 				hint = "Walk the terminal — shops are open! Cross the gates to board your flight",
@@ -819,6 +908,7 @@ local function startRun()
 	for _, c in contestants do
 		if c.player then
 			toast(c.player, "✈ Head to your gate — the flight won't wait!")
+			toast(c.player, "SUITCASE RUSH — pack 8 rare looks across the terminal!")
 		end
 	end
 	setPhase(Config.Phases.Run, timings().terminalSeconds)
@@ -1103,6 +1193,34 @@ local function spawnPickups(root: Folder)
 		label.Text = "RIDE THE VELOCE " .. string.char(194, 183) .. " 60s SPEED"
 		label.Parent = gui
 	end
+
+	-- Suitcase Rush: 8 rare looks scattered across the on-foot terminal.
+	local rareSpots = {
+		{ 0, 66 }, { -12, 46 }, { 12, 40 }, { -18, 20 },
+		{ 18, 12 }, { -8, -11 }, { 10, -25 }, { 20, -2 },
+	}
+	local rareLooks = {
+		"nightfall-boots", "crest-polo", "concrete-stack", "silk-club",
+		"oblique-tote", "nightfall-triple-belt", "silk-atelier-shades", "oblique-coin-belt",
+	}
+	for i, spot in ipairs(rareSpots) do
+		local orb = Instance.new("Part")
+		orb.Name = "RarePickup"
+		orb.Shape = Enum.PartType.Ball
+		orb.Size = Vector3.new(1.8, 1.8, 1.8)
+		orb.Anchored = true
+		orb.CanCollide = false
+		orb.Material = Enum.Material.Neon
+		orb.Color = Color3.fromRGB(170, 80, 255)
+		orb.Position = Vector3.new(spot[1], 3.2, spot[2])
+		orb:SetAttribute("LookId", rareLooks[i])
+		orb.Parent = folder
+		local glow = Instance.new("PointLight")
+		glow.Color = Color3.fromRGB(170, 80, 255)
+		glow.Brightness = 2
+		glow.Range = 10
+		glow.Parent = orb
+	end
 	buildTravelator(root)
 end
 
@@ -1270,6 +1388,9 @@ end
 local function nextPhaseIfDue()
 	if remaining() > 0 then
 		if phase == Config.Phases.Run and allDone() then
+			for _, c in contestants do
+				settleSuitcase(c)
+			end
 			setPhase(Config.Phases.Pose, timings().poseSeconds)
 		end
 		return
@@ -1294,6 +1415,9 @@ local function nextPhaseIfDue()
 	elseif phase == Config.Phases.Countdown then
 		startRun()
 	elseif phase == Config.Phases.Run then
+		for _, c in contestants do
+			settleSuitcase(c)
+		end
 		setPhase(Config.Phases.Pose, timings().poseSeconds)
 	elseif phase == Config.Phases.Pose then
 		for _, c in contestants do
@@ -1503,6 +1627,7 @@ function RoundService.bind()
 	bindPlaneDoor()
 	bindEquipPickups()
 	bindVeloceRoller()
+	bindRarePickups()
 
 	Remotes.event(Remotes.Events.RequestJoin).OnServerEvent:Connect(function(player)
 		RoundService.join(player)
