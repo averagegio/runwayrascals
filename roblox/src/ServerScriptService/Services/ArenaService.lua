@@ -1264,11 +1264,7 @@ local function buildPhxTerminal(root: Folder)
 	gateSeats(56, -208)
 	gateSeats(68, -208)
 
-	-- Seating flanking the runway: a real airport interior.
-	for _, ssz in ipairs({ -45, -60, -75, -90, -105, -120 }) do
-		gateSeats(-17, ssz)
-		gateSeats(17, ssz)
-	end
+	-- (Runway-flanking wooden seating removed per playtest.)
 
 	-- Enclose the airport: concourse, gate box, lobby, escalator.
 	buildConcourseEnclosure(root)
