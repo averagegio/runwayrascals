@@ -17,6 +17,10 @@ local LiveOps = require(ReplicatedStorage.Shared.LiveOps)
 
 local ArenaService = {}
 
+-- Bump every commit. Shown on a plaque by the lobby doors so Play Solo
+-- can prove which build is actually running (stale Rojo serves happen).
+local BUILD_NUMBER = 44
+
 local function part(props: { [string]: any }): Part
 	local p = Instance.new("Part")
 	p.Anchored = true
@@ -265,6 +269,9 @@ local function buildDropOffJourney(root: Folder)
 	local dsign = dp({ Name = "EntranceSign", Size = Vector3.new(12, 1.6, 0.6),
 		Position = Vector3.new(0, 11.4, 93), Color = PHXBLUE, CanCollide = false })
 	billboard(dsign, "DEN · JEPPESEN TERMINAL", 0, 320, Color3.fromRGB(255, 255, 255))
+	local bstamp = dp({ Name = "BuildStamp", Size = Vector3.new(4, 1, 0.4),
+		Position = Vector3.new(8.5, 3, 92.6), Color = Color3.fromRGB(20, 20, 24), CanCollide = false })
+	billboard(bstamp, "BUILD " .. BUILD_NUMBER, 0, 140, Color3.fromRGB(120, 200, 255))
 
 	-- Boutique row: 8 upscale shops along the runway, alternating sides.
 	local shops = {
