@@ -547,7 +547,121 @@ local function buildDropOffJourney(root: Folder)
 	end
 end
 
+-- Enclosed DEN airport: concourse walls/roof along the race route, a boxed-in
+-- gate complex (tunnel enters through the north gap), lobby flag, wayfinding,
+-- and a rideable escalator in the mall. No outside space except the drop-off walk-in.
+local function buildConcourseEnclosure(root: Folder)
+	local function ep(props: { [string]: any }): Part
+		local q = part(props)
+		q.Parent = root
+		return q
+	end
+
+	-- Same 10 points as RoundService.ROUTE: the one continuous race path.
+	local ROUTE = {
+		Vector3.new(0, 0, -40),
+		Vector3.new(0, 0, -125),
+		Vector3.new(1.46, 0, -140.85),
+		Vector3.new(5.76, 0, -154.09),
+		Vector3.new(12.72, 0, -166.15),
+		Vector3.new(22.03, 0, -176.50),
+		Vector3.new(27.24, 0, -181.18),
+		Vector3.new(44.56, 0, -191.18),
+		Vector3.new(61.88, 0, -201.18),
+		Vector3.new(62, 0, -210),
+	}
+	local wallColor = Color3.fromRGB(235, 232, 225)
+	for i = 1, 9 do
+		local a, b = ROUTE[i], ROUTE[i + 1]
+		local mx, mz = (a.X + b.X) / 2, (a.Z + b.Z) / 2
+		local dx, dz = b.X - a.X, b.Z - a.Z
+		local len = math.sqrt(dx * dx + dz * dz)
+		local yaw = math.atan2(-dz, dx) -- local +X maps to the segment direction
+		local px, pz = -dz / len, dx / len -- perpendicular
+		-- Walls for segments 1..6 (up to the tunnel entry); the tube encloses 7..9.
+		if i <= 6 then
+			for _, side in ipairs({ -1, 1 }) do
+				ep({ Name = "ConcourseWall", Size = Vector3.new(len + 1, 14, 1),
+					CFrame = CFrame.new(mx + px * 19 * side, 8, mz + pz * 19 * side)
+						* CFrame.Angles(0, yaw, 0),
+					Color = wallColor, Material = Enum.Material.SmoothPlastic, CanCollide = true })
+			end
+		end
+		-- Roof over every segment + a matte skylight strip (not neon).
+		ep({ Name = "ConcourseRoof", Size = Vector3.new(len + 1, 0.8, 44),
+			CFrame = CFrame.new(mx, 16.2, mz) * CFrame.Angles(0, yaw, 0),
+			Color = Color3.fromRGB(240, 242, 245), Material = Enum.Material.SmoothPlastic,
+			CanCollide = false })
+		ep({ Name = "ConcourseSkylight", Size = Vector3.new(len + 1, 0.9, 4),
+			CFrame = CFrame.new(mx, 15.9, mz) * CFrame.Angles(0, yaw, 0),
+			Color = Color3.fromRGB(200, 205, 215), Material = Enum.Material.SmoothPlastic,
+			CanCollide = false })
+	end
+
+	-- Gate complex enclosure: axis-aligned box; the tunnel enters through the north gap.
+	local function gateBox(name: string, sx: number, sy: number, sz: number,
+		x: number, y: number, z: number, collide: boolean)
+		ep({ Name = name, Size = Vector3.new(sx, sy, sz), Position = Vector3.new(x, y, z),
+			Color = wallColor, Material = Enum.Material.SmoothPlastic, CanCollide = collide })
+	end
+	gateBox("GateWall", 1, 18, 52, 36, 9, -222, true) -- west
+	gateBox("GateWall", 1, 18, 52, 112, 9, -222, true) -- east
+	gateBox("GateWall", 76, 18, 1, 74, 9, -248, true) -- south
+	gateBox("GateWall", 10, 18, 1, 41, 9, -196, true) -- north, left of tunnel gap
+	gateBox("GateWall", 52, 18, 1, 86, 9, -196, true) -- north, right of tunnel gap
+	gateBox("GateRoof", 78, 0.8, 54, 74, 18.6, -222, false) -- roof
+
+	-- Lobby flag: big blocky American flag hanging over arrivals.
+	ep({ Name = "LobbyFlag", Size = Vector3.new(12, 8, 0.3),
+		Position = Vector3.new(0, 10, 66), Color = Color3.fromRGB(240, 240, 240),
+		Material = Enum.Material.Fabric, CanCollide = false })
+	for i = 0, 6 do
+		ep({ Name = "LobbyFlag", Size = Vector3.new(12, 0.6, 0.32),
+			Position = Vector3.new(0, 6.5 + i * 0.9, 66), Color = Color3.fromRGB(180, 40, 50),
+			Material = Enum.Material.Fabric, CanCollide = false })
+	end
+	ep({ Name = "LobbyFlag", Size = Vector3.new(5, 3.4, 0.32),
+		Position = Vector3.new(-3.4, 12.2, 66), Color = Color3.fromRGB(40, 60, 140),
+		Material = Enum.Material.Fabric, CanCollide = false })
+
+	-- DEN-style wayfinding at the gates walk.
+	local gsign = ep({ Name = "AllGatesSign", Size = Vector3.new(10, 1.8, 0.5),
+		Position = Vector3.new(0, 8, -22), Color = Color3.fromRGB(25, 45, 120),
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	billboard(gsign, "ALL GATES →", 0, 300, Color3.fromRGB(255, 255, 255))
+
+	-- Rideable escalator: mall floor (-8, 1, 30) up to the mezzanine edge (-8, 7.5, 38).
+	local escBase = Vector3.new(-8, 1.6, 30)
+	local escTop = Vector3.new(-8, 8.1, 38)
+	local escDir = (escTop - escBase).Unit
+	local escLen = (escTop - escBase).Magnitude
+	local escPitch = math.asin(escDir.Y) -- >0 means the +Z end rises
+	for i = 0, 11 do
+		local sp = escBase:Lerp(escTop, i / 11)
+		ep({ Name = "EscalatorStep", Size = Vector3.new(2.4, 0.4, 1.0),
+			Position = sp, Color = Color3.fromRGB(150, 155, 165),
+			Material = Enum.Material.Metal, CanCollide = false })
+	end
+	local escMid = escBase:Lerp(escTop, 0.5)
+	for _, sx in ipairs({ -1.5, 1.5 }) do
+		ep({ Name = "EscalatorGlass", Size = Vector3.new(0.3, 3, escLen + 1),
+			CFrame = CFrame.new(escMid.X + sx, escMid.Y + 1.6, escMid.Z)
+				* CFrame.Angles(-escPitch, 0, 0),
+			Color = Color3.fromRGB(170, 200, 215), Transparency = 0.4,
+			Material = Enum.Material.Glass, CanCollide = false })
+		ep({ Name = "EscalatorTrim", Size = Vector3.new(0.35, 0.35, escLen + 1),
+			CFrame = CFrame.new(escMid.X + sx, escMid.Y + 3.1, escMid.Z)
+				* CFrame.Angles(-escPitch, 0, 0),
+			Color = Color3.fromRGB(180, 150, 90), Material = Enum.Material.Metal,
+			CanCollide = false })
+	end
+	ep({ Name = "EscalatorTruss", Size = Vector3.new(2.6, 0.6, escLen + 1),
+		CFrame = CFrame.new(escMid.X, escMid.Y - 0.6, escMid.Z) * CFrame.Angles(-escPitch, 0, 0),
+		Color = Color3.fromRGB(180, 150, 90), Material = Enum.Material.Metal, CanCollide = false })
+end
+
 local function buildPhxTerminal(root: Folder)
+
 	local function pp(props: { [string]: any }): Part
 		local q = part(props)
 		q.Parent = root
@@ -668,7 +782,7 @@ local function buildPhxTerminal(root: Folder)
 	end
 
 	-- DEN tent roof: white peaked tents (Jeppesen Terminal signature).
-	for tz = -34, 80, 12 do
+	for tz = -40, 95, 12 do
 		for _, side in ipairs({ -1, 1 }) do
 			local wedge = pp({ Name = "TentRoof", Shape = Enum.PartType.Wedge,
 				Size = Vector3.new(24, 8, 12),
@@ -833,33 +947,6 @@ local function buildPhxTerminal(root: Folder)
 			skinTones[(i % 4) + 1], "GATE AGENT")
 	end
 
-	-- Bag-check queue maze: chrome posts + navy belts guiding to the arches.
-	local function beltPost(x: number, z: number)
-		pp({ Name = "BeltBase", Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.3, 1, 1),
-			CFrame = CFrame.new(x, 1.15, z) * CFrame.Angles(0, 0, math.pi / 2),
-			Color = Color3.fromRGB(160, 160, 165), Material = Enum.Material.Metal, CanCollide = false })
-		pp({ Name = "BeltPost", Shape = Enum.PartType.Cylinder, Size = Vector3.new(2.6, 0.44, 0.44),
-			CFrame = CFrame.new(x, 2.6, z) * CFrame.Angles(0, 0, math.pi / 2),
-			Color = Color3.fromRGB(160, 160, 165), Material = Enum.Material.Metal, CanCollide = false })
-	end
-	local function belt(x1: number, z1: number, x2: number, z2: number)
-		local dx, dz = x2 - x1, z2 - z1
-		local len = math.sqrt(dx * dx + dz * dz)
-		pp({ Name = "Belt", Size = Vector3.new(0.18, 0.55, len),
-			CFrame = CFrame.new((x1 + x2) / 2, 2.75, (z1 + z2) / 2)
-				* CFrame.Angles(0, math.atan2(dx, dz), 0),
-			Color = Color3.fromRGB(25, 35, 90), Material = Enum.Material.Fabric, CanCollide = false })
-	end
-	for _, rx in ipairs({ -8, 0, 8 }) do
-		local z = 47
-		while z <= 53 do
-			beltPost(rx, z)
-			z += 3
-		end
-		belt(rx, 47, rx, 53)
-	end
-	belt(-8, 53, 0, 53)
-	belt(0, 47, 8, 47)
 
 	-- Gold guide chevrons: one singular route through the terminal.
 	for _, cz in ipairs({ 74, 67, 60, 44, 40, 33, 26, 19, 12, 5, -2, -9, -16, -23, -28, -33 }) do
@@ -1176,6 +1263,8 @@ local function buildPhxTerminal(root: Folder)
 		gateSeats(17, ssz)
 	end
 
+	-- Enclose the airport: concourse, gate box, lobby, escalator.
+	buildConcourseEnclosure(root)
 	-- The arrival journey: taxi drop-off street into the terminal.
 	buildDropOffJourney(root)
 end

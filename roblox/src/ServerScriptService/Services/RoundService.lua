@@ -478,11 +478,14 @@ end
 -- riding walkway -> dismount; VELOCE tool equipped -> mount suitcase;
 -- standing on a walkway zone -> mount walkway. Jump also dismounts.
 type RideState = {
-	mode: string, -- "walkway" | "suitcase"
+	mode: string, -- "walkway" | "suitcase" | "escalator"
 	platform: BasePart?,
 	weld: WeldConstraint?,
 	zone: { x: number, z: number, len: number }?,
 	baseY: number,
+	dir: Vector3?,
+	target: Vector3?,
+	targetLabel: string?,
 }
 local rides: { [number]: RideState } = {}
 
@@ -616,6 +619,51 @@ local function mountSuitcase(player: Player)
 	toast(player, "Riding the VELOCE — steer with movement keys, E / Jump to hop off")
 end
 
+-- Rideable escalator (mall <-> mezzanine). E at the base rides up, E at the
+-- top rides down; same invisible-platform + WeldConstraint pattern as walkways.
+local ESC_BASE = Vector3.new(-8, 1.6, 30)
+local ESC_TOP = Vector3.new(-8, 8.1, 38)
+local ESC_UP = (ESC_TOP - ESC_BASE).Unit
+local ESC_SPEED = 8
+
+local function escalatorRideAt(character: Model?): (Vector3?, Vector3?, string?)
+	local root = if character then character:FindFirstChild("HumanoidRootPart") else nil
+	if not root or not root:IsA("BasePart") then
+		return nil, nil, nil
+	end
+	local p = root.Position
+	if (p - ESC_BASE).Magnitude <= 4 then
+		return ESC_UP, ESC_TOP, "Top of the escalator"
+	elseif (p - ESC_TOP).Magnitude <= 4 then
+		return -ESC_UP, ESC_BASE, "Bottom of the escalator"
+	end
+	return nil, nil, nil
+end
+
+local function mountEscalator(player: Player, dir: Vector3, target: Vector3, label: string)
+	local root, hum = rideRoot(player)
+	if not root or not hum then
+		return
+	end
+	dismountRide(player)
+	local feetY = root.Position.Y - root.Size.Y / 2 - hum.HipHeight
+	local platform = Instance.new("Part")
+	platform.Name = "RidePlatform"
+	platform.Size = Vector3.new(4, 0.6, 4)
+	platform.Transparency = 1
+	platform.Anchored = true
+	platform.CanCollide = false
+	platform.CFrame = CFrame.new(root.Position.X, feetY - 0.3, root.Position.Z)
+	platform.Parent = Workspace
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = root
+	weld.Part1 = platform
+	weld.Parent = platform
+	rides[player.UserId] = { mode = "escalator", platform = platform, weld = weld,
+		zone = nil, baseY = feetY - 0.3, dir = dir, target = target, targetLabel = label }
+	toast(player, "Riding the escalator — E / Jump to hop off")
+end
+
 local function tickRides(dt: number)
 	if phase ~= Config.Phases.Run then
 		dismountAllRides()
@@ -647,6 +695,19 @@ local function tickRides(dt: number)
 			if platform.Position.Z < zone.z - zone.len / 2 then
 				dismountRide(player)
 				toast(player, "End of the walkway")
+			end
+		elseif ride.mode == "escalator" then
+			local dir = ride.dir
+			local target = ride.target
+			if not dir or not target then
+				dismountRide(player)
+				continue
+			end
+			platform.CFrame += dir * ESC_SPEED * dt
+			if (target - platform.Position):Dot(dir) <= 0.6 then
+				local label = ride.targetLabel or "End of the escalator"
+				dismountRide(player)
+				toast(player, label)
 			end
 		elseif ride.mode == "suitcase" then
 			local move = hum.MoveDirection
@@ -1857,9 +1918,14 @@ function RoundService.input(player: Player, action: string)
 				if pack and pack:IsA("Tool") and hum then
 					hum:EquipTool(pack) -- Equipped handler mounts the suitcase
 				else
-					local zone = walkwayZoneAt(character)
-					if zone then
-						mountWalkway(player, zone)
+					local escDir, escTarget, escLabel = escalatorRideAt(character)
+					if escDir and escTarget then
+						mountEscalator(player, escDir, escTarget, escLabel or "End of the escalator")
+					else
+						local zone = walkwayZoneAt(character)
+						if zone then
+							mountWalkway(player, zone)
+						end
 					end
 				end
 			end
