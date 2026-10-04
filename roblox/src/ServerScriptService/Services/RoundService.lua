@@ -77,6 +77,7 @@ local boardingStarted = false
 -- boarding arch, down the runway, through the curve and neon tube tunnel,
 -- to Gate 27. s = distance travelled along the route in studs.
 local ROUTE = {
+	Vector3.new(0, 0, 28),
 	Vector3.new(0, 0, -40),
 	Vector3.new(0, 0, -125),
 	Vector3.new(1.46, 0, -140.85),
@@ -491,9 +492,8 @@ local rides: { [number]: RideState } = {}
 
 -- Static rideable walkway zones, matching the ArenaService travelator placements.
 local WALKWAY_ZONES = {
-	{ x = 12, z = 21, len = 34 },
-	{ x = -12, z = -5, len = 30 },
-	{ x = 12, z = -35, len = 30 },
+	{ x = -12, z = 70, len = 26 },
+	{ x = 12, z = 54, len = 26 },
 }
 local WALKWAY_DIR = Vector3.new(0, 0, -1) -- toward the gates
 local WALKWAY_SPEED = 22
@@ -621,8 +621,8 @@ end
 
 -- Rideable escalator (mall <-> mezzanine). E at the base rides up, E at the
 -- top rides down; same invisible-platform + WeldConstraint pattern as walkways.
-local ESC_BASE = Vector3.new(-8, 1.6, 30)
-local ESC_TOP = Vector3.new(-8, 8.1, 38)
+local ESC_BASE = Vector3.new(-8, 1.6, 32)
+local ESC_TOP = Vector3.new(-8, 8.1, 40)
 local ESC_UP = (ESC_TOP - ESC_BASE).Unit
 local ESC_SPEED = 8
 
@@ -1447,9 +1447,9 @@ local function spawnPickups(root: Folder)
 	end
 	-- Instant-equip fashion pickups: touch to wear the look right away.
 	local equipLooks: { { any } } = {
-		{ "nightfall-first-bomber", 55 }, { "crest-tail-scarf", 38 },
-		{ "silk-jet-sneakers", 22 }, { "silk-atelier-shades", 6 },
-		{ "oblique-coin-belt", -10 }, { "crest-cloud-knit", -26 },
+		{ "nightfall-first-bomber", 84 }, { "crest-tail-scarf", 72 },
+		{ "silk-jet-sneakers", 60 }, { "silk-atelier-shades", 50 },
+		{ "oblique-coin-belt", 44 }, { "crest-cloud-knit", 38 },
 	}
 	for i, entry in ipairs(equipLooks) do
 		local lookId = entry[1] :: string
@@ -1479,8 +1479,8 @@ local function spawnPickups(root: Folder)
 
 	-- Suitcase Rush: 8 rare looks scattered across the on-foot terminal.
 	local rareSpots = {
-		{ 0, 66 }, { -12, 46 }, { 12, 40 }, { -18, 20 },
-		{ 18, 12 }, { -8, -11 }, { 10, -25 }, { 20, -2 },
+		{ 0, 84 }, { -14, 70 }, { 14, 70 }, { -20, 48 },
+		{ 20, 48 }, { -10, 58 }, { 10, 44 }, { 0, 40 },
 	}
 	local rareLooks = {
 		"nightfall-boots", "crest-polo", "concrete-stack", "silk-club",
@@ -1600,7 +1600,7 @@ local function tickRun(dt: number)
 		if not c.boarded and not c.isNpc and phase == Config.Phases.Run then
 			local character = c.player and c.player.Character
 			local hrp = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-			if hrp and hrp.Position.Z < -33 then
+			if hrp and hrp.Position.Z < 27 then
 				boardContestant(c)
 			end
 		end

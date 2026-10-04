@@ -19,7 +19,7 @@ local ArenaService = {}
 
 -- Bump every commit. Shown on a plaque by the lobby doors so Play Solo
 -- can prove which build is actually running (stale Rojo serves happen).
-local BUILD_NUMBER = 44
+local BUILD_NUMBER = 45
 
 local function part(props: { [string]: any }): Part
 	local p = Instance.new("Part")
@@ -273,50 +273,7 @@ local function buildDropOffJourney(root: Folder)
 		Position = Vector3.new(8.5, 3, 92.6), Color = Color3.fromRGB(20, 20, 24), CanCollide = false })
 	billboard(bstamp, "BUILD " .. BUILD_NUMBER, 0, 140, Color3.fromRGB(120, 200, 255))
 
-	-- Boutique row: 8 upscale shops along the runway, alternating sides.
-	local shops = {
-		{ "MAISON OR", Color3.fromRGB(60, 45, 30) },
-		{ "VELOURS", Color3.fromRGB(120, 40, 60) },
-		{ "CUIR ATELIER", Color3.fromRGB(90, 60, 40) },
-		{ "LUMIERE", Color3.fromRGB(220, 215, 200) },
-		{ "OR & CENDRE", Color3.fromRGB(70, 65, 60) },
-		{ "CABINE", Color3.fromRGB(30, 60, 90) },
-		{ "NUAGE", Color3.fromRGB(200, 190, 210) },
-		{ "HERITAGE", Color3.fromRGB(40, 80, 60) },
-	}
-	for i, shop in ipairs(shops) do
-		local shopName = shop[1] :: string
-		local brand = shop[2] :: Color3
-		local side = if i % 2 == 1 then -1 else 1
-		local sz = 38 - (i - 1) * 8
-		-- Wide back wall so the shops read as real storefronts.
-		dp({ Name = "BoutiqueRow", Size = Vector3.new(1.2, 12, 16),
-			Position = Vector3.new(side * 38, 6, sz), Color = brand,
-			Material = Enum.Material.Concrete })
-		local front = dp({ Name = "BoutiqueFront", Size = Vector3.new(0.4, 10, 14),
-			Position = Vector3.new(side * 30, 5, sz), Color = Color3.fromRGB(170, 200, 215),
-			Transparency = 0.4, Material = Enum.Material.Glass, CanCollide = false })
-		-- Neon sign band in the brand color.
-		local band = dp({ Name = "BoutiqueSignBand", Size = Vector3.new(0.6, 2, 14),
-			Position = Vector3.new(side * 29.5, 9.5, sz), Color = brand,
-			Material = Enum.Material.Neon, CanCollide = false })
-		billboard(band, shopName, 0, 350, Color3.fromRGB(255, 255, 255))
-		billboard(front, shopName, 6, 260, Color3.fromRGB(255, 255, 255))
-		-- Warm interior light so the shops glow from the concourse.
-		local glow = Instance.new("PointLight")
-		glow.Brightness = 2
-		glow.Range = 18
-		glow.Color = Color3.fromRGB(255, 214, 150)
-		glow.Parent = band
-		for _, pz in ipairs({ sz - 2, sz + 2 }) do
-			dp({ Name = "BoutiquePed", Size = Vector3.new(1.6, 2, 1.6),
-				Position = Vector3.new(side * 27, 2, pz), Color = Color3.fromRGB(225, 220, 210),
-				Material = Enum.Material.Marble })
-			dp({ Name = "BoutiqueBag", Size = Vector3.new(0.9, 1.1, 0.5),
-				Position = Vector3.new(side * 27, 3.6, pz), Color = brand,
-				Material = Enum.Material.Leather, CanCollide = false })
-		end
-	end
+	-- (Boutique row rebuilt inside the atrium hall; see buildPhxTerminal.)
 
 	-- Paparazzi pits with flashing camera rigs along the runway edges.
 	local pitZ = { -50, -80, -110, -140, -170, -190 }
@@ -364,9 +321,8 @@ local function buildDropOffJourney(root: Folder)
 			Position = Vector3.new(x, 6.5, z + len / 2 + 1.5), Color = PHXBLUE, CanCollide = false })
 		billboard(sign, "POWER WALKWAY >>", 0, 320, Color3.fromRGB(255, 255, 255))
 	end
-	travelator(-12, -5, 30)
-	travelator(12, -35, 30)
-	-- Power walkways flanking the runway: a real airport interior.
+	-- Power walkways flanking the race concourse (decorative here; the
+	-- rideable ones live in the atrium hall).
 	travelator(-11, -80, 70)
 	travelator(11, -80, 70)
 
@@ -527,8 +483,8 @@ local function buildDropOffJourney(root: Folder)
 			Position = Vector3.new(x, 8.2, z), Transparency = 1, CanCollide = false })
 		billboard(vsign, "VELOCE · RIDE ME", 0, 300, Color3.fromRGB(212, 175, 105))
 	end
-	veloceDisplay(0, 20)
-	veloceDisplay(0, -30)
+	veloceDisplay(0, 66)
+	veloceDisplay(0, 36)
 
 	-- Interactive elevator: ProximityPrompt rides the glass lift.
 	local cab = root:FindFirstChild("LiftCab")
@@ -564,8 +520,9 @@ local function buildConcourseEnclosure(root: Folder)
 		return q
 	end
 
-	-- Same 10 points as RoundService.ROUTE: the one continuous race path.
+	-- Same 11 points as RoundService.ROUTE: the one continuous race path.
 	local ROUTE = {
+		Vector3.new(0, 0, 28),
 		Vector3.new(0, 0, -40),
 		Vector3.new(0, 0, -125),
 		Vector3.new(1.46, 0, -140.85),
@@ -578,15 +535,15 @@ local function buildConcourseEnclosure(root: Folder)
 		Vector3.new(62, 0, -210),
 	}
 	local wallColor = Color3.fromRGB(235, 232, 225)
-	for i = 1, 9 do
+	for i = 1, 10 do
 		local a, b = ROUTE[i], ROUTE[i + 1]
 		local mx, mz = (a.X + b.X) / 2, (a.Z + b.Z) / 2
 		local dx, dz = b.X - a.X, b.Z - a.Z
 		local len = math.sqrt(dx * dx + dz * dz)
 		local yaw = math.atan2(-dz, dx) -- local +X maps to the segment direction
 		local px, pz = -dz / len, dx / len -- perpendicular
-		-- Walls for segments 1..6 (up to the tunnel entry); the tube encloses 7..9.
-		if i <= 6 then
+		-- Walls for segments 1..7 (up to the tunnel entry); the tube encloses 8..10.
+		if i <= 7 then
 			for _, side in ipairs({ -1, 1 }) do
 				ep({ Name = "ConcourseWall", Size = Vector3.new(len + 1, 14, 1),
 					CFrame = CFrame.new(mx + px * 19 * side, 8, mz + pz * 19 * side)
@@ -618,28 +575,22 @@ local function buildConcourseEnclosure(root: Folder)
 	gateBox("GateWall", 52, 18, 1, 86, 9, -196, true) -- north, right of tunnel gap
 	gateBox("GateRoof", 78, 0.8, 54, 74, 18.6, -222, false) -- roof
 
-	-- Lobby flag: big blocky American flag hanging over arrivals.
+	-- Lobby flag: big blocky American flag hanging over the atrium.
 	ep({ Name = "LobbyFlag", Size = Vector3.new(12, 8, 0.3),
-		Position = Vector3.new(0, 10, 66), Color = Color3.fromRGB(240, 240, 240),
+		Position = Vector3.new(0, 18, 62), Color = Color3.fromRGB(240, 240, 240),
 		Material = Enum.Material.Fabric, CanCollide = false })
 	for i = 0, 6 do
 		ep({ Name = "LobbyFlag", Size = Vector3.new(12, 0.6, 0.32),
-			Position = Vector3.new(0, 6.5 + i * 0.9, 66), Color = Color3.fromRGB(180, 40, 50),
+			Position = Vector3.new(0, 14.5 + i * 0.9, 62), Color = Color3.fromRGB(180, 40, 50),
 			Material = Enum.Material.Fabric, CanCollide = false })
 	end
 	ep({ Name = "LobbyFlag", Size = Vector3.new(5, 3.4, 0.32),
-		Position = Vector3.new(-3.4, 12.2, 66), Color = Color3.fromRGB(40, 60, 140),
+		Position = Vector3.new(-3.4, 20.2, 62), Color = Color3.fromRGB(40, 60, 140),
 		Material = Enum.Material.Fabric, CanCollide = false })
 
-	-- DEN-style wayfinding at the gates walk.
-	local gsign = ep({ Name = "AllGatesSign", Size = Vector3.new(10, 1.8, 0.5),
-		Position = Vector3.new(0, 8, -22), Color = Color3.fromRGB(25, 45, 120),
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	billboard(gsign, "ALL GATES →", 0, 300, Color3.fromRGB(255, 255, 255))
-
-	-- Rideable escalator: mall floor (-8, 1, 30) up to the mezzanine edge (-8, 7.5, 38).
-	local escBase = Vector3.new(-8, 1.6, 30)
-	local escTop = Vector3.new(-8, 8.1, 38)
+	-- Rideable escalator: atrium floor (-8, 1, 32) up to the mezzanine edge (-8, 7.5, 40).
+	local escBase = Vector3.new(-8, 1.6, 32)
+	local escTop = Vector3.new(-8, 8.1, 40)
 	local escDir = (escTop - escBase).Unit
 	local escLen = (escTop - escBase).Magnitude
 	local escPitch = math.asin(escDir.Y) -- >0 means the +Z end rises
@@ -833,14 +784,14 @@ local function buildPhxTerminal(root: Folder)
 		billboard(box, text, 0, w * 25, Color3.fromRGB(255, 255, 255))
 	end
 	waySign("DEN · JEPPESEN TERMINAL", 0, 74, 18)
-	waySign("SECURITY · BAG CHECK", 0, 52, 20)
-	waySign("SHOPS · DINING", 0, 38, 18)
-	waySign("GATES 26 – 27", 0, -20, 18)
 
-	-- Departure boards.
+	-- Departure boards (hung from the roof so the aisle stays clear).
 	local function depBoard(x: number, bz: number)
-		pp({ Name = "DepPost", Size = Vector3.new(0.6, 5, 0.6),
-			Position = Vector3.new(x, 3, bz), Color = BRONZE, Material = Enum.Material.Metal })
+		for _, hx in ipairs({ -3.5, 3.5 }) do
+			pp({ Name = "DepHanger", Size = Vector3.new(0.3, 5, 0.3),
+				Position = Vector3.new(x + hx, 13, bz), Color = BRONZE,
+				Material = Enum.Material.Metal, CanCollide = false })
+		end
 		local board = pp({ Name = "DepBoard", Size = Vector3.new(10, 6, 0.6),
 			Position = Vector3.new(x, 8, bz), Color = Color3.fromRGB(8, 12, 18),
 			Material = Enum.Material.SmoothPlastic, CanCollide = false })
@@ -848,8 +799,8 @@ local function buildPhxTerminal(root: Folder)
 			"RR 27   NEW YORK      BOARDING\nRR 114  DENVER        ON TIME\nRR 208  CHICAGO       ON TIME\nRR 312  DALLAS        DELAYED\nRR 425  LOS ANGELES   BOARDING",
 			0, 340, 150)
 	end
-	depBoard(-10, 76)
-	depBoard(12, -22)
+	depBoard(0, 80)
+	depBoard(0, 48)
 
 
 
@@ -871,9 +822,6 @@ local function buildPhxTerminal(root: Folder)
 				Material = Enum.Material.Metal, CanCollide = false })
 		end
 	end
-	gateSeats(-7, -24)
-	gateSeats(7, -24)
-
 	-- Saguaros in planters.
 	local function saguaro(x: number, sz2: number)
 		pp({ Name = "Planter", Size = Vector3.new(2.6, 1.2, 2.6),
@@ -924,112 +872,9 @@ local function buildPhxTerminal(root: Folder)
 		billboard(head, tag, 1.5, 190, Color3.fromRGB(255, 255, 255))
 	end
 
-	-- Airline check-in counters down both sides of Arrivals, each with an agent.
-	local airlines = {
-		{ "RASCAL AIR", Color3.fromRGB(200, 160, 60) },
-		{ "CANYON AIR", Color3.fromRGB(180, 90, 60) },
-		{ "MESA AIR", Color3.fromRGB(60, 150, 150) },
-		{ "COPPERLINE", Color3.fromRGB(180, 120, 80) },
-		{ "SAGUARO AIR", Color3.fromRGB(80, 150, 90) },
-		{ "DESERT SUN", Color3.fromRGB(220, 130, 50) },
-	}
-	for i, al in ipairs(airlines) do
-		local name = al[1] :: string
-		local brand = al[2] :: Color3
-		local side = if i <= 3 then -1 else 1
-		local z = 62 + ((i - 1) % 3) * 7
-		local x = side * 19
-		pp({ Name = "AirlineCounter", Size = Vector3.new(2, 2.6, 4.5),
-			Position = Vector3.new(x, 2.3, z), Color = Color3.fromRGB(225, 220, 210),
-			Material = Enum.Material.Marble, CanCollide = true })
-		pp({ Name = "AirlinePole", Size = Vector3.new(0.25, 2.8, 0.25),
-			Position = Vector3.new(x, 4.2, z), Color = BRONZE,
-			Material = Enum.Material.Metal, CanCollide = false })
-		local sign = pp({ Name = "AirlineSign", Size = Vector3.new(0.5, 1.5, 5),
-			Position = Vector3.new(x, 5.6, z), Color = brand,
-			Material = Enum.Material.SmoothPlastic, CanCollide = false })
-		billboard(sign, name, 0, 260, Color3.fromRGB(255, 255, 255))
-		agent(x + side * 1.9, z, -side, 0,
-			Color3.fromRGB(40, 50, 90), Color3.fromRGB(30, 30, 34),
-			skinTones[(i % 4) + 1], "GATE AGENT")
-	end
 
 
-	-- Gold guide chevrons: one singular route through the terminal.
-	for _, cz in ipairs({ 74, 67, 60, 44, 40, 33, 26, 19, 12, 5, -2, -9, -16, -23, -28, -33 }) do
-		for _, qx in ipairs({ -1, 1 }) do
-			pp({ Name = "GuideChevron", Size = Vector3.new(2.2, 0.15, 0.8),
-				CFrame = CFrame.new(qx * 1.1, 1.12, cz) * CFrame.Angles(0, qx * 0.5, 0),
-				Color = Color3.fromRGB(220, 170, 60), Material = Enum.Material.Neon, CanCollide = false })
-		end
-	end
-
-	-- VALISE: luxury luggage house (west strip) with checker facade.
-	pp({ Name = "ValiseBack", Size = Vector3.new(1, 8, 14),
-		Position = Vector3.new(-37, 5, 20), Color = Color3.fromRGB(50, 35, 25),
-		Material = Enum.Material.Concrete, CanCollide = true })
-	pp({ Name = "ValiseSideN", Size = Vector3.new(8, 8, 1),
-		Position = Vector3.new(-33.5, 5, 13.5), Color = Color3.fromRGB(50, 35, 25),
-		Material = Enum.Material.Concrete, CanCollide = true })
-	pp({ Name = "ValiseSideS", Size = Vector3.new(8, 8, 1),
-		Position = Vector3.new(-33.5, 5, 26.5), Color = Color3.fromRGB(50, 35, 25),
-		Material = Enum.Material.Concrete, CanCollide = true })
-	for _, seg in ipairs({ {14, 18}, {22, 26} }) do
-		local z0, z1 = seg[1], seg[2]
-		pp({ Name = "ValiseFront", Size = Vector3.new(1, 7, z1 - z0),
-			Position = Vector3.new(-30, 4.5, (z0 + z1) / 2), Color = Color3.fromRGB(60, 40, 28),
-			Material = Enum.Material.Wood, CanCollide = true })
-		for r = 0, 2 do
-			for c = 0, 1 do
-				local chk = (r + c) % 2 == 0
-				pp({ Name = "ValiseCheck", Size = Vector3.new(0.15, 1.7, 1.7),
-					Position = Vector3.new(-29.4, 2.6 + r * 1.9, z0 + 1 + c * 2),
-					Color = if chk then Color3.fromRGB(110, 70, 40) else Color3.fromRGB(200, 170, 90),
-					Material = Enum.Material.SmoothPlastic, CanCollide = false })
-			end
-		end
-	end
-	local vsign = pp({ Name = "ValiseSign", Size = Vector3.new(0.5, 1.6, 12),
-		Position = Vector3.new(-29.5, 8.4, 20), Color = Color3.fromRGB(200, 170, 90),
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	billboard(vsign, "VALISE", 0, 300, Color3.fromRGB(60, 40, 20))
-	for _, pz in ipairs({ 16, 20, 24 }) do
-		pp({ Name = "ValisePed", Size = Vector3.new(1.6, 2.2, 1.6),
-			Position = Vector3.new(-34, 2.1, pz), Color = Color3.fromRGB(225, 220, 210),
-			Material = Enum.Material.Marble, CanCollide = true })
-		pp({ Name = "ValiseBag", Size = Vector3.new(0.9, 1.1, 0.5),
-			Position = Vector3.new(-34, 3.8, pz), Color = Color3.fromRGB(110, 70, 40),
-			Material = Enum.Material.Leather, CanCollide = false })
-	end
-
-	-- NOUVELLE: couture house (west strip, north of VALISE).
-	pp({ Name = "NouvBack", Size = Vector3.new(1, 8, 12),
-		Position = Vector3.new(-37, 5, 33.5), Color = Color3.fromRGB(205, 200, 190),
-		Material = Enum.Material.Concrete, CanCollide = true })
-	pp({ Name = "NouvSideN", Size = Vector3.new(8, 8, 1),
-		Position = Vector3.new(-33.5, 5, 28), Color = Color3.fromRGB(205, 200, 190),
-		Material = Enum.Material.Concrete, CanCollide = true })
-	pp({ Name = "NouvSideS", Size = Vector3.new(8, 8, 1),
-		Position = Vector3.new(-33.5, 5, 39), Color = Color3.fromRGB(205, 200, 190),
-		Material = Enum.Material.Concrete, CanCollide = true })
-	for _, seg in ipairs({ {28.5, 31.5}, {35.5, 38.5} }) do
-		local z0, z1 = seg[1], seg[2]
-		pp({ Name = "NouvFront", Size = Vector3.new(1, 7, z1 - z0),
-			Position = Vector3.new(-30, 4.5, (z0 + z1) / 2), Color = Color3.fromRGB(210, 205, 195),
-			Material = Enum.Material.Marble, CanCollide = true })
-	end
-	local nsign = pp({ Name = "NouvSign", Size = Vector3.new(0.5, 1.6, 10),
-		Position = Vector3.new(-29.5, 8.4, 33.5), Color = Color3.fromRGB(90, 85, 95),
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	billboard(nsign, "NOUVELLE", 0, 280, Color3.fromRGB(255, 255, 255))
-	for _, pz in ipairs({ 31, 36 }) do
-		pp({ Name = "NouvPed", Size = Vector3.new(1.4, 1, 1.4),
-			Position = Vector3.new(-34, 1.5, pz), Color = Color3.fromRGB(225, 220, 210),
-			Material = Enum.Material.Marble, CanCollide = true })
-		pp({ Name = "NouvGown", Size = Vector3.new(1, 2.6, 0.8),
-			Position = Vector3.new(-34, 3.3, pz), Color = Color3.fromRGB(220, 170, 180),
-			Material = Enum.Material.Fabric, CanCollide = false })
-	end
+	-- (Guide chevrons rebuilt for the atrium hall; see the hall section below.)
 
 	-- Mezzanine overlook + walkable escalator (mall north end).
 	pp({ Name = "MezzFloor", Size = Vector3.new(32, 1, 6),
@@ -1048,20 +893,7 @@ local function buildPhxTerminal(root: Folder)
 	pp({ Name = "MezzRail", Size = Vector3.new(32, 0.35, 0.5),
 		Position = Vector3.new(0, 10.6, 34), Color = BRONZE,
 		Material = Enum.Material.Metal, CanCollide = false })
-	for i = 0, 12 do
-		pp({ Name = "EscStep", Size = Vector3.new(3, 0.5, 0.75),
-			Position = Vector3.new(-8, 1.25 + i * 0.5, 26.3 + i * 0.615),
-			Color = Color3.fromRGB(140, 140, 145), Material = Enum.Material.Metal, CanCollide = true })
-	end
-	for _, ex in ipairs({ -9.7, -6.3 }) do
-		pp({ Name = "EscGlass", Size = Vector3.new(0.3, 3, 10.8),
-			CFrame = CFrame.new(ex, 5.75, 30) * CFrame.Angles(-0.68, 0, 0),
-			Color = Color3.fromRGB(170, 200, 215), Transparency = 0.45,
-			Material = Enum.Material.Glass, CanCollide = false })
-		pp({ Name = "EscRail", Size = Vector3.new(0.4, 0.4, 10.8),
-			CFrame = CFrame.new(ex, 7.4, 30) * CFrame.Angles(-0.68, 0, 0),
-			Color = Color3.fromRGB(40, 40, 45), Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	end
+	-- (Old walkable escalator removed; the rideable escalator lives in buildConcourseEnclosure.)
 
 	-- Glass elevator.
 	for _, w in ipairs({ {24, 34.2, 4, 0.3}, {24, 37.8, 4, 0.3} }) do
@@ -1090,62 +922,43 @@ local function buildPhxTerminal(root: Folder)
 		Position = Vector3.new(24, 10.5, 34.1), Color = PHXBLUE, CanCollide = false })
 	billboard(lsign, "LIFT", 0, 150, Color3.fromRGB(255, 255, 255))
 
-	-- Photo booth (gates area).
+	-- Photo booth (arrivals corner of the atrium).
+	local boothX, boothZ = -20, 80
 	pp({ Name = "BoothPad", Size = Vector3.new(3.5, 0.2, 3.5),
-		Position = Vector3.new(-15, 1.1, -25), Color = Color3.fromRGB(90, 85, 95),
+		Position = Vector3.new(boothX, 1.1, boothZ), Color = Color3.fromRGB(90, 85, 95),
 		Material = Enum.Material.Carpet, CanCollide = false })
 	pp({ Name = "BoothBack", Size = Vector3.new(3.5, 5, 0.3),
-		Position = Vector3.new(-15, 3.5, -26.5), Color = Color3.fromRGB(220, 170, 180),
+		Position = Vector3.new(boothX, 3.5, boothZ - 1.5), Color = Color3.fromRGB(220, 170, 180),
 		Material = Enum.Material.Fabric, CanCollide = true })
 	pp({ Name = "BoothSideL", Size = Vector3.new(0.3, 5, 3.5),
-		Position = Vector3.new(-16.6, 3.5, -25), Color = Color3.fromRGB(220, 170, 180),
+		Position = Vector3.new(boothX - 1.6, 3.5, boothZ), Color = Color3.fromRGB(220, 170, 180),
 		Material = Enum.Material.Fabric, CanCollide = true })
 	pp({ Name = "BoothSideR", Size = Vector3.new(0.3, 5, 3.5),
-		Position = Vector3.new(-13.4, 3.5, -25), Color = Color3.fromRGB(220, 170, 180),
+		Position = Vector3.new(boothX + 1.6, 3.5, boothZ), Color = Color3.fromRGB(220, 170, 180),
 		Material = Enum.Material.Fabric, CanCollide = true })
 	for c = 0, 4 do
 		pp({ Name = "BoothCurtain", Size = Vector3.new(0.62, 4.2, 0.15),
-			Position = Vector3.new(-16.25 + c * 0.65, 3.1, -23.4),
+			Position = Vector3.new(boothX - 1.25 + c * 0.65, 3.1, boothZ + 1.6),
 			Color = if c % 2 == 0 then Color3.fromRGB(220, 170, 180) else Color3.fromRGB(245, 240, 235),
 			Material = Enum.Material.Fabric, CanCollide = false })
 	end
 	pp({ Name = "BoothRoof", Size = Vector3.new(3.8, 0.3, 3.8),
-		Position = Vector3.new(-15, 6.1, -25), Color = Color3.fromRGB(90, 85, 95),
+		Position = Vector3.new(boothX, 6.1, boothZ), Color = Color3.fromRGB(90, 85, 95),
 		Material = Enum.Material.SmoothPlastic, CanCollide = false })
 	local bsign = pp({ Name = "BoothSign", Size = Vector3.new(3.4, 1, 0.4),
-		Position = Vector3.new(-15, 6.9, -23.4), Color = PHXBLUE, CanCollide = false })
+		Position = Vector3.new(boothX, 6.9, boothZ + 1.6), Color = PHXBLUE, CanCollide = false })
 	billboard(bsign, "PHOTOS", 0, 200, Color3.fromRGB(255, 255, 255))
 	pp({ Name = "BoothBench", Size = Vector3.new(2, 1, 1),
-		Position = Vector3.new(-15, 1.6, -25.8), Color = Color3.fromRGB(60, 55, 70),
+		Position = Vector3.new(boothX, 1.6, boothZ - 0.8), Color = Color3.fromRGB(60, 55, 70),
 		Material = Enum.Material.Fabric, CanCollide = true })
 	pp({ Name = "BoothCam", Size = Vector3.new(0.8, 0.6, 0.8),
-		Position = Vector3.new(-15, 3.6, -24.2), Color = Color3.fromRGB(30, 30, 35),
+		Position = Vector3.new(boothX, 3.6, boothZ + 0.8), Color = Color3.fromRGB(30, 30, 35),
 		Material = Enum.Material.SmoothPlastic, CanCollide = false })
 	pp({ Name = "BoothFlash", Size = Vector3.new(0.5, 0.5, 0.2),
-		Position = Vector3.new(-15, 3.6, -23.75), Color = Color3.fromRGB(255, 255, 255),
+		Position = Vector3.new(boothX, 3.6, boothZ + 1.25), Color = Color3.fromRGB(255, 255, 255),
 		Material = Enum.Material.Neon, CanCollide = false })
 
-	-- Mall power walkway (speeds up terminal walkers).
-	local beltPart = pp({ Name = "TerminalTravelator", Size = Vector3.new(6, 0.25, 34),
-		Position = Vector3.new(12, 1.15, 21), Color = Color3.fromRGB(30, 30, 36),
-		Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	beltPart.TopSurface = Enum.SurfaceType.Smooth
-	for _, ex in ipairs({ 9.2, 14.8 }) do
-		pp({ Name = "BeltEdge", Size = Vector3.new(0.3, 0.3, 34),
-			Position = Vector3.new(ex, 1.2, 21), Color = Color3.fromRGB(220, 180, 60),
-			Material = Enum.Material.SmoothPlastic, CanCollide = false })
-	end
-	for i = 1, 5 do
-		local cz = 36 - (i - 0.5) * (32 / 5)
-		for _, qx in ipairs({ -1, 1 }) do
-			pp({ Name = "BeltChevron", Size = Vector3.new(2.4, 0.28, 0.9),
-				CFrame = CFrame.new(12 + qx * 1.3, 1.32, cz) * CFrame.Angles(0, qx * 0.5, 0),
-				Color = Color3.fromRGB(235, 250, 255), Material = Enum.Material.Neon, CanCollide = false })
-		end
-	end
-	local tsign = pp({ Name = "TravelatorSign", Size = Vector3.new(8, 1.6, 0.5),
-		Position = Vector3.new(12, 6.5, 2.5), Color = PHXBLUE, CanCollide = false })
-	billboard(tsign, "POWER WALKWAY >>", 0, 320, Color3.fromRGB(255, 255, 255))
+	-- (Mall travelator rebuilt in the atrium hall; see below.)
 
 	-- Gate 27 lounge: the route now reaches the aircraft.
 	pp({ Name = "LoungeFloor", Size = Vector3.new(30, 1, 18),
@@ -1266,6 +1079,281 @@ local function buildPhxTerminal(root: Folder)
 
 	-- (Runway-flanking wooden seating removed per playtest.)
 
+	-- ATRIUM HALL: one grand open DEN terminal (z 30..94, x -33..33).
+	-- The whole journey happens here; the gold arch is visible from the doors.
+	local hallFloor = pp({ Name = "HallFloor", Size = Vector3.new(66, 1, 66),
+		Position = Vector3.new(0, 0.5, 62), Color = TERRAZZO,
+		Material = Enum.Material.Marble, CanCollide = true })
+	-- West wall (east stays glass curtain); south wall flanks the doors;
+	-- north wall flanks the corridor mouth (|x| < 12 stays open).
+	local wallC = Color3.fromRGB(235, 232, 225)
+	pp({ Name = "HallWallW", Size = Vector3.new(1, 14, 66),
+		Position = Vector3.new(-33, 8, 62), Color = wallC,
+		Material = Enum.Material.SmoothPlastic, CanCollide = true })
+	pp({ Name = "HallWallS1", Size = Vector3.new(27, 14, 1),
+		Position = Vector3.new(-19.5, 8, 94), Color = wallC,
+		Material = Enum.Material.SmoothPlastic, CanCollide = true })
+	pp({ Name = "HallWallS2", Size = Vector3.new(27, 14, 1),
+		Position = Vector3.new(19.5, 8, 94), Color = wallC,
+		Material = Enum.Material.SmoothPlastic, CanCollide = true })
+	pp({ Name = "HallWallN1", Size = Vector3.new(21, 14, 1),
+		Position = Vector3.new(-22.5, 8, 29), Color = wallC,
+		Material = Enum.Material.SmoothPlastic, CanCollide = true })
+	pp({ Name = "HallWallN2", Size = Vector3.new(21, 14, 1),
+		Position = Vector3.new(22.5, 8, 29), Color = wallC,
+		Material = Enum.Material.SmoothPlastic, CanCollide = true })
+	-- Fillers between the corridor walls (x ±19) and the north opening.
+	for _, fx in ipairs({ -15.5, 15.5 }) do
+		pp({ Name = "HallWallNFill", Size = Vector3.new(7, 14, 1),
+			Position = Vector3.new(fx, 8, 28.7), Color = wallC,
+			Material = Enum.Material.SmoothPlastic, CanCollide = true })
+	end
+
+	-- ARRIVALS sign.
+	local arrSign = pp({ Name = "ArrivalsHall", Size = Vector3.new(10, 2, 0.6),
+		Position = Vector3.new(0, 10, 84), Color = PHXBLUE,
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	billboard(arrSign, "ARRIVALS", 0, 260, Color3.fromRGB(255, 255, 255))
+
+	-- CHECK-IN: 6 airline counters, 3 per side, agents behind facing inward.
+	local checkinAirlines = {
+		{ "RASCAL AIR", Color3.fromRGB(200, 160, 60) },
+		{ "CANYON AIR", Color3.fromRGB(180, 90, 60) },
+		{ "MESA AIR", Color3.fromRGB(60, 150, 150) },
+		{ "COPPERLINE", Color3.fromRGB(180, 120, 80) },
+		{ "SAGUARO AIR", Color3.fromRGB(80, 150, 90) },
+		{ "DESERT SUN", Color3.fromRGB(220, 130, 50) },
+	}
+	for i, al in ipairs(checkinAirlines) do
+		local cname = al[1] :: string
+		local cbrand = al[2] :: Color3
+		local cside = if i <= 3 then -1 else 1
+		local ccz = 72 - ((i - 1) % 3) * 6
+		pp({ Name = "CheckinCounter", Size = Vector3.new(6, 2.6, 2.5),
+			Position = Vector3.new(cside * 20, 2.3, ccz), Color = Color3.fromRGB(225, 220, 210),
+			Material = Enum.Material.Marble, CanCollide = true })
+		local csign = pp({ Name = "CheckinSign", Size = Vector3.new(0.5, 1.5, 5),
+			Position = Vector3.new(cside * 20, 5.2, ccz), Color = cbrand,
+			Material = Enum.Material.SmoothPlastic, CanCollide = false })
+		billboard(csign, cname, 0, 260, Color3.fromRGB(255, 255, 255))
+		agent(cside * 23.5, ccz, -cside, 0,
+			Color3.fromRGB(40, 50, 90), Color3.fromRGB(30, 30, 34),
+			skinTones[(i % 4) + 1], "GATE AGENT")
+	end
+
+	-- SECURITY: 3 arch frames + BagCheck sign band.
+	for _, sx in ipairs({ -4, 0, 4 }) do
+		for _, px in ipairs({ -1.5, 1.5 }) do
+			pp({ Name = "SecurityPost", Size = Vector3.new(0.6, 7, 0.6),
+				Position = Vector3.new(sx + px, 4.5, 56), Color = Color3.fromRGB(60, 70, 90),
+				Material = Enum.Material.Metal, CanCollide = false })
+		end
+		pp({ Name = "SecurityBeam", Size = Vector3.new(3.6, 1, 1),
+			Position = Vector3.new(sx, 8.5, 56), Color = Color3.fromRGB(25, 45, 120),
+			Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	end
+	local bagSign = pp({ Name = "BagCheck", Size = Vector3.new(12, 1.8, 0.5),
+		Position = Vector3.new(0, 10.5, 56), Color = Color3.fromRGB(25, 45, 120),
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	billboard(bagSign, "BAG CHECK · SECURITY", 0, 320, Color3.fromRGB(255, 255, 255))
+
+	-- SHOPS: 6 boutiques along the west wall, facing east.
+	local hallShops = {
+		{ "MAISON OR", Color3.fromRGB(60, 45, 30) },
+		{ "VELOURS", Color3.fromRGB(120, 40, 60) },
+		{ "CUIR ATELIER", Color3.fromRGB(90, 60, 40) },
+		{ "LUMIERE", Color3.fromRGB(220, 215, 200) },
+		{ "OR & CENDRE", Color3.fromRGB(70, 65, 60) },
+		{ "CABINE", Color3.fromRGB(30, 60, 90) },
+	}
+	for i, shop in ipairs(hallShops) do
+		local shopName = shop[1] :: string
+		local brand = shop[2] :: Color3
+		local sz = 58 - i * 4
+		pp({ Name = "HallShopBack", Size = Vector3.new(1.2, 12, 4.5),
+			Position = Vector3.new(-28, 6.5, sz), Color = brand,
+			Material = Enum.Material.Concrete })
+		pp({ Name = "HallShopFront", Size = Vector3.new(0.4, 10, 4),
+			Position = Vector3.new(-24, 6, sz), Color = Color3.fromRGB(170, 200, 215),
+			Transparency = 0.4, Material = Enum.Material.Glass, CanCollide = false })
+		local hband = pp({ Name = "HallShopSign", Size = Vector3.new(0.6, 2, 4.2),
+			Position = Vector3.new(-23.5, 9.5, sz), Color = brand,
+			Material = Enum.Material.Neon, CanCollide = false })
+		billboard(hband, shopName, 0, 260, Color3.fromRGB(255, 255, 255))
+		local hglow = Instance.new("PointLight")
+		hglow.Brightness = 2
+		hglow.Range = 14
+		hglow.Color = Color3.fromRGB(255, 214, 150)
+		hglow.Parent = hband
+		pp({ Name = "HallShopPed", Size = Vector3.new(1.6, 2, 1.6),
+			Position = Vector3.new(-22, 2, sz), Color = Color3.fromRGB(225, 220, 210),
+			Material = Enum.Material.Marble })
+		pp({ Name = "HallShopBag", Size = Vector3.new(0.9, 1.1, 0.5),
+			Position = Vector3.new(-22, 3.6, sz), Color = brand,
+			Material = Enum.Material.Leather, CanCollide = false })
+	end
+	local shopSign = pp({ Name = "ShoppingMall", Size = Vector3.new(12, 2, 0.6),
+		Position = Vector3.new(0, 10, 44), Color = PHXBLUE,
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	billboard(shopSign, "SHOPPING · DINING", 0, 300, Color3.fromRGB(255, 255, 255))
+
+	-- EAST KIOSKS: VALISE, NOUVELLE.
+	local function kiosk(x: number, z: number, kname: string, signColor: Color3)
+		pp({ Name = "KioskGlass", Size = Vector3.new(5, 8, 5),
+			Position = Vector3.new(x, 5, z), Color = Color3.fromRGB(170, 200, 215),
+			Transparency = 0.4, Material = Enum.Material.Glass, CanCollide = false })
+		pp({ Name = "KioskBase", Size = Vector3.new(5.4, 1, 5.4),
+			Position = Vector3.new(x, 1.5, z), Color = Color3.fromRGB(225, 220, 210),
+			Material = Enum.Material.Marble })
+		local ksign = pp({ Name = "KioskSign", Size = Vector3.new(5.2, 1.6, 0.4),
+			Position = Vector3.new(x - 2.6, 8.6, z), Color = signColor,
+			Material = Enum.Material.SmoothPlastic, CanCollide = false })
+		billboard(ksign, kname, 0, 280, Color3.fromRGB(255, 255, 255))
+		pp({ Name = "KioskPed", Size = Vector3.new(1.6, 2, 1.6),
+			Position = Vector3.new(x - 4.5, 2, z), Color = Color3.fromRGB(225, 220, 210),
+			Material = Enum.Material.Marble })
+	end
+	kiosk(18, 50, "VALISE", Color3.fromRGB(200, 170, 90))
+	kiosk(18, 44, "NOUVELLE", Color3.fromRGB(90, 85, 95))
+
+	-- UGC STORE kiosk (template): coin purchases via ProximityPrompts bound by RoundService.
+	pp({ Name = "UgcGlass", Size = Vector3.new(5, 8, 5),
+		Position = Vector3.new(18, 5, 38), Color = Color3.fromRGB(170, 200, 215),
+		Transparency = 0.4, Material = Enum.Material.Glass, CanCollide = false })
+	pp({ Name = "UgcBase", Size = Vector3.new(5.4, 1, 5.4),
+		Position = Vector3.new(18, 1.5, 38), Color = Color3.fromRGB(225, 220, 210),
+		Material = Enum.Material.Marble })
+	local usign = pp({ Name = "UgcSignBand", Size = Vector3.new(5.2, 1.6, 0.4),
+		Position = Vector3.new(15.4, 8.6, 38), Color = Color3.fromRGB(150, 80, 200),
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	billboard(usign, "UGC STORE", 0, 300, Color3.fromRGB(255, 255, 255))
+	local ugcItems = {
+		{ id = "star-shades", name = "Star Shades", price = 150 },
+		{ id = "pixel-cap", name = "Pixel Cap", price = 200 },
+		{ id = "boombox", name = "Boombox Buddy", price = 250 },
+		{ id = "gold-chain", name = "Gold Chain", price = 300 },
+	}
+	for i, item in ipairs(ugcItems) do
+		local px = 12.5 + (i % 2) * 2.5
+		local pz = 36.5 + math.floor((i - 1) / 2) * 2.5
+		pp({ Name = "UgcPedestal", Size = Vector3.new(1.6, 2, 1.6),
+			Position = Vector3.new(px, 2, pz), Color = Color3.fromRGB(225, 220, 210),
+			Material = Enum.Material.Marble, CanCollide = false })
+		local display: Part
+		if item.id == "star-shades" then
+			display = pp({ Name = "UgcDisplay", Size = Vector3.new(0.5, 0.25, 0.3),
+				Position = Vector3.new(px, 3.75, pz), Color = Color3.fromRGB(20, 20, 24),
+				Material = Enum.Material.SmoothPlastic, CanCollide = false })
+			for _, ex in ipairs({ -0.7, 0.7 }) do
+				pp({ Name = "UgcDisplay", Size = Vector3.new(1.2, 0.8, 0.3),
+					Position = Vector3.new(px + ex, 3.6, pz), Color = Color3.fromRGB(20, 20, 24),
+					Material = Enum.Material.SmoothPlastic, CanCollide = false })
+			end
+		elseif item.id == "pixel-cap" then
+			display = pp({ Name = "UgcDisplay", Shape = Enum.PartType.Ball,
+				Size = Vector3.new(1.5, 1.5, 1.5),
+				Position = Vector3.new(px, 3.9, pz), Color = Color3.fromRGB(200, 60, 60),
+				Material = Enum.Material.SmoothPlastic, CanCollide = false })
+			pp({ Name = "UgcDisplay", Size = Vector3.new(1.2, 0.25, 2.0),
+				Position = Vector3.new(px + 0.6, 3.35, pz), Color = Color3.fromRGB(200, 60, 60),
+				Material = Enum.Material.SmoothPlastic, CanCollide = false })
+		elseif item.id == "boombox" then
+			display = pp({ Name = "UgcDisplay", Size = Vector3.new(1.7, 1.1, 0.9),
+				Position = Vector3.new(px, 3.7, pz), Color = Color3.fromRGB(90, 90, 96),
+				Material = Enum.Material.Metal, CanCollide = false })
+			for _, sz in ipairs({ -0.4, 0.4 }) do
+				pp({ Name = "UgcDisplay", Size = Vector3.new(0.2, 0.7, 0.7),
+					Position = Vector3.new(px + 0.9, 3.7, pz + sz), Color = Color3.fromRGB(25, 25, 28),
+					Material = Enum.Material.SmoothPlastic, CanCollide = false })
+			end
+		else
+			display = pp({ Name = "UgcDisplay", Size = Vector3.new(0.35, 2.2, 2.2),
+				Position = Vector3.new(px, 3.9, pz), Color = Color3.fromRGB(212, 175, 105),
+				Material = Enum.Material.Metal, CanCollide = false })
+		end
+		local prompt = Instance.new("ProximityPrompt")
+		prompt.Name = "UgcBuy"
+		prompt.ActionText = "Buy"
+		prompt.ObjectText = item.name .. " — " .. tostring(item.price) .. "c"
+		prompt.HoldDuration = 0.4
+		prompt.MaxActivationDistance = 12
+		prompt.RequiresLineOfSight = false
+		prompt:SetAttribute("ItemId", item.id)
+		prompt.Parent = display
+	end
+
+	-- FOOD COURT: tables + stools flanking the hall.
+	for _, t in ipairs({ { -19, 46 }, { -19, 52 }, { 22, 46 }, { 22, 52 } }) do
+		local tx, tz = t[1], t[2]
+		pp({ Name = "FoodTableTop", Size = Vector3.new(3, 0.3, 3),
+			Position = Vector3.new(tx, 2.8, tz), Color = Color3.fromRGB(70, 58, 44),
+			Material = Enum.Material.Wood, CanCollide = false })
+		pp({ Name = "FoodTableLeg", Size = Vector3.new(0.5, 1.8, 0.5),
+			Position = Vector3.new(tx, 1.9, tz), Color = Color3.fromRGB(40, 36, 32),
+			Material = Enum.Material.Wood, CanCollide = false })
+		for _, so in ipairs({ -2.2, 2.2 }) do
+			pp({ Name = "FoodStool", Size = Vector3.new(1, 1, 1),
+				Position = Vector3.new(tx, 1.5, tz + so), Color = Color3.fromRGB(90, 85, 95),
+				Material = Enum.Material.Fabric, CanCollide = false })
+		end
+	end
+	local foodMedal = pp({ Name = "FoodCourt", Size = Vector3.new(10, 0.12, 6),
+		Position = Vector3.new(0, 1.06, 49), Color = Color3.fromRGB(180, 170, 150),
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+	billboard(foodMedal, "FOOD COURT", 5, 220, Color3.fromRGB(255, 255, 255))
+
+	-- Atrium power walkways (rideable via the Ride action).
+	local function hallTravelator(x: number, z: number, len: number)
+		pp({ Name = "TerminalTravelator", Size = Vector3.new(6, 0.25, len),
+			Position = Vector3.new(x, 1.15, z), Color = Color3.fromRGB(30, 30, 36),
+			Material = Enum.Material.SmoothPlastic, CanCollide = false })
+		for _, ex in ipairs({ x - 2.8, x + 2.8 }) do
+			pp({ Name = "BeltEdge", Size = Vector3.new(0.3, 0.3, len),
+				Position = Vector3.new(ex, 1.2, z), Color = Color3.fromRGB(220, 180, 60),
+				Material = Enum.Material.SmoothPlastic, CanCollide = false })
+		end
+		for i = 1, 4 do
+			local cz = z + len / 2 - (i - 0.5) * (len / 4)
+			for _, qx in ipairs({ -1, 1 }) do
+				pp({ Name = "BeltChevron", Size = Vector3.new(2.4, 0.28, 0.9),
+					CFrame = CFrame.new(x + qx * 1.3, 1.32, cz) * CFrame.Angles(0, qx * 0.5, 0),
+					Color = Color3.fromRGB(235, 250, 255), Material = Enum.Material.Neon,
+					CanCollide = false })
+			end
+		end
+		local hsign = pp({ Name = "TravelatorSign", Size = Vector3.new(8, 1.6, 0.5),
+			Position = Vector3.new(x, 6.5, z + len / 2 + 1.5), Color = PHXBLUE, CanCollide = false })
+		billboard(hsign, "POWER WALKWAY >>", 0, 320, Color3.fromRGB(255, 255, 255))
+	end
+	hallTravelator(-12, 70, 26)
+	hallTravelator(12, 54, 26)
+
+	-- Boarding arch: step through and the race + timer start. Visible from the doors.
+	for _, ax in ipairs({ -8, 8 }) do
+		pp({ Name = "BoardingArchPost", Size = Vector3.new(1, 10, 1),
+			Position = Vector3.new(ax, 5, 30), Color = Color3.fromRGB(201, 165, 106),
+			Material = Enum.Material.Metal, CanCollide = false })
+	end
+	local archBeam = pp({ Name = "BoardingArchBeam", Size = Vector3.new(17, 1.5, 1),
+		Position = Vector3.new(0, 10.5, 30), Color = Color3.fromRGB(201, 165, 106),
+		Material = Enum.Material.Neon, CanCollide = false })
+	billboard(archBeam, "RUNWAY · BOARD NOW →", 0, 420, Color3.fromRGB(255, 255, 255))
+	pp({ Name = "BoardingTrigger", Size = Vector3.new(44, 12, 10),
+		Position = Vector3.new(0, 6, 30), Transparency = 1, CanCollide = false })
+	-- Gates threshold plate.
+	pp({ Name = "WalkwayGates", Size = Vector3.new(24, 0.12, 6),
+		Position = Vector3.new(0, 1.06, 32), Color = Color3.fromRGB(180, 170, 150),
+		Material = Enum.Material.SmoothPlastic, CanCollide = false })
+
+	-- Gold guide chevrons: one singular route down the center aisle + corridor.
+	for _, cz in ipairs({ 88, 80, 72, 64, 56, 48, 42, 34, 20, 4, -12, -28 }) do
+		for _, qx in ipairs({ -1, 1 }) do
+			pp({ Name = "GuideChevron", Size = Vector3.new(2.2, 0.15, 0.8),
+				CFrame = CFrame.new(qx * 1.1, 1.12, cz) * CFrame.Angles(0, qx * 0.5, 0),
+				Color = Color3.fromRGB(220, 170, 60), Material = Enum.Material.Neon, CanCollide = false })
+		end
+	end
+
 	-- Enclose the airport: concourse, gate box, lobby, escalator.
 	buildConcourseEnclosure(root)
 	-- The arrival journey: taxi drop-off street into the terminal.
@@ -1284,18 +1372,18 @@ function ArenaService.build(): Folder
 	root.Name = Config.ARENA_NAME
 
 	local length = 95
-	local width = 28
 	local laneSpacing = Balance.laneSpacingStuds
 	-- The terminal: arrivals → bag check → mall → food court → gates,
 	-- then the power walkways run to Gate 27.
 	local startZ = -40
-	local finishZ = startZ - length
 	local gold = Color3.fromRGB(201, 165, 106)
 
+	-- Runway floor: explicit span covering the corridor (z 35) through the
+	-- curve start (z -131); the race follows the ROUTE waypoints.
 	local floor = part({
 		Name = "RunwayFloor",
-		Size = Vector3.new(width, 1, length + 12),
-		Position = Vector3.new(0, 0.5, startZ - length / 2 + 6),
+		Size = Vector3.new(28, 1, 166),
+		Position = Vector3.new(0, 0.5, -48),
 		Color = Color3.fromRGB(18, 14, 16),
 		Material = Enum.Material.Marble,
 	})
@@ -1323,16 +1411,7 @@ function ArenaService.build(): Folder
 		stripe.Parent = root
 	end
 
-	-- ARRIVALS: spawn hall.
-	local arrivals = part({
-		Name = "ArrivalsHall",
-		Size = Vector3.new(44, 1, 28),
-		Position = Vector3.new(0, 0.5, 66),
-		Color = Color3.fromRGB(206, 200, 188),
-		Material = Enum.Material.Marble,
-	})
-	arrivals.Parent = root
-	billboard(arrivals, "DEN \u{c2}· JEPPESEN TERMINAL", 6, 260)
+	-- (Arrivals floor replaced by the atrium HallFloor in buildPhxTerminal.)
 
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "LobbySpawn"
@@ -1344,312 +1423,6 @@ function ArenaService.build(): Folder
 	spawn.Duration = 0
 	spawn.Color = gold
 	spawn.Parent = root
-
-	-- BAG CHECK: security arches + conveyor.
-	local bagcheck = part({
-		Name = "BagCheck",
-		Size = Vector3.new(44, 1, 12),
-		Position = Vector3.new(0, 0.5, 46),
-		Color = Color3.fromRGB(202, 196, 184),
-		Material = Enum.Material.Slate,
-	})
-	bagcheck.Parent = root
-	billboard(bagcheck, "BAG CHECK · SECURITY", 6, 260)
-	for _, ax in { -10, 0, 10 } do
-		for _, px in { -2.4, 2.4 } do
-			local post = part({
-				Name = "SecurityPost",
-				Size = Vector3.new(0.7, 7, 0.7),
-				Position = Vector3.new(ax + px, 4.5, 46),
-				Color = Color3.fromRGB(60, 70, 90),
-				Material = Enum.Material.Metal,
-				CanCollide = false,
-			})
-			post.Parent = root
-		end
-		local beam = part({
-			Name = "SecurityBeam",
-			Size = Vector3.new(5.5, 1, 1),
-			Position = Vector3.new(ax, 8.2, 46),
-			Color = Color3.fromRGB(90, 200, 255),
-			Material = Enum.Material.Neon,
-			CanCollide = false,
-		})
-		beam.Parent = root
-	end
-	local belt = part({
-		Name = "BagBelt",
-		Size = Vector3.new(10, 1.4, 3),
-		Position = Vector3.new(17, 1.7, 46),
-		Color = Color3.fromRGB(40, 40, 48),
-		Material = Enum.Material.Metal,
-	})
-	belt.Parent = root
-
-	-- SHOPPING MALL: concourse with store fronts; the boutique anchor
-	-- store is built on the west side by WorldService.
-	local mall = part({
-		Name = "ShoppingMall",
-		Size = Vector3.new(76, 1, 40),
-		Position = Vector3.new(0, 0.5, 20),
-		Color = Color3.fromRGB(206, 200, 188),
-		Material = Enum.Material.Marble,
-	})
-	mall.Parent = root
-	billboard(mall, "SHOPPING MALL", 9, 260)
-	local storeNames = { "SILK ATELIER", "CREST", "NIGHTFALL", "OBLIQUE", "CONCRETE" }
-	for i, storeName in storeNames do
-		local sz = 40 - i * 8
-		local front = part({
-			Name = "StoreFront",
-			Size = Vector3.new(2, 9, 8),
-			Position = Vector3.new(29, 5.5, sz),
-			Color = Color3.fromRGB(46, 38, 54),
-			Material = Enum.Material.Concrete,
-		})
-		front.Parent = root
-		billboard(front, storeName, 6, 160)
-	end
-
-	-- UGC STORE (template): west-side shop selling blocky accessories for coins.
-	-- Each pedestal has a ProximityPrompt ("UgcBuy") bound by RoundService.
-	local ugc = part({
-		Name = "UgcBackWall",
-		Size = Vector3.new(1, 10, 16),
-		Position = Vector3.new(-30, 5.5, 2),
-		Color = Color3.fromRGB(40, 32, 48),
-		Material = Enum.Material.Concrete,
-	})
-	ugc.Parent = root
-	for _, wz in ipairs({ -6, 10 }) do
-		local side = part({
-			Name = "UgcSideWall",
-			Size = Vector3.new(7, 9, 1),
-			Position = Vector3.new(-26.5, 5, wz),
-			Color = Color3.fromRGB(40, 32, 48),
-			Material = Enum.Material.Concrete,
-		})
-		side.Parent = root
-	end
-	local uglass = part({
-		Name = "UgcGlassFront",
-		Size = Vector3.new(0.4, 8, 14),
-		Position = Vector3.new(-24, 5, 2),
-		Color = Color3.fromRGB(170, 200, 215),
-		Transparency = 0.4,
-		Material = Enum.Material.Glass,
-		CanCollide = false,
-	})
-	uglass.Parent = root
-	local usign = part({
-		Name = "UgcSignBand",
-		Size = Vector3.new(0.6, 2, 14),
-		Position = Vector3.new(-24, 9.6, 2),
-		Color = Color3.fromRGB(150, 80, 200),
-		Material = Enum.Material.SmoothPlastic,
-		CanCollide = false,
-	})
-	usign.Parent = root
-	billboard(usign, "UGC STORE", 0, 300, Color3.fromRGB(255, 255, 255))
-	local ugcItems = {
-		{ id = "star-shades", name = "Star Shades", price = 150 },
-		{ id = "pixel-cap", name = "Pixel Cap", price = 200 },
-		{ id = "boombox", name = "Boombox Buddy", price = 250 },
-		{ id = "gold-chain", name = "Gold Chain", price = 300 },
-	}
-	for i, item in ipairs(ugcItems) do
-		local pz = -3 + (i - 1) * 3.5
-		local ped = part({
-			Name = "UgcPedestal",
-			Size = Vector3.new(1.6, 2, 1.6),
-			Position = Vector3.new(-27.5, 2, pz),
-			Color = Color3.fromRGB(225, 220, 210),
-			Material = Enum.Material.Marble,
-			CanCollide = false,
-		})
-		ped.Parent = root
-		local display: Part
-		if item.id == "star-shades" then
-			display = part({
-				Name = "UgcDisplay",
-				Size = Vector3.new(0.5, 0.25, 0.3),
-				Position = Vector3.new(-27.5, 3.75, pz),
-				Color = Color3.fromRGB(20, 20, 24),
-				Material = Enum.Material.SmoothPlastic,
-				CanCollide = false,
-			})
-			display.Parent = root
-			for _, ex in ipairs({ -26.8, -28.2 }) do
-				local lens = part({
-					Name = "UgcDisplay",
-					Size = Vector3.new(1.2, 0.8, 0.3),
-					Position = Vector3.new(ex, 3.6, pz),
-					Color = Color3.fromRGB(20, 20, 24),
-					Material = Enum.Material.SmoothPlastic,
-					CanCollide = false,
-				})
-				lens.Parent = root
-			end
-		elseif item.id == "pixel-cap" then
-			display = part({
-				Name = "UgcDisplay",
-				Shape = Enum.PartType.Ball,
-				Size = Vector3.new(1.5, 1.5, 1.5),
-				Position = Vector3.new(-27.5, 3.9, pz),
-				Color = Color3.fromRGB(200, 60, 60),
-				Material = Enum.Material.SmoothPlastic,
-				CanCollide = false,
-			})
-			display.Parent = root
-			local brim = part({
-				Name = "UgcDisplay",
-				Size = Vector3.new(1.2, 0.25, 2.0),
-				Position = Vector3.new(-26.9, 3.35, pz),
-				Color = Color3.fromRGB(200, 60, 60),
-				Material = Enum.Material.SmoothPlastic,
-				CanCollide = false,
-			})
-			brim.Parent = root
-		elseif item.id == "boombox" then
-			display = part({
-				Name = "UgcDisplay",
-				Size = Vector3.new(1.7, 1.1, 0.9),
-				Position = Vector3.new(-27.5, 3.7, pz),
-				Color = Color3.fromRGB(90, 90, 96),
-				Material = Enum.Material.Metal,
-				CanCollide = false,
-			})
-			display.Parent = root
-			for _, sz in ipairs({ -0.4, 0.4 }) do
-				local speaker = part({
-					Name = "UgcDisplay",
-					Size = Vector3.new(0.2, 0.7, 0.7),
-					Position = Vector3.new(-26.6, 3.7, pz + sz),
-					Color = Color3.fromRGB(25, 25, 28),
-					Material = Enum.Material.SmoothPlastic,
-					CanCollide = false,
-				})
-				speaker.Parent = root
-			end
-		else
-			display = part({
-				Name = "UgcDisplay",
-				Size = Vector3.new(0.35, 2.2, 2.2),
-				Position = Vector3.new(-27.5, 3.9, pz),
-				Color = Color3.fromRGB(212, 175, 105),
-				Material = Enum.Material.Metal,
-				CanCollide = false,
-			})
-			display.Parent = root
-		end
-		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name = "UgcBuy"
-		prompt.ActionText = "Buy"
-		prompt.ObjectText = item.name .. " — " .. tostring(item.price) .. "c"
-		prompt.HoldDuration = 0.4
-		prompt.MaxActivationDistance = 12
-		prompt.RequiresLineOfSight = false
-		prompt:SetAttribute("ItemId", item.id)
-		prompt.Parent = display
-	end
-
-	-- FOOD COURT.
-	local food = part({
-		Name = "FoodCourt",
-		Size = Vector3.new(44, 1, 22),
-		Position = Vector3.new(0, 0.5, -11),
-		Color = Color3.fromRGB(198, 190, 176),
-		Material = Enum.Material.WoodPlanks,
-	})
-	food.Parent = root
-	billboard(food, "FOOD COURT", 6, 220)
-	for _, tx in { -12, 0, 12 } do
-		for _, tz in { -6, -16 } do
-			local top = part({
-				Name = "FoodTable",
-				Size = Vector3.new(4, 0.4, 4),
-				Position = Vector3.new(tx, 3.2, tz),
-				Color = Color3.fromRGB(70, 58, 44),
-				Material = Enum.Material.Wood,
-				CanCollide = false,
-			})
-			top.Parent = root
-			local leg = part({
-				Name = "TableLeg",
-				Size = Vector3.new(0.6, 2.4, 0.6),
-				Position = Vector3.new(tx, 1.8, tz),
-				Color = Color3.fromRGB(40, 36, 32),
-				CanCollide = false,
-			})
-			leg.Parent = root
-		end
-	end
-
-	-- WALKWAY GATES + the boarding trigger: crossing it starts the
-	-- flight countdown.
-	local gates = part({
-		Name = "WalkwayGates",
-		Size = Vector3.new(44, 1, 6),
-		Position = Vector3.new(0, 0.5, -25),
-		Color = Color3.fromRGB(202, 196, 184),
-		Material = Enum.Material.Slate,
-	})
-	gates.Parent = root
-	billboard(gates, "GATES · ALL FLIGHTS →", 7, 300)
-	for _, gx in { -7, 7 } do
-		for _, px in { -2.6, 2.6 } do
-			local post = part({
-				Name = "GatePost",
-				Size = Vector3.new(0.8, 8, 0.8),
-				Position = Vector3.new(gx + px, 5, -31),
-				Color = gold,
-				Material = Enum.Material.Metal,
-				CanCollide = false,
-			})
-			post.Parent = root
-		end
-		local beam = part({
-			Name = "GateBeam",
-			Size = Vector3.new(6, 1.2, 1),
-			Position = Vector3.new(gx, 9.4, -31),
-			Color = gold,
-			Material = Enum.Material.Neon,
-			CanCollide = false,
-		})
-		beam.Parent = root
-		billboard(beam, "GATE " .. (if gx < 0 then "26" else "27"), 2.4, 120)
-	end
-	-- Boarding arch: step onto the runway and the race + timer start.
-	for _, ax in ipairs({ -8, 8 }) do
-		local apost = part({
-			Name = "BoardingArchPost",
-			Size = Vector3.new(1, 10, 1),
-			Position = Vector3.new(ax, 5, -36),
-			Color = gold,
-			Material = Enum.Material.Metal,
-			CanCollide = false,
-		})
-		apost.Parent = root
-	end
-	local abeam = part({
-		Name = "BoardingArchBeam",
-		Size = Vector3.new(17, 1.5, 1),
-		Position = Vector3.new(0, 10.5, -36),
-		Color = gold,
-		Material = Enum.Material.Neon,
-		CanCollide = false,
-	})
-	abeam.Parent = root
-	billboard(abeam, "RUNWAY · BOARD NOW →", 0, 420)
-
-	local trigger = part({
-		Name = "BoardingTrigger",
-		Size = Vector3.new(44, 12, 10),
-		Position = Vector3.new(0, 6, -36),
-		Transparency = 1,
-		CanCollide = false,
-	})
-	trigger.Parent = root
 
 	-- Runway spots
 	for i = 1, 8 do
