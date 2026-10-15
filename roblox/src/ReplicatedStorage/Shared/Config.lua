@@ -108,28 +108,28 @@ Config.OpenCastShowId = "open-cast"
 ]]
 Config.GamePasses = {
 	FrontRowVIP = {
-		id = 0,
+		id = 2040128307,
 		name = "Front Row VIP",
 		priceHintRobux = 799,
 		cosmeticOnly = true,
 		blurb = "Permanent: closet, makeup, poses, gold tag. No extra votes or score.",
 	} :: GamePassDef,
 	WalkInCloset = {
-		id = 0,
+		id = 2036072709,
 		name = "Walk-In Closet",
 		priceHintRobux = 199,
 		cosmeticOnly = true,
 		blurb = "Extra outfit slots only.",
 	} :: GamePassDef,
 	DirectorCam = {
-		id = 0,
+		id = 2036342733,
 		name = "Director Cam",
 		priceHintRobux = 149,
 		cosmeticOnly = true,
 		blurb = "Spectate / replay cameras. Flex, not power.",
 	} :: GamePassDef,
 	FastCast = {
-		id = 0,
+		id = 2036840721,
 		name = "Fast Cast",
 		priceHintRobux = 99,
 		cosmeticOnly = true,
@@ -139,14 +139,14 @@ Config.GamePasses = {
 
 Config.Products = {
 	VipMonthly = {
-		id = 0,
+		id = 3718828170,
 		name = "Front Row Monthly",
 		priceHintRobux = 299,
 		vipDays = 30,
 		blurb = "30 days of VIP cosmetics (closet / makeup / poses / tag). Not a vote buff.",
 	} :: ProductDef,
 	GiftVipMonthly = {
-		id = 0,
+		id = 3718828216,
 		name = "Gift Front Row Monthly",
 		priceHintRobux = 299,
 		vipDays = 30,
@@ -154,7 +154,7 @@ Config.Products = {
 		blurb = "Gift 30 days of VIP cosmetics to a friend.",
 	} :: ProductDef,
 	GiftPropClutch = {
-		id = 0,
+		id = 3718828355,
 		name = "Gift Runway Clutch",
 		priceHintRobux = 75,
 		gift = true,
@@ -162,27 +162,27 @@ Config.Products = {
 		blurb = "Giftable clutch prop. Cosmetic.",
 	} :: ProductDef,
 	SeasonalLook = {
-		id = 0,
+		id = 3718828427,
 		name = "This Week's Drop",
 		priceHintRobux = 175,
 		lookId = "silk-club",
 		blurb = "Listed seasonal look for the current UTC week. No fake countdown.",
 	} :: ProductDef,
 	FastCastTicket = {
-		id = 0,
+		id = 3718828474,
 		name = "Fast Cast Ticket",
 		priceHintRobux = 25,
 		queueSkipTickets = 1,
 		blurb = "One queue skip. Time-saver.",
 	} :: ProductDef,
 	SpotlightVfx = {
-		id = 0,
+		id = 3718828553,
 		name = "Finale Spotlight",
 		priceHintRobux = 75,
 		blurb = "Pose share VFX. Cosmetic only.",
 	} :: ProductDef,
 	NightfallPack = {
-		id = 0,
+		id = 3718828639,
 		name = "Nightfall Look Pack",
 		priceHintRobux = 175,
 		lookId = "nightfall-finale",

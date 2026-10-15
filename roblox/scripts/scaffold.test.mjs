@@ -151,10 +151,13 @@ describe('Luau uses real Roblox APIs', () => {
         assert.match(all, /RequestBuyLook/);
     });
 
-    it('treats product id 0 as unconfigured', () => {
+    it('has real product ids configured (not 0)', () => {
         const config = read('src/ReplicatedStorage/Shared/Config.lua');
         assert.match(config, /function Config.isConfiguredId/);
-        assert.match(config, /id = 0/);
+        assert.doesNotMatch(config, /id = 0,/);
+        const ids = [...config.matchAll(/\tid = (\d+),/g)].map(m => Number(m[1]));
+        assert.ok(ids.length >= 11, `expected 11+ product ids, found ${ids.length}`);
+        assert.ok(ids.every(n => n > 0), 'all product ids must be positive');
     });
 });
 
