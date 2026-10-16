@@ -334,8 +334,9 @@ describe('Monetization policy 2026', () => {
         const play = readFileSync(path.join(repo, 'roblox-play.js'), 'utf8');
         const home = readFileSync(path.join(repo, 'index.html'), 'utf8');
         const landing = readFileSync(path.join(repo, 'roblox.html'), 'utf8');
-        assert.match(config, /Config\.PlaceId = 0/);
-        assert.match(play, /const PLACE_ID = 0/);
+        const configPlaceId = config.match(/Config\.PlaceId = (\d+)/)[1];
+        const playPlaceId = play.match(/const PLACE_ID = (\d+)/)[1];
+        assert.equal(configPlaceId, playPlaceId, 'Luau Config.PlaceId must match web roblox-play.js PLACE_ID');
         assert.match(home, /id="robloxPlayLink"/);
         assert.match(home, /roblox-play.js/);
         assert.match(landing, /Play on Roblox/);
